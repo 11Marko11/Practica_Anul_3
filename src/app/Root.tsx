@@ -113,8 +113,10 @@ export function Root() {
           <span style={{ fontSize: 14, fontWeight: 600, color: '#f5f5f7', letterSpacing: '-0.02em' }}>Rent Motors</span>
           <p style={{ fontSize: 13, color: '#86868b', margin: 0 }}>© 2026 Rent Motors, Inc. All rights reserved.</p>
           <div style={{ display: 'flex', gap: 20 }}>
-            {[['privacy', 'Privacy'], ['terms', 'Terms'], ['contact', 'Contact']].map(([, l]) => (
-              <a key={l} href="#" style={{ fontSize: 13, color: '#a1a1a6', textDecoration: 'none' }}>{l}</a>
+            {[['privacy', 'Privacy'], ['terms', 'Terms'], ['contact', 'Contact']].map(([path, label]) => (
+              <NavLink key={path} to={`/${path}`} style={({ isActive }) => ({ fontSize: 13, color: isActive ? '#f5f5f7' : '#a1a1a6', textDecoration: 'none' })}>
+                {label}
+              </NavLink>
             ))}
           </div>
         </div>

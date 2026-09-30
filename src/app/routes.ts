@@ -5,6 +5,8 @@ import { Marketplace } from '../pages/Marketplace'
 import { About } from '../pages/About'
 import { Contact } from '../pages/Contact'
 import { Login } from '../pages/Login'
+import { Terms } from '../pages/Terms'
+import { Privacy } from '../pages/Privacy'
 
 export const router = createBrowserRouter([
   {
@@ -16,6 +18,8 @@ export const router = createBrowserRouter([
       { path: 'about', Component: About },
       { path: 'contact', Component: Contact },
       { path: 'login', Component: Login },
+      { path: 'terms', Component: Terms },
+      { path: 'privacy', Component: Privacy },
     ],
   },
 ])
