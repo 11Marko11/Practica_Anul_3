@@ -109,11 +109,6 @@ export function Marketplace() {
                 </svg>
               </span>
             </label>
-            {brand !== 'All' && (
-              <button onClick={() => setBrand('All')} style={{ fontSize: 13, color: '#0071e3', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                Clear
-              </button>
-            )}
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
             {([['newest', 'Newest'], ['price-asc', 'Price ↑'], ['price-desc', 'Price ↓']] as const).map(([v, l]) => (
