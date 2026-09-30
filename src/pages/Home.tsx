@@ -12,6 +12,17 @@ const BRANDS = [
   { name: 'Ford', count: 36, logo: 'F' },
 ]
 
+type BrandSize = 'lg' | 'md' | 'sm'
+
+// Bigger collections get bigger tiles, sized relative to the largest brand.
+function brandSize(count: number, max: number): BrandSize {
+  const share = count / max
+  return share >= 0.65 ? 'lg' : share >= 0.35 ? 'md' : 'sm'
+}
+
+const MAX_BRAND_COUNT = Math.max(...BRANDS.map(b => b.count))
+const BRANDS_BY_SIZE = [...BRANDS].sort((a, b) => b.count - a.count)
+
 const STATS = [
   { value: '240+', label: 'Cars available' },
   { value: '8', label: 'Premium brands' },
@@ -122,9 +133,14 @@ export function Home() {
               See all rentals →
             </button>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
-            {BRANDS.map(brand => (
-              <BrandCard key={brand.name} brand={brand} onClick={() => navigate('/marketplace', { state: { brand: brand.name } })} />
+          <div className="brand-grid">
+            {BRANDS_BY_SIZE.map(brand => (
+              <BrandCard
+                key={brand.name}
+                brand={brand}
+                size={brandSize(brand.count, MAX_BRAND_COUNT)}
+                onClick={() => navigate('/marketplace', { state: { brand: brand.name } })}
+              />
             ))}
           </div>
         </div>
@@ -176,20 +192,29 @@ export function Home() {
   )
 }
 
-function BrandCard({ brand, onClick }: { brand: typeof BRANDS[0]; onClick: () => void }) {
+const BRAND_TILE = {
+  lg: { gridColumn: 'span 2', gridRow: 'span 2', logo: 56, logoFont: 22, name: 28, count: 15, padding: '28px 28px' },
+  md: { gridColumn: 'span 2', gridRow: 'span 1', logo: 44, logoFont: 18, name: 20, count: 14, padding: '22px 24px' },
+  sm: { gridColumn: 'span 1', gridRow: 'span 1', logo: 36, logoFont: 15, name: 16, count: 13, padding: '20px 20px' },
+}
+
+function BrandCard({ brand, size, onClick }: { brand: typeof BRANDS[0]; size: BrandSize; onClick: () => void }) {
   const [hov, setHov] = useState(false)
+  const t = BRAND_TILE[size]
   return (
     <button
       onClick={onClick}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', padding: '24px 20px', borderRadius: 14, background: hov ? '#e8e8ed' : '#f5f5f7', border: 'none', cursor: 'pointer', transition: 'background 0.15s', textAlign: 'left' }}
+      style={{ gridColumn: t.gridColumn, gridRow: t.gridRow, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-start', padding: t.padding, borderRadius: size === 'lg' ? 20 : 14, background: hov ? '#e8e8ed' : '#f5f5f7', border: 'none', cursor: 'pointer', transition: 'background 0.15s', textAlign: 'left', minWidth: 0 }}
     >
-      <div style={{ width: 40, height: 40, borderRadius: 10, background: '#1d1d1f', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, marginBottom: 16 }}>
+      <div style={{ width: t.logo, height: t.logo, flexShrink: 0, borderRadius: t.logo / 4, background: '#1d1d1f', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: t.logoFont, fontWeight: 700 }}>
         {brand.logo}
       </div>
-      <div style={{ fontSize: 15, fontWeight: 600, color: '#1d1d1f', letterSpacing: '-0.01em' }}>{brand.name}</div>
-      <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 2 }}>{brand.count} cars available</div>
+      <div>
+        <div style={{ fontSize: t.name, fontWeight: 600, color: '#1d1d1f', letterSpacing: '-0.02em' }}>{brand.name}</div>
+        <div style={{ fontSize: t.count, color: '#6e6e73', marginTop: 2 }}>{brand.count} cars available</div>
+      </div>
     </button>
   )
 }
