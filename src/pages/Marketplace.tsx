@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { useLocation, useNavigate } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import { CARS, carImage, type Car } from '../data/cars'
-import { addDays, bookingMessage, daysBetween, fmt, today } from '../lib/rental'
+import { addDays, fmt, plural, today } from '../lib/rental'
+import { useRentalDates } from '../lib/useRentalDates'
 import { DateField } from '../components/DateField'
 
 // Every brand that has at least one car, alphabetically, with how many cars it has.
@@ -14,14 +15,7 @@ export function Marketplace() {
   const requestedBrand = (location.state as { brand?: string } | null)?.brand
   const [brand, setBrand] = useState(() => BRANDS.some(([b]) => b === requestedBrand) ? requestedBrand! : 'All')
   const [sort, setSort] = useState<'newest' | 'price-asc' | 'price-desc'>('newest')
-  const [pickup, setPickup] = useState(() => addDays(today(), 1))
-  const [dropoff, setDropoff] = useState(() => addDays(today(), 4))
-  const days = daysBetween(pickup, dropoff)
-
-  function changePickup(value: string) {
-    setPickup(value)
-    if (value >= dropoff) setDropoff(addDays(value, 1))
-  }
+  const { pickup, dropoff, days, query, changePickup, changeDropoff } = useRentalDates()
 
   const list = CARS
     .filter(c => brand === 'All' || c.brand === brand)
@@ -47,7 +41,7 @@ export function Marketplace() {
       <div style={{ padding: '8px 24px 36px', background: '#1c1c1e' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
           <DateField label="Pick-up date" value={pickup} min={today()} onChange={changePickup} />
-          <DateField label="Return date" value={dropoff} min={addDays(pickup, 1)} onChange={setDropoff} />
+          <DateField label="Return date" value={dropoff} min={addDays(pickup, 1)} onChange={changeDropoff} />
           <p style={{ fontSize: 14, color: '#a1a1a6', margin: '0 0 12px' }}>
             {days} day{days !== 1 ? 's' : ''} · insurance included
           </p>
@@ -93,7 +87,7 @@ export function Marketplace() {
       {/* Grid */}
       <main style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 24px 96px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(340px, 100%), 1fr))', gap: 20 }}>
-          {list.map(car => <CarCard key={car.id} car={car} days={days} pickup={pickup} dropoff={dropoff} />)}
+          {list.map(car => <CarCard key={car.id} car={car} days={days} query={query} />)}
         </div>
         {list.length === 0 && (
           <div style={{ textAlign: 'center', padding: '80px 0' }}>
@@ -106,20 +100,15 @@ export function Marketplace() {
   )
 }
 
-function CarCard({ car, days, pickup, dropoff }: { car: Car; days: number; pickup: string; dropoff: string }) {
-  const navigate = useNavigate()
+function CarCard({ car, days, query }: { car: Car; days: number; query: string }) {
   const [hov, setHov] = useState(false)
 
-  function book() {
-    navigate('/contact', { state: { subject: 'booking', message: bookingMessage(car, pickup, dropoff) } })
-  }
-
   return (
-    <article
-      onClick={book}
+    <Link
+      to={`/cars/${car.slug}${query}`}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
-      style={{ cursor: 'pointer', borderRadius: 18, overflow: 'hidden', background: '#f5f5f7', transition: 'transform 0.2s, box-shadow 0.2s', transform: hov ? 'translateY(-3px)' : 'none', boxShadow: hov ? '0 12px 40px rgba(0,0,0,0.10)' : '0 2px 8px rgba(0,0,0,0.04)' }}
+      style={{ display: 'block', textDecoration: 'none', borderRadius: 18, overflow: 'hidden', background: '#f5f5f7', transition: 'transform 0.2s, box-shadow 0.2s', transform: hov ? 'translateY(-3px)' : 'none', boxShadow: hov ? '0 12px 40px rgba(0,0,0,0.10)' : '0 2px 8px rgba(0,0,0,0.04)' }}
     >
       <div style={{ position: 'relative', overflow: 'hidden', aspectRatio: '16/10', background: '#e8e8ed' }}>
         <img src={carImage(car, 900, 600)} alt={`${car.year} ${car.brand} ${car.model}`} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s', transform: hov ? 'scale(1.04)' : 'scale(1)' }} />
@@ -139,12 +128,12 @@ function CarCard({ car, days, pickup, dropoff }: { car: Car; days: number; picku
           <span style={{ fontSize: 12, color: '#6e6e73' }}>{car.seats} seats · {car.fuel}</span>
         </div>
         <p style={{ fontSize: 13, color: '#6e6e73', margin: '8px 0 0' }}>
-          {fmt(car.pricePerDay * days)} total for {days} day{days !== 1 ? 's' : ''}
+          {fmt(car.pricePerDay * days)} total for {plural(days, 'day')}
         </p>
-        <button style={{ marginTop: 14, width: '100%', padding: '10px 0', fontSize: 14, fontWeight: 500, color: '#0071e3', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'center' }}>
-          Book Now →
-        </button>
+        <span style={{ display: 'block', marginTop: 14, padding: '10px 0', fontSize: 14, fontWeight: 500, color: '#0071e3', textAlign: 'center' }}>
+          View Details →
+        </span>
       </div>
-    </article>
+    </Link>
   )
 }
