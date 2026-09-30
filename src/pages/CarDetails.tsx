@@ -4,6 +4,7 @@ import { CARS, carImage, findCar, type Car } from '../data/cars'
 import { addDays, bookingMessage, fmt, plural, today } from '../lib/rental'
 import { useRentalDates } from '../lib/useRentalDates'
 import { DateField } from '../components/DateField'
+import { CarGallery } from '../components/CarGallery'
 
 export function CarDetails() {
   const { slug = '' } = useParams()
@@ -58,8 +59,8 @@ function CarDetailsContent({ car }: { car: Car }) {
         </header>
 
         <div className="detail-grid">
-          <div className="detail-image" style={{ borderRadius: 24, overflow: 'hidden', aspectRatio: '16/10', background: '#e8e8ed' }}>
-            <img src={carImage(car, 1400, 875)} alt={`${car.year} ${car.brand} ${car.model}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <div className="detail-image">
+            <CarGallery car={car} />
           </div>
 
           <div className="detail-info">
