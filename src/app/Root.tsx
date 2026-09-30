@@ -1,5 +1,6 @@
 import { Outlet, NavLink, useLocation } from 'react-router'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useAuth } from '../auth/AuthContext'
 
 export function Root() {
   const [scrolled, setScrolled] = useState(false)
@@ -57,11 +58,7 @@ export function Root() {
               </NavLink>
             ))}
           </div>
-          <NavLink to="/contact" state={{ subject: 'hosting' }}>
-            <button style={{ fontSize: 13, fontWeight: 500, borderRadius: 980, padding: '8px 18px', cursor: 'pointer', transition: 'all 0.3s', ...btnStyle }}>
-              List Your Car
-            </button>
-          </NavLink>
+          <AccountButton btnStyle={btnStyle} />
         </div>
       </nav>
 
@@ -78,6 +75,67 @@ export function Root() {
           </div>
         </div>
       </footer>
+    </div>
+  )
+}
+
+function AccountButton({ btnStyle }: { btnStyle: React.CSSProperties }) {
+  const { user, signOut } = useAuth()
+  const location = useLocation()
+  const [open, setOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => setOpen(false), [location.pathname])
+
+  useEffect(() => {
+    if (!open) return
+    const close = (e: MouseEvent) => {
+      if (!menuRef.current?.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [open])
+
+  const pill = { fontSize: 13, fontWeight: 500, borderRadius: 980, padding: '8px 18px', cursor: 'pointer', transition: 'all 0.3s', ...btnStyle }
+
+  if (!user) {
+    return (
+      <NavLink to="/login" state={{ from: location.pathname }} style={{ ...pill, display: 'inline-block', textDecoration: 'none' }}>
+        Sign In
+      </NavLink>
+    )
+  }
+
+  return (
+    <div ref={menuRef} style={{ position: 'relative' }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        style={{ ...pill, display: 'flex', alignItems: 'center', gap: 8, padding: '5px 14px 5px 5px' }}
+      >
+        <span style={{ width: 24, height: 24, borderRadius: '50%', background: '#0071e3', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600 }}>
+          {user.name.charAt(0).toUpperCase()}
+        </span>
+        {user.name.split(' ')[0]}
+      </button>
+      {open && (
+        <div role="menu" style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', minWidth: 220, background: '#fff', borderRadius: 14, boxShadow: '0 12px 40px rgba(0,0,0,0.12)', border: '1px solid #f0f0f0', padding: 8 }}>
+          <div style={{ padding: '8px 10px 12px', borderBottom: '1px solid #f0f0f0', marginBottom: 6 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f' }}>{user.name}</div>
+            <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 2 }}>{user.email}</div>
+          </div>
+          <button
+            role="menuitem"
+            onClick={() => { signOut(); setOpen(false) }}
+            style={{ width: '100%', textAlign: 'left', fontSize: 14, color: '#d70015', background: 'none', border: 'none', borderRadius: 8, padding: '8px 10px', cursor: 'pointer' }}
+            onMouseEnter={e => (e.currentTarget.style.background = '#f5f5f7')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+          >
+            Sign Out
+          </button>
+        </div>
+      )}
     </div>
   )
 }

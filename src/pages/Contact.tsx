@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router'
+import { useAuth } from '../auth/AuthContext'
 
 type Prefill = { subject?: string; message?: string } | null
 
 export function Contact() {
   const location = useLocation()
   const prefill = location.state as Prefill
-  const empty = { name: '', email: '', subject: 'booking', message: '' }
+  const { user } = useAuth()
+  const empty = { name: user?.name ?? '', email: user?.email ?? '', subject: 'booking', message: '' }
   const [form, setForm] = useState({ ...empty, ...prefill })
   const [sent, setSent] = useState(false)
 
