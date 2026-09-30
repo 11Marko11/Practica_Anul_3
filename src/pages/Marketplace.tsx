@@ -88,7 +88,7 @@ export function Marketplace() {
       </div>
 
       {/* Filters */}
-      <div className="filter-bar" style={{ padding: '24px 24px', background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(20px)', borderBottom: '1px solid #f0f0f0', zIndex: 40 }}>
+      <div style={{ padding: '24px 24px', background: '#fff', borderBottom: '1px solid #f0f0f0' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#6e6e73' }}>

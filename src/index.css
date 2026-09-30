@@ -29,10 +29,6 @@ body {
 }
 
 /* Layouts that change on phones. Inline styles can't use media queries, so they live here. */
-/* Desktop: the nav and the car filter bar stay pinned while scrolling. */
-.site-nav { position: fixed; }
-.filter-bar { position: sticky; top: 52px; }
-
 .nav-links { display: flex; }
 .nav-toggle { display: none; }
 
@@ -67,10 +63,6 @@ body {
 }
 
 @media (max-width: 760px) {
-  /* Phones: both scroll away with the page instead of covering the screen. */
-  .site-nav { position: absolute; }
-  .filter-bar { position: static; }
-
   .nav-links, .nav-account { display: none; }
   .nav-toggle { display: flex; }
 

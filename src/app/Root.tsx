@@ -5,16 +5,9 @@ import { useAuth } from '../auth/AuthContext'
 const NAV_LINKS = [['marketplace', 'Rent a Car'], ['about', 'About'], ['contact', 'Contact']]
 
 export function Root() {
-  const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
   const isHome = location.pathname === '/'
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', onScroll)
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -22,7 +15,7 @@ export function Root() {
   }, [location.pathname])
 
   // Transparent only over the home hero, and never while the phone menu is open.
-  const transparent = isHome && !scrolled && !menuOpen
+  const transparent = isHome && !menuOpen
   const navBg = transparent
     ? 'rgba(0,0,0,0)'
     : 'rgba(28,28,30,0.9)'
@@ -36,8 +29,8 @@ export function Root() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#fff', color: '#1d1d1f' }}>
-      <nav className="site-nav" style={{
-        top: 0, left: 0, right: 0, zIndex: 100,
+      <nav style={{
+        position: 'absolute', top: 0, left: 0, right: 0, zIndex: 100,
         background: navBg,
         backdropFilter: transparent ? 'none' : 'blur(20px)',
         borderBottom: `1px solid ${navBorder}`,
