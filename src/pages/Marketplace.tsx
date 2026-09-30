@@ -9,7 +9,7 @@ const CARS = [
   { id: 5, brand: 'Mercedes', model: 'AMG GT 63 S', year: 2023, pricePerDay: 420, fuel: 'Petrol', seats: 4, image: 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=900&h=600&fit=crop&auto=format' },
   { id: 6, brand: 'Lamborghini', model: 'Huracán EVO', year: 2022, pricePerDay: 990, fuel: 'Petrol', seats: 2, image: 'https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=900&h=600&fit=crop&auto=format' },
   { id: 7, brand: 'Audi', model: 'RS e-tron GT', year: 2024, pricePerDay: 350, fuel: 'Electric', seats: 4, image: 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=900&h=600&fit=crop&auto=format' },
-  { id: 8, brand: 'Ford', model: 'Mustang GT500', year: 2023, pricePerDay: 220, fuel: 'Petrol', seats: 4, image: 'https://images.unsplash.com/photo-1584060573923-0d0bf7b86f5a?w=900&h=600&fit=crop&auto=format' },
+  { id: 8, brand: 'Ford', model: 'Mustang GT500', year: 2023, pricePerDay: 220, fuel: 'Petrol', seats: 4, image: 'https://images.unsplash.com/photo-1547744152-14d985cb937f?w=900&h=600&fit=crop&auto=format' },
   { id: 9, brand: 'BMW', model: 'iX M60', year: 2024, pricePerDay: 280, fuel: 'Electric', seats: 5, image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=900&h=600&fit=crop&auto=format' },
   { id: 10, brand: 'Porsche', model: 'Taycan Turbo S', year: 2024, pricePerDay: 450, fuel: 'Electric', seats: 4, image: 'https://images.unsplash.com/photo-1610647752706-3bb12232b3ab?w=900&h=600&fit=crop&auto=format' },
   { id: 11, brand: 'Mercedes', model: 'EQS 580', year: 2023, pricePerDay: 300, fuel: 'Electric', seats: 5, image: 'https://images.unsplash.com/photo-1614200179396-2bdb77ebf81b?w=900&h=600&fit=crop&auto=format' },
