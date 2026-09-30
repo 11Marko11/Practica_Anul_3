@@ -4,8 +4,34 @@ import { useAuth } from '../auth/AuthContext'
 
 const NAV_LINKS = [['marketplace', 'Rent a Car'], ['about', 'About'], ['contact', 'Contact']]
 
+const NAV_HEIGHT = 52
+
+// Hide the nav while scrolling down, bring it back as soon as the user scrolls up.
+function useNavScroll() {
+  const [scrolled, setScrolled] = useState(false)
+  const [hidden, setHidden] = useState(false)
+  const lastY = useRef(0)
+
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY
+      const delta = y - lastY.current
+      setScrolled(y > 20)
+      if (y <= NAV_HEIGHT) setHidden(false)
+      else if (delta > 4) setHidden(true)
+      else if (delta < -4) setHidden(false)
+      if (Math.abs(delta) > 4 || y <= NAV_HEIGHT) lastY.current = y
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  return { scrolled, hidden }
+}
+
 export function Root() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const { scrolled, hidden } = useNavScroll()
   const location = useLocation()
   const isHome = location.pathname === '/'
 
@@ -14,8 +40,8 @@ export function Root() {
     setMenuOpen(false)
   }, [location.pathname])
 
-  // Transparent only over the home hero, and never while the phone menu is open.
-  const transparent = isHome && !menuOpen
+  // Transparent only at the top of the home hero, and never while the phone menu is open.
+  const transparent = isHome && !scrolled && !menuOpen
   const navBg = transparent
     ? 'rgba(0,0,0,0)'
     : 'rgba(28,28,30,0.9)'
@@ -30,13 +56,14 @@ export function Root() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#fff', color: '#1d1d1f' }}>
       <nav style={{
-        position: 'absolute', top: 0, left: 0, right: 0, zIndex: 100,
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
         background: navBg,
         backdropFilter: transparent ? 'none' : 'blur(20px)',
         borderBottom: `1px solid ${navBorder}`,
-        transition: 'all 0.3s ease',
+        transform: hidden && !menuOpen ? 'translateY(-100%)' : 'none',
+        transition: 'transform 0.3s ease, background 0.3s ease, border-color 0.3s ease',
       }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', height: NAV_HEIGHT, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <NavLink to="/" style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.02em', color: logoColor, textDecoration: 'none', transition: 'color 0.3s' }}>
             Rent Motors
           </NavLink>
