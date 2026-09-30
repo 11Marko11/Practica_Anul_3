@@ -36,6 +36,23 @@ body {
 .legal-body strong { font-weight: 500; color: #1d1d1f; }
 .legal-body a { color: #0071e3; text-decoration: none; }
 
+/* Car details page. */
+.detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  grid-template-areas: 'image booking' 'info booking';
+  grid-template-rows: auto 1fr;
+  gap: 40px 48px;
+  align-items: start;
+}
+.detail-image { grid-area: image; }
+.detail-info { grid-area: info; min-width: 0; }
+.booking-card { grid-area: booking; }
+.booking-card { position: sticky; top: 72px; }
+.spec-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.feature-list { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 24px; margin: 0; padding: 0; list-style: none; }
+.similar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
 /* Layouts that change on phones. Inline styles can't use media queries, so they live here. */
 .nav-links { display: flex; }
 .nav-toggle { display: none; }
@@ -79,4 +96,9 @@ body {
 
   .about-hero, .contact-grid { grid-template-columns: 1fr; gap: 40px; }
   .form-row { grid-template-columns: 1fr; gap: 16px; }
+
+  .detail-grid { grid-template-columns: 1fr; grid-template-areas: 'image' 'booking' 'info'; gap: 32px; }
+  .booking-card { position: static; }
+  .spec-grid { grid-template-columns: repeat(2, 1fr); }
+  .feature-list, .similar-grid { grid-template-columns: 1fr; }
 }

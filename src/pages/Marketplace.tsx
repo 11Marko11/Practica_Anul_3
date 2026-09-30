@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
-import { CARS, type Car } from '../data/cars'
-import { addDays, daysBetween, fmt, today } from '../lib/rental'
+import { CARS, carImage, type Car } from '../data/cars'
+import { addDays, bookingMessage, daysBetween, fmt, today } from '../lib/rental'
+import { DateField } from '../components/DateField'
 
 // Every brand that has at least one car, alphabetically, with how many cars it has.
 const BRANDS = Object.entries(
@@ -105,28 +106,12 @@ export function Marketplace() {
   )
 }
 
-function DateField({ label, value, min, onChange }: { label: string; value: string; min: string; onChange: (v: string) => void }) {
-  return (
-    <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, color: '#a1a1a6' }}>
-      {label}
-      <input
-        type="date"
-        value={value}
-        min={min}
-        onChange={e => e.target.value && onChange(e.target.value)}
-        style={{ fontSize: 15, padding: '10px 14px', border: '1px solid #3a3a3d', borderRadius: 12, color: '#f5f5f7', fontFamily: 'inherit', background: '#2a2a2d', colorScheme: 'dark' }}
-      />
-    </label>
-  )
-}
-
 function CarCard({ car, days, pickup, dropoff }: { car: Car; days: number; pickup: string; dropoff: string }) {
   const navigate = useNavigate()
   const [hov, setHov] = useState(false)
-  const name = `${car.brand} ${car.model}`
 
   function book() {
-    navigate('/contact', { state: { subject: 'booking', message: `I'd like to rent the ${name} from ${pickup} to ${dropoff} (${days} day${days !== 1 ? 's' : ''}, ${fmt(car.pricePerDay * days)} total).` } })
+    navigate('/contact', { state: { subject: 'booking', message: bookingMessage(car, pickup, dropoff) } })
   }
 
   return (
@@ -137,7 +122,7 @@ function CarCard({ car, days, pickup, dropoff }: { car: Car; days: number; picku
       style={{ cursor: 'pointer', borderRadius: 18, overflow: 'hidden', background: '#f5f5f7', transition: 'transform 0.2s, box-shadow 0.2s', transform: hov ? 'translateY(-3px)' : 'none', boxShadow: hov ? '0 12px 40px rgba(0,0,0,0.10)' : '0 2px 8px rgba(0,0,0,0.04)' }}
     >
       <div style={{ position: 'relative', overflow: 'hidden', aspectRatio: '16/10', background: '#e8e8ed' }}>
-        <img src={car.image} alt={`${car.year} ${car.brand} ${car.model}`} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s', transform: hov ? 'scale(1.04)' : 'scale(1)' }} />
+        <img src={carImage(car, 900, 600)} alt={`${car.year} ${car.brand} ${car.model}`} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s', transform: hov ? 'scale(1.04)' : 'scale(1)' }} />
         {car.fuel !== 'Petrol' && (
           <span style={{ position: 'absolute', top: 12, right: 12, fontSize: 11, fontWeight: 500, background: 'rgba(255,255,255,0.9)', color: '#1d1d1f', padding: '4px 10px', borderRadius: 980, backdropFilter: 'blur(8px)' }}>
             {car.fuel}

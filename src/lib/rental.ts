@@ -1,3 +1,5 @@
+import type { Car } from '../data/cars'
+
 export function fmt(n: number) {
   return '$' + n.toLocaleString('en-US')
 }
@@ -17,4 +19,14 @@ export function today() {
 export function daysBetween(from: string, to: string) {
   const ms = new Date(to + 'T00:00:00Z').getTime() - new Date(from + 'T00:00:00Z').getTime()
   return Math.max(1, Math.round(ms / 86_400_000))
+}
+
+export function plural(n: number, word: string) {
+  return `${n} ${word}${n !== 1 ? 's' : ''}`
+}
+
+// The prefilled message sent to the Contact page when someone books a car.
+export function bookingMessage(car: Car, pickup: string, dropoff: string) {
+  const days = daysBetween(pickup, dropoff)
+  return `I'd like to rent the ${car.brand} ${car.model} from ${pickup} to ${dropoff} (${plural(days, 'day')}, ${fmt(car.pricePerDay * days)} total).`
 }
