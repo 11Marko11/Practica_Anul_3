@@ -124,7 +124,7 @@ export function Home() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
             {BRANDS.map(brand => (
-              <BrandCard key={brand.name} brand={brand} onClick={() => navigate('/marketplace')} />
+              <BrandCard key={brand.name} brand={brand} onClick={() => navigate('/marketplace', { state: { brand: brand.name } })} />
             ))}
           </div>
         </div>

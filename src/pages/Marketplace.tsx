@@ -1,7 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router'
-
-const BRANDS = ['All', 'BMW', 'Mercedes', 'Audi', 'Porsche', 'Ferrari', 'Tesla', 'Ford', 'Lamborghini']
+import { useLocation, useNavigate } from 'react-router'
 
 const CARS = [
   { id: 1, brand: 'Porsche', model: '911 Carrera 4S', year: 2024, pricePerDay: 390, fuel: 'Petrol', seats: 4, image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=900&h=600&fit=crop&auto=format' },
@@ -17,6 +15,11 @@ const CARS = [
   { id: 11, brand: 'Mercedes', model: 'EQS 580', year: 2023, pricePerDay: 300, fuel: 'Electric', seats: 5, image: 'https://images.unsplash.com/photo-1614200179396-2bdb77ebf81b?w=900&h=600&fit=crop&auto=format' },
   { id: 12, brand: 'Ferrari', model: 'SF90 Stradale', year: 2023, pricePerDay: 1450, fuel: 'Hybrid', seats: 2, image: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=900&h=600&fit=crop&auto=format' },
 ]
+
+// Every brand that has at least one car, alphabetically, with how many cars it has.
+const BRANDS = Object.entries(
+  CARS.reduce<Record<string, number>>((acc, c) => ({ ...acc, [c.brand]: (acc[c.brand] ?? 0) + 1 }), {}),
+).sort(([a], [b]) => a.localeCompare(b))
 
 function fmt(n: number) {
   return '$' + n.toLocaleString('en-US')
@@ -40,7 +43,9 @@ function daysBetween(from: string, to: string) {
 }
 
 export function Marketplace() {
-  const [brand, setBrand] = useState('All')
+  const location = useLocation()
+  const requestedBrand = (location.state as { brand?: string } | null)?.brand
+  const [brand, setBrand] = useState(() => BRANDS.some(([b]) => b === requestedBrand) ? requestedBrand! : 'All')
   const [sort, setSort] = useState<'newest' | 'price-asc' | 'price-desc'>('newest')
   const [pickup, setPickup] = useState(() => addDays(today(), 1))
   const [dropoff, setDropoff] = useState(() => addDays(today(), 4))
@@ -85,16 +90,30 @@ export function Marketplace() {
       {/* Filters */}
       <div style={{ padding: '24px 24px', position: 'sticky', top: 52, background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(20px)', borderBottom: '1px solid #f0f0f0', zIndex: 40 }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {BRANDS.map(b => (
-              <button
-                key={b}
-                onClick={() => setBrand(b)}
-                style={{ fontSize: 13, padding: '6px 16px', borderRadius: 980, border: '1px solid', borderColor: brand === b ? '#1d1d1f' : '#d2d2d7', background: brand === b ? '#1d1d1f' : 'transparent', color: brand === b ? '#fff' : '#1d1d1f', cursor: 'pointer', transition: 'all 0.15s', fontWeight: 400 }}
-              >
-                {b}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#6e6e73' }}>
+              Brand
+              <span style={{ position: 'relative', display: 'inline-flex' }}>
+                <select
+                  value={brand}
+                  onChange={e => setBrand(e.target.value)}
+                  style={{ appearance: 'none', fontSize: 14, fontFamily: 'inherit', padding: '9px 40px 9px 16px', minWidth: 220, borderRadius: 980, border: '1px solid', borderColor: brand === 'All' ? '#d2d2d7' : '#1d1d1f', background: '#fff', color: '#1d1d1f', cursor: 'pointer', outline: 'none' }}
+                >
+                  <option value="All">All brands ({CARS.length})</option>
+                  {BRANDS.map(([b, count]) => (
+                    <option key={b} value={b}>{b} ({count})</option>
+                  ))}
+                </select>
+                <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+                  <path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="#1d1d1f" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
+            </label>
+            {brand !== 'All' && (
+              <button onClick={() => setBrand('All')} style={{ fontSize: 13, color: '#0071e3', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                Clear
               </button>
-            ))}
+            )}
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
             {([['newest', 'Newest'], ['price-asc', 'Price ↑'], ['price-desc', 'Price ↓']] as const).map(([v, l]) => (
