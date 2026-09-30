@@ -115,9 +115,9 @@ function CarDetailsContent({ car }: { car: Car }) {
             </div>
             <p style={{ fontSize: 13, color: '#a1a1a6', margin: '4px 0 20px' }}>Pick up in {car.location}</p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <DateField fill label="Pick-up" value={pickup} min={today()} onChange={changePickup} />
-              <DateField fill label="Return" value={dropoff} min={addDays(pickup, 1)} onChange={changeDropoff} />
+            <div className="date-pair">
+              <DateField label="Pick-up" value={pickup} min={today()} onChange={changePickup} />
+              <DateField label="Return" value={dropoff} min={addDays(pickup, 1)} onChange={changeDropoff} />
             </div>
 
             <div style={{ borderTop: '1px solid #3a3a3d', marginTop: 20, paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14 }}>

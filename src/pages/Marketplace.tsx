@@ -40,8 +40,10 @@ export function Marketplace() {
       {/* Rental dates */}
       <div style={{ padding: '8px 24px 36px', background: '#1c1c1e' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-          <DateField label="Pick-up date" value={pickup} min={today()} onChange={changePickup} />
-          <DateField label="Return date" value={dropoff} min={addDays(pickup, 1)} onChange={changeDropoff} />
+          <div className="date-pair date-pair--inline">
+            <DateField label="Pick-up date" value={pickup} min={today()} onChange={changePickup} />
+            <DateField label="Return date" value={dropoff} min={addDays(pickup, 1)} onChange={changeDropoff} />
+          </div>
           <p style={{ fontSize: 14, color: '#a1a1a6', margin: '0 0 12px' }}>
             {days} day{days !== 1 ? 's' : ''} · insurance included
           </p>
