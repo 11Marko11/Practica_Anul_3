@@ -67,21 +67,21 @@ export function Marketplace() {
   return (
     <div style={{ paddingTop: 52 }}>
       {/* Page header */}
-      <div style={{ padding: '56px 24px 40px', borderBottom: '1px solid #f0f0f0' }}>
+      <div style={{ padding: '56px 24px 24px', background: '#1c1c1e' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <p style={{ fontSize: 13, color: '#6e6e73', margin: '0 0 8px', letterSpacing: '0.01em' }}>Car Rentals</p>
-          <h1 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#1d1d1f', margin: 0, lineHeight: 1.05 }}>
+          <p style={{ fontSize: 13, color: '#a1a1a6', margin: '0 0 8px', letterSpacing: '0.01em' }}>Car Rentals</p>
+          <h1 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#f5f5f7', margin: 0, lineHeight: 1.05 }}>
             Find your rental car.
           </h1>
         </div>
       </div>
 
       {/* Rental dates */}
-      <div style={{ padding: '24px 24px 0' }}>
+      <div style={{ padding: '8px 24px 36px', background: '#1c1c1e' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
           <DateField label="Pick-up date" value={pickup} min={today()} onChange={changePickup} />
           <DateField label="Return date" value={dropoff} min={addDays(pickup, 1)} onChange={setDropoff} />
-          <p style={{ fontSize: 14, color: '#6e6e73', margin: '0 0 12px' }}>
+          <p style={{ fontSize: 14, color: '#a1a1a6', margin: '0 0 12px' }}>
             {days} day{days !== 1 ? 's' : ''} · insurance included
           </p>
         </div>
@@ -146,14 +146,14 @@ export function Marketplace() {
 
 function DateField({ label, value, min, onChange }: { label: string; value: string; min: string; onChange: (v: string) => void }) {
   return (
-    <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, color: '#6e6e73' }}>
+    <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, color: '#a1a1a6' }}>
       {label}
       <input
         type="date"
         value={value}
         min={min}
         onChange={e => e.target.value && onChange(e.target.value)}
-        style={{ fontSize: 15, padding: '10px 14px', border: '1px solid #d2d2d7', borderRadius: 12, color: '#1d1d1f', fontFamily: 'inherit', background: '#fff' }}
+        style={{ fontSize: 15, padding: '10px 14px', border: '1px solid #3a3a3d', borderRadius: 12, color: '#f5f5f7', fontFamily: 'inherit', background: '#2a2a2d', colorScheme: 'dark' }}
       />
     </label>
   )

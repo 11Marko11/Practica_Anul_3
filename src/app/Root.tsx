@@ -19,17 +19,17 @@ export function Root() {
 
   const navBg = isHome && !scrolled
     ? 'rgba(0,0,0,0)'
-    : 'rgba(255,255,255,0.85)'
+    : 'rgba(28,28,30,0.9)'
 
-  const navBorder = isHome && !scrolled ? 'transparent' : '#f0f0f0'
-  const linkColor = isHome && !scrolled ? 'rgba(255,255,255,0.8)' : '#6e6e73'
-  const logoColor = isHome && !scrolled ? '#fff' : '#1d1d1f'
+  const navBorder = isHome && !scrolled ? 'transparent' : '#2c2c2e'
+  const linkColor = 'rgba(255,255,255,0.7)'
+  const logoColor = '#fff'
   const btnStyle = isHome && !scrolled
     ? { background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }
-    : { background: '#1d1d1f', color: '#fff', border: 'none' }
+    : { background: '#f5f5f7', color: '#1c1c1e', border: 'none' }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#fff', color: '#1d1d1f' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#fff', color: '#1d1d1f' }}>
       <nav style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
         background: navBg,
@@ -48,7 +48,7 @@ export function Root() {
                 to={`/${path}`}
                 style={({ isActive }) => ({
                   fontSize: 14,
-                  color: isActive ? (isHome && !scrolled ? '#fff' : '#1d1d1f') : linkColor,
+                  color: isActive ? '#fff' : linkColor,
                   textDecoration: 'none',
                   fontWeight: isActive ? 500 : 400,
                   transition: 'color 0.3s',
@@ -62,15 +62,17 @@ export function Root() {
         </div>
       </nav>
 
-      <Outlet />
+      <div style={{ flex: 1 }}>
+        <Outlet />
+      </div>
 
-      <footer style={{ borderTop: '1px solid #f0f0f0', padding: '28px 24px' }}>
+      <footer style={{ background: '#161618', padding: '28px 24px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-          <span style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f', letterSpacing: '-0.02em' }}>Rent Motors</span>
-          <p style={{ fontSize: 13, color: '#6e6e73', margin: 0 }}>© 2026 Rent Motors, Inc. All rights reserved.</p>
+          <span style={{ fontSize: 14, fontWeight: 600, color: '#f5f5f7', letterSpacing: '-0.02em' }}>Rent Motors</span>
+          <p style={{ fontSize: 13, color: '#86868b', margin: 0 }}>© 2026 Rent Motors, Inc. All rights reserved.</p>
           <div style={{ display: 'flex', gap: 20 }}>
             {[['privacy', 'Privacy'], ['terms', 'Terms'], ['contact', 'Contact']].map(([, l]) => (
-              <a key={l} href="#" style={{ fontSize: 13, color: '#6e6e73', textDecoration: 'none' }}>{l}</a>
+              <a key={l} href="#" style={{ fontSize: 13, color: '#a1a1a6', textDecoration: 'none' }}>{l}</a>
             ))}
           </div>
         </div>
@@ -120,16 +122,16 @@ function AccountButton({ btnStyle }: { btnStyle: React.CSSProperties }) {
         {user.name.split(' ')[0]}
       </button>
       {open && (
-        <div role="menu" style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', minWidth: 220, background: '#fff', borderRadius: 14, boxShadow: '0 12px 40px rgba(0,0,0,0.12)', border: '1px solid #f0f0f0', padding: 8 }}>
-          <div style={{ padding: '8px 10px 12px', borderBottom: '1px solid #f0f0f0', marginBottom: 6 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f' }}>{user.name}</div>
-            <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 2 }}>{user.email}</div>
+        <div role="menu" style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', minWidth: 220, background: '#2a2a2d', borderRadius: 14, boxShadow: '0 12px 40px rgba(0,0,0,0.35)', border: '1px solid #3a3a3d', padding: 8 }}>
+          <div style={{ padding: '8px 10px 12px', borderBottom: '1px solid #3a3a3d', marginBottom: 6 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: '#f5f5f7' }}>{user.name}</div>
+            <div style={{ fontSize: 13, color: '#a1a1a6', marginTop: 2 }}>{user.email}</div>
           </div>
           <button
             role="menuitem"
             onClick={() => { signOut(); setOpen(false) }}
-            style={{ width: '100%', textAlign: 'left', fontSize: 14, color: '#d70015', background: 'none', border: 'none', borderRadius: 8, padding: '8px 10px', cursor: 'pointer' }}
-            onMouseEnter={e => (e.currentTarget.style.background = '#f5f5f7')}
+            style={{ width: '100%', textAlign: 'left', fontSize: 14, color: '#ff6961', background: 'none', border: 'none', borderRadius: 8, padding: '8px 10px', cursor: 'pointer' }}
+            onMouseEnter={e => (e.currentTarget.style.background = '#3a3a3d')}
             onMouseLeave={e => (e.currentTarget.style.background = 'none')}
           >
             Sign Out

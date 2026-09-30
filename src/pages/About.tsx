@@ -41,16 +41,16 @@ export function About() {
       </section>
 
       {/* Values */}
-      <section style={{ padding: '80px 24px', background: '#f5f5f7' }}>
+      <section style={{ padding: '80px 24px', background: '#1c1c1e' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <p style={{ fontSize: 13, color: '#6e6e73', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>What we stand for</p>
-          <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#1d1d1f', margin: '0 0 48px' }}>Our values.</h2>
+          <p style={{ fontSize: 13, color: '#a1a1a6', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>What we stand for</p>
+          <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#f5f5f7', margin: '0 0 48px' }}>Our values.</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
             {VALUES.map((v, i) => (
-              <div key={v.title} style={{ background: '#fff', borderRadius: 18, padding: '36px 28px' }}>
-                <div style={{ fontSize: 13, color: '#6e6e73', fontWeight: 500, marginBottom: 16 }}>0{i + 1}</div>
-                <h3 style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.025em', color: '#1d1d1f', margin: '0 0 12px' }}>{v.title}</h3>
-                <p style={{ fontSize: 15, color: '#6e6e73', lineHeight: 1.65, margin: 0, fontWeight: 300 }}>{v.desc}</p>
+              <div key={v.title} style={{ background: '#2a2a2d', borderRadius: 18, padding: '36px 28px' }}>
+                <div style={{ fontSize: 13, color: '#86868b', fontWeight: 500, marginBottom: 16 }}>0{i + 1}</div>
+                <h3 style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.025em', color: '#f5f5f7', margin: '0 0 12px' }}>{v.title}</h3>
+                <p style={{ fontSize: 15, color: '#a1a1a6', lineHeight: 1.65, margin: 0, fontWeight: 300 }}>{v.desc}</p>
               </div>
             ))}
           </div>
@@ -77,7 +77,7 @@ export function About() {
       </section>
 
       {/* CTA */}
-      <section style={{ background: '#1d1d1f', padding: '80px 24px', textAlign: 'center' }}>
+      <section style={{ background: '#2a2a2d', padding: '80px 24px', textAlign: 'center' }}>
         <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#fff', margin: '0 0 16px' }}>
           Your next trip starts here.
         </h2>

@@ -55,9 +55,9 @@ export function Contact() {
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: 80, alignItems: 'start' }}>
 
           {/* Left info */}
-          <div>
-            <h2 style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em', color: '#1d1d1f', margin: '0 0 16px' }}>We're here to help.</h2>
-            <p style={{ fontSize: 15, color: '#6e6e73', lineHeight: 1.7, fontWeight: 300, margin: '0 0 48px' }}>
+          <div style={{ background: '#1c1c1e', borderRadius: 24, padding: '40px 32px' }}>
+            <h2 style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em', color: '#f5f5f7', margin: '0 0 16px' }}>We're here to help.</h2>
+            <p style={{ fontSize: 15, color: '#a1a1a6', lineHeight: 1.7, fontWeight: 300, margin: '0 0 40px' }}>
               Whether you're booking a car, listing your own, or have a question about a reservation — our team typically responds within a few hours.
             </p>
 
@@ -69,8 +69,8 @@ export function Contact() {
                 { label: 'Address', value: '14 Rue de Rivoli, Paris, France' },
               ].map(item => (
                 <div key={item.label}>
-                  <div style={{ fontSize: 12, color: '#6e6e73', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4, fontWeight: 500 }}>{item.label}</div>
-                  <div style={{ fontSize: 15, color: '#1d1d1f', fontWeight: 400 }}>{item.value}</div>
+                  <div style={{ fontSize: 12, color: '#86868b', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4, fontWeight: 500 }}>{item.label}</div>
+                  <div style={{ fontSize: 15, color: '#f5f5f7', fontWeight: 400 }}>{item.value}</div>
                 </div>
               ))}
             </div>

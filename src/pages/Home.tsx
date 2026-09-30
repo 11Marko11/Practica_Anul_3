@@ -96,12 +96,12 @@ export function Home() {
       </section>
 
       {/* Stats */}
-      <section style={{ background: '#f5f5f7', padding: '64px 24px' }}>
+      <section style={{ background: '#1c1c1e', padding: '64px 24px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 0 }}>
           {STATS.map((s, i) => (
-            <div key={s.label} style={{ textAlign: 'center', padding: '24px 16px', borderRight: i < STATS.length - 1 ? '1px solid #e0e0e5' : 'none' }}>
-              <div style={{ fontSize: 36, fontWeight: 600, letterSpacing: '-0.04em', color: '#1d1d1f' }}>{s.value}</div>
-              <div style={{ fontSize: 14, color: '#6e6e73', marginTop: 4, fontWeight: 400 }}>{s.label}</div>
+            <div key={s.label} style={{ textAlign: 'center', padding: '24px 16px', borderRight: i < STATS.length - 1 ? '1px solid #3a3a3d' : 'none' }}>
+              <div style={{ fontSize: 36, fontWeight: 600, letterSpacing: '-0.04em', color: '#f5f5f7' }}>{s.value}</div>
+              <div style={{ fontSize: 14, color: '#a1a1a6', marginTop: 4, fontWeight: 400 }}>{s.label}</div>
             </div>
           ))}
         </div>
@@ -131,10 +131,10 @@ export function Home() {
       </section>
 
       {/* How it works */}
-      <section style={{ background: '#f5f5f7', padding: '88px 24px' }}>
+      <section style={{ background: '#1c1c1e', padding: '88px 24px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <p style={{ fontSize: 13, color: '#6e6e73', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>How it works</p>
-          <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#1d1d1f', margin: '0 0 56px' }}>
+          <p style={{ fontSize: 13, color: '#a1a1a6', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>How it works</p>
+          <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#f5f5f7', margin: '0 0 56px' }}>
             Simple. Fast. Reliable.
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 32 }}>
@@ -143,10 +143,10 @@ export function Home() {
               { step: '02', title: 'Book', desc: 'Reserve instantly with verified hosts. Insurance and roadside assistance are included in the price.' },
               { step: '03', title: 'Drive', desc: 'Pick up the car or have it delivered to your door, then return it when your trip is over.' },
             ].map(item => (
-              <div key={item.step} style={{ background: '#fff', borderRadius: 18, padding: '32px 28px' }}>
-                <div style={{ fontSize: 13, color: '#6e6e73', fontWeight: 500, marginBottom: 16, letterSpacing: '0.04em' }}>{item.step}</div>
-                <h3 style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.025em', color: '#1d1d1f', margin: '0 0 12px' }}>{item.title}</h3>
-                <p style={{ fontSize: 15, color: '#6e6e73', lineHeight: 1.65, margin: 0, fontWeight: 300 }}>{item.desc}</p>
+              <div key={item.step} style={{ background: '#2a2a2d', borderRadius: 18, padding: '32px 28px' }}>
+                <div style={{ fontSize: 13, color: '#86868b', fontWeight: 500, marginBottom: 16, letterSpacing: '0.04em' }}>{item.step}</div>
+                <h3 style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.025em', color: '#f5f5f7', margin: '0 0 12px' }}>{item.title}</h3>
+                <p style={{ fontSize: 15, color: '#a1a1a6', lineHeight: 1.65, margin: 0, fontWeight: 300 }}>{item.desc}</p>
               </div>
             ))}
           </div>

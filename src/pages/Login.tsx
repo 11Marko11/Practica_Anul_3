@@ -53,7 +53,7 @@ export function Login() {
   }
 
   return (
-    <div style={{ paddingTop: 52, minHeight: 'calc(100vh - 80px)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f5f7' }}>
+    <div style={{ paddingTop: 52, minHeight: 'calc(100vh - 80px)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1c1c1e' }}>
       <section style={{ width: '100%', maxWidth: 420, margin: '64px 24px', background: '#fff', borderRadius: 24, padding: '40px 32px', boxShadow: '0 12px 40px rgba(0,0,0,0.06)' }}>
         <h1 style={{ fontSize: 30, fontWeight: 600, letterSpacing: '-0.03em', color: '#1d1d1f', margin: '0 0 8px' }}>
           {mode === 'signin' ? 'Welcome back.' : 'Create your account.'}
