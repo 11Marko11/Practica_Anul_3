@@ -8,9 +8,9 @@ const TEAM = [
 ]
 
 const VALUES = [
-  { title: 'Curation', desc: 'Every vehicle on AutoMarkt is hand-verified. We believe in quality over quantity — only the best make it to our platform.' },
-  { title: 'Transparency', desc: 'No hidden fees, no surprises. Full vehicle history, honest pricing, and direct access to sellers.' },
-  { title: 'Speed', desc: "From first browse to final handshake, we've built AutoMarkt to make the process as fast as possible." },
+  { title: 'Quality', desc: 'Every car on Rent Motors is inspected before its first trip. Only well-maintained, verified vehicles make it to our platform.' },
+  { title: 'Transparency', desc: 'One all-inclusive daily price with insurance and roadside assistance. No hidden fees, no deposit surprises.' },
+  { title: 'Flexibility', desc: 'Book for a day or a month, pick up or get delivery, and cancel for free up to 24 hours before your trip.' },
 ]
 
 export function About() {
@@ -24,16 +24,16 @@ export function About() {
           <div>
             <p style={{ fontSize: 13, color: '#6e6e73', margin: '0 0 12px', letterSpacing: '0.01em' }}>About Us</p>
             <h1 style={{ fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 600, letterSpacing: '-0.035em', color: '#1d1d1f', margin: '0 0 20px', lineHeight: 1.05 }}>
-              Built by car people,<br />for car people.
+              Built by drivers,<br />for drivers.
             </h1>
             <p style={{ fontSize: 17, color: '#6e6e73', fontWeight: 300, lineHeight: 1.7, margin: 0 }}>
-              AutoMarkt was founded in 2022 with one mission: make buying and selling premium cars as effortless as it should be. We connect passionate buyers with verified sellers across Europe and North America.
+              Rent Motors was founded in 2022 with one mission: make renting a premium car as effortless as it should be. We connect drivers with verified hosts and rental agencies across Europe and North America.
             </p>
           </div>
           <div style={{ borderRadius: 24, overflow: 'hidden', aspectRatio: '4/3', background: '#e8e8ed' }}>
             <img
               src="https://images.unsplash.com/photo-1493238792000-8113da705763?w=800&h=600&fit=crop&auto=format"
-              alt="Team at AutoMarkt"
+              alt="Team at Rent Motors"
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           </div>
@@ -61,7 +61,7 @@ export function About() {
       <section style={{ padding: '80px 24px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <p style={{ fontSize: 13, color: '#6e6e73', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>The team</p>
-          <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#1d1d1f', margin: '0 0 48px' }}>The people behind AutoMarkt.</h2>
+          <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#1d1d1f', margin: '0 0 48px' }}>The people behind Rent Motors.</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20 }}>
             {TEAM.map(member => (
               <div key={member.name} style={{ textAlign: 'center' }}>
@@ -79,10 +79,10 @@ export function About() {
       {/* CTA */}
       <section style={{ background: '#1d1d1f', padding: '80px 24px', textAlign: 'center' }}>
         <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#fff', margin: '0 0 16px' }}>
-          Start your search today.
+          Your next trip starts here.
         </h2>
         <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.6)', fontWeight: 300, margin: '0 0 36px' }}>
-          Hundreds of premium vehicles waiting to be discovered.
+          Hundreds of premium cars ready to rent, from one day to one month.
         </p>
         <button
           onClick={() => navigate('/marketplace')}
@@ -90,7 +90,7 @@ export function About() {
           onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
           onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
         >
-          Browse Cars
+          Rent a Car
         </button>
       </section>
     </div>

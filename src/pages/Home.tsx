@@ -13,10 +13,10 @@ const BRANDS = [
 ]
 
 const STATS = [
-  { value: '240+', label: 'Vehicles listed' },
+  { value: '240+', label: 'Cars available' },
   { value: '8', label: 'Premium brands' },
   { value: '4.9', label: 'Average rating' },
-  { value: '1,200+', label: 'Happy buyers' },
+  { value: '12,000+', label: 'Trips completed' },
 ]
 
 const HERO_IMAGES = [
@@ -66,13 +66,13 @@ export function Home() {
 
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0 24px' }}>
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 20, fontWeight: 400 }}>
-            Premium Automotive Marketplace
+            Premium Car Rental Marketplace
           </p>
           <h1 style={{ fontSize: 'clamp(44px, 7vw, 88px)', fontWeight: 600, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1.0, margin: '0 0 24px', maxWidth: 700 }}>
-            Drive what you love.
+            Rent what you love.
           </h1>
           <p style={{ fontSize: 18, color: 'rgba(255,255,255,0.75)', fontWeight: 300, maxWidth: 480, lineHeight: 1.6, margin: '0 0 40px' }}>
-            Curated selection of premium vehicles from the world's most iconic brands.
+            Book premium cars by the day from verified hosts. Insurance included, no hidden fees.
           </p>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
             <button
@@ -81,7 +81,7 @@ export function Home() {
               onMouseEnter={e => (e.currentTarget.style.opacity = '0.88')}
               onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
             >
-              Browse Cars
+              Find a Car
             </button>
             <button
               onClick={() => navigate('/about')}
@@ -119,7 +119,7 @@ export function Home() {
               onClick={() => navigate('/marketplace')}
               style={{ fontSize: 15, color: '#0071e3', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 400, padding: 0 }}
             >
-              See all cars →
+              See all rentals →
             </button>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
@@ -139,9 +139,9 @@ export function Home() {
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 32 }}>
             {[
-              { step: '01', title: 'Browse', desc: 'Explore hundreds of curated premium vehicles filtered by brand, price, and fuel type.' },
-              { step: '02', title: 'Connect', desc: 'Get in touch directly with verified sellers. No middlemen, no hidden fees.' },
-              { step: '03', title: 'Drive', desc: 'Complete the purchase and take delivery. Your dream car, delivered to your door.' },
+              { step: '01', title: 'Choose', desc: 'Pick your dates and explore hundreds of premium cars filtered by brand, daily price, and fuel type.' },
+              { step: '02', title: 'Book', desc: 'Reserve instantly with verified hosts. Insurance and roadside assistance are included in the price.' },
+              { step: '03', title: 'Drive', desc: 'Pick up the car or have it delivered to your door, then return it when your trip is over.' },
             ].map(item => (
               <div key={item.step} style={{ background: '#fff', borderRadius: 18, padding: '32px 28px' }}>
                 <div style={{ fontSize: 13, color: '#6e6e73', fontWeight: 500, marginBottom: 16, letterSpacing: '0.04em' }}>{item.step}</div>
@@ -157,10 +157,10 @@ export function Home() {
       <section style={{ padding: '88px 24px', textAlign: 'center' }}>
         <div style={{ maxWidth: 600, margin: '0 auto' }}>
           <h2 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 600, letterSpacing: '-0.035em', color: '#1d1d1f', margin: '0 0 16px', lineHeight: 1.05 }}>
-            Ready to find your car?
+            Ready for your next drive?
           </h2>
           <p style={{ fontSize: 17, color: '#6e6e73', fontWeight: 300, margin: '0 0 36px', lineHeight: 1.6 }}>
-            Join thousands of buyers who found their perfect vehicle on AutoMarkt.
+            Join thousands of drivers who rent their dream car on Rent Motors.
           </p>
           <button
             onClick={() => navigate('/marketplace')}
@@ -168,7 +168,7 @@ export function Home() {
             onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
             onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
           >
-            Browse Cars
+            Rent a Car
           </button>
         </div>
       </section>
@@ -189,7 +189,7 @@ function BrandCard({ brand, onClick }: { brand: typeof BRANDS[0]; onClick: () =>
         {brand.logo}
       </div>
       <div style={{ fontSize: 15, fontWeight: 600, color: '#1d1d1f', letterSpacing: '-0.01em' }}>{brand.name}</div>
-      <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 2 }}>{brand.count} vehicles</div>
+      <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 2 }}>{brand.count} cars available</div>
     </button>
   )
 }

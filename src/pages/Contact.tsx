@@ -1,8 +1,22 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router'
+
+type Prefill = { subject?: string; message?: string } | null
 
 export function Contact() {
-  const [form, setForm] = useState({ name: '', email: '', subject: 'buying', message: '' })
+  const location = useLocation()
+  const prefill = location.state as Prefill
+  const empty = { name: '', email: '', subject: 'booking', message: '' }
+  const [form, setForm] = useState({ ...empty, ...prefill })
   const [sent, setSent] = useState(false)
+
+  // Re-apply the prefill when arriving from another "Book Now" / "List Your Car" link while already on this page.
+  useEffect(() => {
+    if (prefill) {
+      setForm({ ...empty, ...prefill })
+      setSent(false)
+    }
+  }, [location.key])
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -42,12 +56,12 @@ export function Contact() {
           <div>
             <h2 style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em', color: '#1d1d1f', margin: '0 0 16px' }}>We're here to help.</h2>
             <p style={{ fontSize: 15, color: '#6e6e73', lineHeight: 1.7, fontWeight: 300, margin: '0 0 48px' }}>
-              Whether you're buying, selling, or just have a question — our team typically responds within a few hours.
+              Whether you're booking a car, listing your own, or have a question about a reservation — our team typically responds within a few hours.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
               {[
-                { label: 'Email', value: 'hello@automarkt.com' },
+                { label: 'Email', value: 'hello@rentmotors.com' },
                 { label: 'Phone', value: '+1 (415) 555 0192' },
                 { label: 'Hours', value: 'Mon–Fri, 9am – 6pm CET' },
                 { label: 'Address', value: '14 Rue de Rivoli, Paris, France' },
@@ -66,9 +80,9 @@ export function Contact() {
               <div style={{ background: '#f5f5f7', borderRadius: 20, padding: '56px 40px', textAlign: 'center' }}>
                 <div style={{ fontSize: 40, marginBottom: 16 }}>✓</div>
                 <h3 style={{ fontSize: 24, fontWeight: 600, letterSpacing: '-0.025em', color: '#1d1d1f', margin: '0 0 10px' }}>Message sent!</h3>
-                <p style={{ fontSize: 15, color: '#6e6e73', fontWeight: 300 }}>We'll get back to you within 24 hours.</p>
+                <p style={{ fontSize: 15, color: '#6e6e73', fontWeight: 300 }}>We'll confirm your request within 24 hours.</p>
                 <button
-                  onClick={() => { setSent(false); setForm({ name: '', email: '', subject: 'buying', message: '' }) }}
+                  onClick={() => { setSent(false); setForm(empty) }}
                   style={{ marginTop: 24, fontSize: 14, color: '#0071e3', background: 'none', border: 'none', cursor: 'pointer' }}
                 >
                   Send another message
@@ -111,8 +125,9 @@ export function Contact() {
                     onChange={e => setForm(f => ({ ...f, subject: e.target.value }))}
                     style={{ ...inputStyle, cursor: 'pointer', appearance: 'none' }}
                   >
-                    <option value="buying">Buying a car</option>
-                    <option value="selling">Selling a car</option>
+                    <option value="booking">Booking a car</option>
+                    <option value="reservation">An existing reservation</option>
+                    <option value="hosting">Listing my car for rent</option>
                     <option value="partnership">Partnership</option>
                     <option value="other">Other</option>
                   </select>
@@ -124,7 +139,7 @@ export function Contact() {
                     required
                     value={form.message}
                     onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
-                    placeholder="Tell us what you're looking for..."
+                    placeholder="Tell us about your trip: dates, car and pick-up location..."
                     rows={5}
                     style={{ ...inputStyle, resize: 'none', lineHeight: 1.6 }}
                     onFocus={e => (e.target.style.borderColor = '#1d1d1f')}

@@ -38,10 +38,10 @@ export function Root() {
       }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <NavLink to="/" style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.02em', color: logoColor, textDecoration: 'none', transition: 'color 0.3s' }}>
-            AutoMarkt
+            Rent Motors
           </NavLink>
           <div style={{ display: 'flex', gap: 28, alignItems: 'center' }}>
-            {[['marketplace', 'Browse'], ['about', 'About'], ['contact', 'Contact']].map(([path, label]) => (
+            {[['marketplace', 'Rent a Car'],['about', 'About'], ['contact', 'Contact']].map(([path, label]) => (
               <NavLink
                 key={path}
                 to={`/${path}`}
@@ -57,9 +57,9 @@ export function Root() {
               </NavLink>
             ))}
           </div>
-          <NavLink to="/marketplace">
+          <NavLink to="/contact" state={{ subject: 'hosting' }}>
             <button style={{ fontSize: 13, fontWeight: 500, borderRadius: 980, padding: '8px 18px', cursor: 'pointer', transition: 'all 0.3s', ...btnStyle }}>
-              List a Car
+              List Your Car
             </button>
           </NavLink>
         </div>
@@ -69,8 +69,8 @@ export function Root() {
 
       <footer style={{ borderTop: '1px solid #f0f0f0', padding: '28px 24px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-          <span style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f', letterSpacing: '-0.02em' }}>AutoMarkt</span>
-          <p style={{ fontSize: 13, color: '#6e6e73', margin: 0 }}>© 2026 AutoMarkt, Inc. All rights reserved.</p>
+          <span style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f', letterSpacing: '-0.02em' }}>Rent Motors</span>
+          <p style={{ fontSize: 13, color: '#6e6e73', margin: 0 }}>© 2026 Rent Motors, Inc. All rights reserved.</p>
           <div style={{ display: 'flex', gap: 20 }}>
             {[['privacy', 'Privacy'], ['terms', 'Terms'], ['contact', 'Contact']].map(([, l]) => (
               <a key={l} href="#" style={{ fontSize: 13, color: '#6e6e73', textDecoration: 'none' }}>{l}</a>
