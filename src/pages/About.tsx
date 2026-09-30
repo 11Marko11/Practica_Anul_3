@@ -20,7 +20,7 @@ export function About() {
     <div style={{ paddingTop: 52 }}>
       {/* Header */}
       <section style={{ padding: '80px 24px 72px', borderBottom: '1px solid #f0f0f0' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 64, alignItems: 'center' }}>
+        <div className="about-hero" style={{ maxWidth: 1200, margin: '0 auto' }}>
           <div>
             <p style={{ fontSize: 13, color: '#6e6e73', margin: '0 0 12px', letterSpacing: '0.01em' }}>About Us</p>
             <h1 style={{ fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 600, letterSpacing: '-0.035em', color: '#1d1d1f', margin: '0 0 20px', lineHeight: 1.05 }}>

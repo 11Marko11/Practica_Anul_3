@@ -108,9 +108,9 @@ export function Home() {
 
       {/* Stats */}
       <section style={{ background: '#1c1c1e', padding: '64px 24px' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 0 }}>
-          {STATS.map((s, i) => (
-            <div key={s.label} style={{ textAlign: 'center', padding: '24px 16px', borderRight: i < STATS.length - 1 ? '1px solid #3a3a3d' : 'none' }}>
+        <div className="stats-grid" style={{ maxWidth: 1200, margin: '0 auto' }}>
+          {STATS.map(s => (
+            <div key={s.label} style={{ textAlign: 'center', padding: '24px 16px' }}>
               <div style={{ fontSize: 36, fontWeight: 600, letterSpacing: '-0.04em', color: '#f5f5f7' }}>{s.value}</div>
               <div style={{ fontSize: 14, color: '#a1a1a6', marginTop: 4, fontWeight: 400 }}>{s.label}</div>
             </div>

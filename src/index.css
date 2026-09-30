@@ -27,3 +27,48 @@ body {
     grid-auto-rows: 136px;
   }
 }
+
+/* Layouts that change on phones. Inline styles can't use media queries, so they live here. */
+.nav-links { display: flex; }
+.nav-toggle { display: none; }
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+.stats-grid > * + * { border-left: 1px solid #3a3a3d; }
+
+.about-hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: center;
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 80px;
+  align-items: start;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 761px) {
+  .mobile-menu { display: none; }
+}
+
+@media (max-width: 760px) {
+  .nav-links, .nav-account { display: none; }
+  .nav-toggle { display: flex; }
+
+  .stats-grid { grid-template-columns: repeat(2, 1fr); row-gap: 8px; }
+  .stats-grid > * + * { border-left: none; }
+
+  .about-hero, .contact-grid { grid-template-columns: 1fr; gap: 40px; }
+  .form-row { grid-template-columns: 1fr; gap: 16px; }
+}

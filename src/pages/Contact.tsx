@@ -52,7 +52,7 @@ export function Contact() {
 
       {/* Content */}
       <section style={{ padding: '64px 24px 96px' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: 80, alignItems: 'start' }}>
+        <div className="contact-grid" style={{ maxWidth: 1200, margin: '0 auto' }}>
 
           {/* Left info */}
           <div style={{ background: '#1c1c1e', borderRadius: 24, padding: '40px 32px' }}>
@@ -92,7 +92,7 @@ export function Contact() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="form-row">
                   <div>
                     <label style={{ fontSize: 13, color: '#6e6e73', display: 'block', marginBottom: 6, fontWeight: 400 }}>Name</label>
                     <input

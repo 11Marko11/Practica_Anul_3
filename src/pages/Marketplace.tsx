@@ -130,7 +130,7 @@ export function Marketplace() {
 
       {/* Grid */}
       <main style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 24px 96px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(340px, 100%), 1fr))', gap: 20 }}>
           {list.map(car => <CarCard key={car.id} car={car} days={days} pickup={pickup} dropoff={dropoff} />)}
         </div>
         {list.length === 0 && (
