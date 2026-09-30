@@ -14,6 +14,9 @@ export type DeliveryQuote =
   | { ok: true; place: Place; km: number; fee: number }
   | { ok: false; place: Place; km: number }
 
+// How the renter gets the car: collect it from the host, or have it delivered.
+export type Handover = { mode: 'pickup' } | { mode: 'delivery'; quote: DeliveryQuote | null }
+
 function straightLineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
   const rad = (d: number) => (d * Math.PI) / 180
   const dLat = rad(b.lat - a.lat)

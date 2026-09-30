@@ -1,4 +1,5 @@
 import type { Car } from '../data/cars'
+import type { Handover } from './delivery'
 
 export function fmt(n: number) {
   return '$' + n.toLocaleString('en-US')
@@ -26,7 +27,16 @@ export function plural(n: number, word: string) {
 }
 
 // The prefilled message sent to the Contact page when someone books a car.
-export function bookingMessage(car: Car, pickup: string, dropoff: string) {
+export function bookingMessage(car: Car, pickup: string, dropoff: string, handover: Handover) {
   const days = daysBetween(pickup, dropoff)
-  return `I'd like to rent the ${car.brand} ${car.model} from ${pickup} to ${dropoff} (${plural(days, 'day')}, ${fmt(car.pricePerDay * days)} total).`
+  const rental = car.pricePerDay * days
+  const quote = handover.mode === 'delivery' && handover.quote?.ok ? handover.quote : null
+  const lines = [
+    `I'd like to rent the ${car.brand} ${car.model} from ${pickup} to ${dropoff} (${plural(days, 'day')}, ${fmt(rental)}).`,
+    quote
+      ? `Please deliver it to ${quote.place.label} (≈ ${quote.km} km, ${fmt(quote.fee)} delivery) and collect it there at the end.`
+      : `I'll pick it up at ${car.pickup.address}.`,
+    `Total: ${fmt(rental + (quote?.fee ?? 0))}.`,
+  ]
+  return lines.join(' ')
 }

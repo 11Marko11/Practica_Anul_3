@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Car } from '../data/cars'
-import { DELIVERY, quoteDelivery, searchAddress, type DeliveryQuote, type Place } from '../lib/delivery'
+import { DELIVERY, quoteDelivery, searchAddress, type Handover, type Place } from '../lib/delivery'
 import { fmt } from '../lib/rental'
-
-export type Handover = { mode: 'pickup' } | { mode: 'delivery'; quote: DeliveryQuote | null }
 
 // "Pick up" / "Delivery" choice in the booking card. For delivery the user searches
 // for an address (or uses their current location) and gets a distance-based fee.

@@ -5,8 +5,8 @@ import { addDays, bookingMessage, fmt, plural, today } from '../lib/rental'
 import { useRentalDates } from '../lib/useRentalDates'
 import { DateField } from '../components/DateField'
 import { CarGallery } from '../components/CarGallery'
-import { DeliveryPicker, type Handover } from '../components/DeliveryPicker'
-import { DELIVERY } from '../lib/delivery'
+import { DeliveryPicker } from '../components/DeliveryPicker'
+import { DELIVERY, type Handover } from '../lib/delivery'
 
 export function CarDetails() {
   const { slug = '' } = useParams()
@@ -46,7 +46,7 @@ function CarDetailsContent({ car }: { car: Car }) {
     .map(({ c }) => c)
 
   function book() {
-    navigate('/contact', { state: { subject: 'booking', message: bookingMessage(car, pickup, dropoff) } })
+    navigate('/contact', { state: { subject: 'booking', message: bookingMessage(car, pickup, dropoff, handover) } })
   }
 
   return (
