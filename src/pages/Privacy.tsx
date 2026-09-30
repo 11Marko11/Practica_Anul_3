@@ -37,7 +37,7 @@ const SECTIONS: LegalSection[] = [
   },
   {
     title: 'Third-party content',
-    body: <p>Car and team photos are loaded from Unsplash and the font from Google Fonts. When your browser loads them, those services receive standard request information such as your IP address, under their own privacy policies.</p>,
+    body: <p>Car and team photos are loaded from Unsplash, the font from Google Fonts and pick-up maps from OpenStreetMap. When your browser loads them, those services receive standard request information such as your IP address, under their own privacy policies.</p>,
   },
   {
     title: 'Your choices',

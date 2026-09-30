@@ -94,6 +94,10 @@ function CarDetailsContent({ car }: { car: Car }) {
               </ul>
             </Section>
 
+            <Section title="Pick-up location">
+              <PickupMap car={car} />
+            </Section>
+
             <Section title="Your host">
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, background: '#1c1c1e', borderRadius: 18, padding: '20px 22px' }}>
                 <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#3a3a3d', color: '#f5f5f7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 600, flexShrink: 0 }}>
@@ -113,7 +117,7 @@ function CarDetailsContent({ car }: { car: Car }) {
             <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.03em' }}>
               {fmt(car.pricePerDay)}<span style={{ fontSize: 15, fontWeight: 400, color: '#a1a1a6' }}> / day</span>
             </div>
-            <p style={{ fontSize: 13, color: '#a1a1a6', margin: '4px 0 20px' }}>Pick up in {car.location}</p>
+            <p style={{ fontSize: 13, color: '#a1a1a6', margin: '4px 0 20px' }}>Pick up at {car.pickup.address}</p>
 
             <div className="date-pair">
               <DateField label="Pick-up" value={pickup} min={today()} onChange={changePickup} />
@@ -163,6 +167,36 @@ function CarDetailsContent({ car }: { car: Car }) {
             ))}
           </div>
         </section>
+      </div>
+    </div>
+  )
+}
+
+// OpenStreetMap embed centred on the car's pick-up address.
+function PickupMap({ car }: { car: Car }) {
+  const { address, lat, lng } = car.pickup
+  const bbox = [lng - 0.012, lat - 0.006, lng + 0.012, lat + 0.006].join(',')
+  return (
+    <div style={{ borderRadius: 18, overflow: 'hidden', background: '#f5f5f7' }}>
+      <iframe
+        title={`Map of ${address}`}
+        src={`https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`}
+        loading="lazy"
+        style={{ display: 'block', width: '100%', height: 260, border: 0 }}
+      />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', padding: '14px 18px' }}>
+        <div>
+          <div style={{ fontSize: 15, fontWeight: 500, color: '#1d1d1f' }}>{address}</div>
+          <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 2 }}>Meet your host here at the start and end of the trip</div>
+        </div>
+        <a
+          href={`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=16/${lat}/${lng}`}
+          target="_blank"
+          rel="noreferrer"
+          style={{ fontSize: 14, color: '#0071e3', textDecoration: 'none', whiteSpace: 'nowrap' }}
+        >
+          Open map ↗
+        </a>
       </div>
     </div>
   )
