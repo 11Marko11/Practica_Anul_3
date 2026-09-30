@@ -36,8 +36,8 @@ export function Root() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#fff', color: '#1d1d1f' }}>
-      <nav style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+      <nav className="site-nav" style={{
+        top: 0, left: 0, right: 0, zIndex: 100,
         background: navBg,
         backdropFilter: transparent ? 'none' : 'blur(20px)',
         borderBottom: `1px solid ${navBorder}`,
