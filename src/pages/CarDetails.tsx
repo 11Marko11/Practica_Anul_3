@@ -5,6 +5,8 @@ import { addDays, bookingMessage, fmt, plural, today } from '../lib/rental'
 import { useRentalDates } from '../lib/useRentalDates'
 import { DateField } from '../components/DateField'
 import { CarGallery } from '../components/CarGallery'
+import { DeliveryPicker, type Handover } from '../components/DeliveryPicker'
+import { DELIVERY } from '../lib/delivery'
 
 export function CarDetails() {
   const { slug = '' } = useParams()
@@ -16,7 +18,13 @@ export function CarDetails() {
 function CarDetailsContent({ car }: { car: Car }) {
   const navigate = useNavigate()
   const { pickup, dropoff, days, query, changePickup, changeDropoff } = useRentalDates()
-  const total = car.pricePerDay * days
+  const [handover, setHandover] = useState<Handover>({ mode: 'pickup' })
+  const rental = car.pricePerDay * days
+  const deliveryQuote = handover.mode === 'delivery' ? handover.quote : null
+  const deliveryFee = deliveryQuote?.ok ? deliveryQuote.fee : 0
+  const total = rental + deliveryFee
+  // Delivery needs an address within range before the car can be booked.
+  const canBook = handover.mode === 'pickup' || !!deliveryQuote?.ok
 
   const specs = [
     { label: 'Power', value: `${car.horsepower} hp` },
@@ -117,15 +125,18 @@ function CarDetailsContent({ car }: { car: Car }) {
             <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.03em' }}>
               {fmt(car.pricePerDay)}<span style={{ fontSize: 15, fontWeight: 400, color: '#a1a1a6' }}> / day</span>
             </div>
-            <p style={{ fontSize: 13, color: '#a1a1a6', margin: '4px 0 20px' }}>Pick up at {car.pickup.address}</p>
+            <p style={{ fontSize: 13, color: '#a1a1a6', margin: '4px 0 20px' }}>Located at {car.pickup.address}</p>
 
             <div className="date-pair">
               <DateField label="Pick-up" value={pickup} min={today()} onChange={changePickup} />
               <DateField label="Return" value={dropoff} min={addDays(pickup, 1)} onChange={changeDropoff} />
             </div>
 
+            <DeliveryPicker car={car} value={handover} onChange={setHandover} />
+
             <div style={{ borderTop: '1px solid #3a3a3d', marginTop: 20, paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14 }}>
-              <Line label={`${fmt(car.pricePerDay)} × ${plural(days, 'day')}`} value={fmt(total)} />
+              <Line label={`${fmt(car.pricePerDay)} × ${plural(days, 'day')}`} value={fmt(rental)} />
+              {deliveryQuote?.ok && <Line label={`Delivery (≈ ${deliveryQuote.km} km)`} value={fmt(deliveryFee)} />}
               <Line label="Insurance & roadside assistance" value="Included" />
               <div style={{ borderTop: '1px solid #3a3a3d', paddingTop: 12, marginTop: 2 }}>
                 <Line label="Total" value={fmt(total)} strong />
@@ -134,12 +145,16 @@ function CarDetailsContent({ car }: { car: Car }) {
 
             <button
               onClick={book}
-              style={{ width: '100%', marginTop: 20, padding: '14px 0', fontSize: 15, fontWeight: 500, background: '#f5f5f7', color: '#1c1c1e', border: 'none', borderRadius: 980, cursor: 'pointer', transition: 'opacity 0.15s' }}
-              onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
-              onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+              disabled={!canBook}
+              style={{ width: '100%', marginTop: 20, padding: '14px 0', fontSize: 15, fontWeight: 500, background: '#f5f5f7', color: '#1c1c1e', border: 'none', borderRadius: 980, cursor: canBook ? 'pointer' : 'not-allowed', opacity: canBook ? 1 : 0.4, transition: 'opacity 0.15s' }}
             >
               Book Now
             </button>
+            {!canBook && (
+              <p style={{ fontSize: 12, color: '#a1a1a6', textAlign: 'center', margin: '8px 0 0' }}>
+                {deliveryQuote ? `Choose an address within ${DELIVERY.maxKm} km to continue` : 'Choose a delivery address to continue'}
+              </p>
+            )}
             <p style={{ fontSize: 12, color: '#86868b', textAlign: 'center', margin: '12px 0 0' }}>
               Free cancellation up to 24 hours before pick-up. <Link to="/terms" style={{ color: '#a1a1a6' }}>Terms</Link>
             </p>
