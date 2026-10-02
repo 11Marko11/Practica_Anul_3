@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router'
 import { CARS, carImage, type Car } from '../data/cars'
-import { addDays, fmt, plural, today } from '../lib/rental'
+import { addDays, fmt, today } from '../lib/rental'
 import { useRentalDates } from '../lib/useRentalDates'
 import { DateField } from '../components/DateField'
+import { useI18n } from '../i18n/I18nContext'
 
 // Every brand that has at least one car, alphabetically, with how many cars it has.
 const BRANDS = Object.entries(
@@ -12,6 +13,7 @@ const BRANDS = Object.entries(
 
 export function Marketplace() {
   const location = useLocation()
+  const { t } = useI18n()
   const requestedBrand = (location.state as { brand?: string } | null)?.brand
   const [brand, setBrand] = useState(() => BRANDS.some(([b]) => b === requestedBrand) ? requestedBrand! : 'All')
   const [sort, setSort] = useState<'newest' | 'price-asc' | 'price-desc'>('newest')
@@ -30,9 +32,9 @@ export function Marketplace() {
       {/* Page header */}
       <div style={{ padding: '56px 24px 24px', background: '#1c1c1e' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <p style={{ fontSize: 13, color: '#a1a1a6', margin: '0 0 8px', letterSpacing: '0.01em' }}>Car Rentals</p>
+          <p style={{ fontSize: 13, color: '#a1a1a6', margin: '0 0 8px', letterSpacing: '0.01em' }}>{t.marketplace.eyebrow}</p>
           <h1 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#f5f5f7', margin: 0, lineHeight: 1.05 }}>
-            Find your rental car.
+            {t.marketplace.title}
           </h1>
         </div>
       </div>
@@ -41,11 +43,11 @@ export function Marketplace() {
       <div style={{ padding: '8px 24px 36px', background: '#1c1c1e' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
           <div className="date-pair date-pair--inline">
-            <DateField label="Pick-up date" value={pickup} min={today()} onChange={changePickup} />
-            <DateField label="Return date" value={dropoff} min={addDays(pickup, 1)} onChange={changeDropoff} />
+            <DateField label={t.marketplace.pickupDate} value={pickup} min={today()} onChange={changePickup} />
+            <DateField label={t.marketplace.returnDate} value={dropoff} min={addDays(pickup, 1)} onChange={changeDropoff} />
           </div>
           <p style={{ fontSize: 14, color: '#a1a1a6', margin: '0 0 12px' }}>
-            {days} day{days !== 1 ? 's' : ''} · insurance included
+            {t.common.days(days)} · {t.marketplace.insuranceIncluded}
           </p>
         </div>
       </div>
@@ -55,14 +57,14 @@ export function Marketplace() {
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#6e6e73' }}>
-              Brand
+              {t.marketplace.brand}
               <span style={{ position: 'relative', display: 'inline-flex' }}>
                 <select
                   value={brand}
                   onChange={e => setBrand(e.target.value)}
                   style={{ appearance: 'none', fontSize: 14, fontFamily: 'inherit', padding: '9px 40px 9px 16px', minWidth: 220, borderRadius: 980, border: '1px solid', borderColor: brand === 'All' ? '#d2d2d7' : '#1d1d1f', background: '#fff', color: '#1d1d1f', cursor: 'pointer', outline: 'none' }}
                 >
-                  <option value="All">All brands ({CARS.length})</option>
+                  <option value="All">{t.marketplace.allBrands(CARS.length)}</option>
                   {BRANDS.map(([b, count]) => (
                     <option key={b} value={b}>{b} ({count})</option>
                   ))}
@@ -74,15 +76,15 @@ export function Marketplace() {
             </label>
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
-            {([['newest', 'Newest'], ['price-asc', 'Price ↑'], ['price-desc', 'Price ↓']] as const).map(([v, l]) => (
+            {(['newest', 'price-asc', 'price-desc'] as const).map(v => (
               <button key={v} onClick={() => setSort(v)} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 980, border: '1px solid', borderColor: sort === v ? '#1d1d1f' : '#d2d2d7', background: sort === v ? '#1d1d1f' : 'transparent', color: sort === v ? '#fff' : '#6e6e73', cursor: 'pointer', transition: 'all 0.15s', fontWeight: 400 }}>
-                {l}
+                {t.marketplace.sort[v]}
               </button>
             ))}
           </div>
         </div>
         <div style={{ maxWidth: 1200, margin: '8px auto 0' }}>
-          <p style={{ fontSize: 13, color: '#6e6e73', margin: 0 }}>{list.length} car{list.length !== 1 ? 's' : ''} available{brand !== 'All' ? ` · ${brand}` : ''}</p>
+          <p style={{ fontSize: 13, color: '#6e6e73', margin: 0 }}>{t.marketplace.available(list.length)}{brand !== 'All' ? ` · ${brand}` : ''}</p>
         </div>
       </div>
 
@@ -93,8 +95,8 @@ export function Marketplace() {
         </div>
         {list.length === 0 && (
           <div style={{ textAlign: 'center', padding: '80px 0' }}>
-            <p style={{ fontSize: 22, fontWeight: 500, color: '#1d1d1f' }}>No vehicles found</p>
-            <p style={{ fontSize: 15, color: '#6e6e73', marginTop: 8 }}>Try a different brand</p>
+            <p style={{ fontSize: 22, fontWeight: 500, color: '#1d1d1f' }}>{t.marketplace.emptyTitle}</p>
+            <p style={{ fontSize: 15, color: '#6e6e73', marginTop: 8 }}>{t.marketplace.emptyText}</p>
           </div>
         )}
       </main>
@@ -104,6 +106,7 @@ export function Marketplace() {
 
 function CarCard({ car, days, query }: { car: Car; days: number; query: string }) {
   const [hov, setHov] = useState(false)
+  const { t } = useI18n()
 
   return (
     <Link
@@ -116,7 +119,7 @@ function CarCard({ car, days, query }: { car: Car; days: number; query: string }
         <img src={carImage(car, 900, 600)} alt={`${car.year} ${car.brand} ${car.model}`} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s', transform: hov ? 'scale(1.04)' : 'scale(1)' }} />
         {car.fuel !== 'Petrol' && (
           <span style={{ position: 'absolute', top: 12, right: 12, fontSize: 11, fontWeight: 500, background: 'rgba(255,255,255,0.9)', color: '#1d1d1f', padding: '4px 10px', borderRadius: 980, backdropFilter: 'blur(8px)' }}>
-            {car.fuel}
+            {t.common.fuel[car.fuel]}
           </span>
         )}
       </div>
@@ -125,15 +128,15 @@ function CarCard({ car, days, query }: { car: Car; days: number; query: string }
         <h2 style={{ fontSize: 19, fontWeight: 600, letterSpacing: '-0.025em', color: '#1d1d1f', margin: '0 0 14px', lineHeight: 1.2 }}>{car.model}</h2>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontSize: 17, fontWeight: 500, color: '#1d1d1f', letterSpacing: '-0.02em' }}>
-            {fmt(car.pricePerDay)}<span style={{ fontSize: 13, fontWeight: 400, color: '#6e6e73' }}> / day</span>
+            {fmt(car.pricePerDay)}<span style={{ fontSize: 13, fontWeight: 400, color: '#6e6e73' }}>{t.common.perDay}</span>
           </span>
-          <span style={{ fontSize: 12, color: '#6e6e73' }}>{car.seats} seats · {car.fuel}</span>
+          <span style={{ fontSize: 12, color: '#6e6e73' }}>{t.common.seats(car.seats)} · {t.common.fuel[car.fuel]}</span>
         </div>
         <p style={{ fontSize: 13, color: '#6e6e73', margin: '8px 0 0' }}>
-          {fmt(car.pricePerDay * days)} total for {plural(days, 'day')}
+          {t.marketplace.totalFor(fmt(car.pricePerDay * days), days)}
         </p>
         <span style={{ display: 'block', marginTop: 14, padding: '10px 0', fontSize: 14, fontWeight: 500, color: '#0071e3', textAlign: 'center' }}>
-          View Details →
+          {t.marketplace.viewDetails}
         </span>
       </div>
     </Link>

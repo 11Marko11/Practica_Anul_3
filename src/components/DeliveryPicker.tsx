@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import type { Car } from '../data/cars'
 import { DELIVERY, quoteDelivery, searchAddress, type Handover, type Place } from '../lib/delivery'
 import { fmt } from '../lib/rental'
+import { useI18n } from '../i18n/I18nContext'
+import { carText } from '../i18n/cars'
 
 // "Pick up" / "Delivery" choice in the booking card. For delivery the user searches
 // for an address (or uses their current location) and gets a distance-based fee.
@@ -10,6 +12,7 @@ export function DeliveryPicker({ car, value, onChange }: { car: Car; value: Hand
   const [results, setResults] = useState<Place[]>([])
   const [status, setStatus] = useState<'idle' | 'loading' | 'empty' | 'error'>('idle')
   const abort = useRef<AbortController | null>(null)
+  const { lang, t } = useI18n()
 
   useEffect(() => () => abort.current?.abort(), [])
 
@@ -29,7 +32,7 @@ export function DeliveryPicker({ car, value, onChange }: { car: Car; value: Hand
     setStatus('loading')
     setResults([])
     try {
-      const places = await searchAddress(query.trim(), abort.current.signal)
+      const places = await searchAddress(query.trim(), lang, abort.current.signal)
       setResults(places)
       setStatus(places.length ? 'idle' : 'empty')
     } catch (err) {
@@ -41,7 +44,7 @@ export function DeliveryPicker({ car, value, onChange }: { car: Car; value: Hand
     if (!navigator.geolocation) return setStatus('error')
     setStatus('loading')
     navigator.geolocation.getCurrentPosition(
-      pos => choose({ label: 'Your current location', lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      pos => choose({ label: t.delivery.currentLocation, lat: pos.coords.latitude, lng: pos.coords.longitude }),
       () => setStatus('error'),
       { timeout: 10000 },
     )
@@ -54,32 +57,32 @@ export function DeliveryPicker({ car, value, onChange }: { car: Car; value: Hand
 
   return (
     <div style={{ marginTop: 20 }}>
-      <div role="tablist" aria-label="How do you want to get the car?" style={{ display: 'flex', background: '#2a2a2d', borderRadius: 980, padding: 4 }}>
+      <div role="tablist" aria-label={t.delivery.question} style={{ display: 'flex', background: '#2a2a2d', borderRadius: 980, padding: 4 }}>
         <button role="tab" aria-selected={value.mode === 'pickup'} style={tab(value.mode === 'pickup')} onClick={() => onChange({ mode: 'pickup' })}>
-          Pick up
+          {t.delivery.pickup}
         </button>
         <button role="tab" aria-selected={value.mode === 'delivery'} style={tab(value.mode === 'delivery')} onClick={() => onChange({ mode: 'delivery', quote })}>
-          Delivery
+          {t.delivery.delivery}
         </button>
       </div>
 
       {value.mode === 'pickup' ? (
         <p style={{ fontSize: 13, color: '#a1a1a6', margin: '12px 0 0', lineHeight: 1.5 }}>
-          Collect the car from the host at <span style={{ color: '#f5f5f7' }}>{car.pickup.address}</span>. Free.
+          {t.delivery.collectAt}<span style={{ color: '#f5f5f7' }}>{car.pickup.address}</span>{t.delivery.free}
         </p>
       ) : quote ? (
         <div style={{ marginTop: 12, background: '#2a2a2d', borderRadius: 14, padding: '12px 14px' }}>
-          <div style={{ fontSize: 12, color: '#a1a1a6' }}>Deliver to</div>
+          <div style={{ fontSize: 12, color: '#a1a1a6' }}>{t.delivery.deliverTo}</div>
           <div style={{ fontSize: 14, color: '#f5f5f7', margin: '2px 0 6px', lineHeight: 1.4 }}>{quote.place.label}</div>
           {quote.ok ? (
-            <div style={{ fontSize: 13, color: '#a1a1a6' }}>≈ {quote.km} km from the car · {fmt(quote.fee)} delivery</div>
+            <div style={{ fontSize: 13, color: '#a1a1a6' }}>{t.delivery.quote(quote.km, fmt(quote.fee))}</div>
           ) : (
             <div role="alert" style={{ fontSize: 13, color: '#ff6961' }}>
-              ≈ {quote.km} km away. Delivery is available up to {DELIVERY.maxKm} km from {car.location.split(',')[0]}.
+              {t.delivery.outOfRange(quote.km, DELIVERY.maxKm, carText(car, lang).location.split(',')[0])}
             </div>
           )}
           <button onClick={() => onChange({ mode: 'delivery', quote: null })} style={{ marginTop: 8, fontSize: 13, color: '#6cb4ff', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
-            Change address
+            {t.delivery.changeAddress}
           </button>
         </div>
       ) : (
@@ -88,12 +91,12 @@ export function DeliveryPicker({ car, value, onChange }: { car: Car; value: Hand
             <input
               value={query}
               onChange={e => setQuery(e.target.value)}
-              placeholder="Street and city"
-              aria-label="Delivery address"
+              placeholder={t.delivery.placeholder}
+              aria-label={t.delivery.addressLabel}
               style={{ flex: 1, minWidth: 0, fontSize: 15, padding: '10px 14px', border: '1px solid #3a3a3d', borderRadius: 12, color: '#f5f5f7', background: '#2a2a2d', fontFamily: 'inherit', outline: 'none' }}
             />
             <button type="submit" disabled={status === 'loading'} style={{ flexShrink: 0, fontSize: 14, fontWeight: 500, padding: '0 16px', borderRadius: 12, border: 'none', background: '#3a3a3d', color: '#f5f5f7', cursor: 'pointer' }}>
-              {status === 'loading' ? '…' : 'Find'}
+              {status === 'loading' ? '…' : t.delivery.find}
             </button>
           </form>
 
@@ -114,14 +117,14 @@ export function DeliveryPicker({ car, value, onChange }: { car: Car; value: Hand
             </ul>
           )}
 
-          {status === 'empty' && <p style={{ fontSize: 13, color: '#ff6961', margin: '8px 0 0' }}>No address found. Try adding the city.</p>}
-          {status === 'error' && <p style={{ fontSize: 13, color: '#ff6961', margin: '8px 0 0' }}>Couldn't look up that address. Please try again.</p>}
+          {status === 'empty' && <p style={{ fontSize: 13, color: '#ff6961', margin: '8px 0 0' }}>{t.delivery.notFound}</p>}
+          {status === 'error' && <p style={{ fontSize: 13, color: '#ff6961', margin: '8px 0 0' }}>{t.delivery.error}</p>}
 
           <button onClick={useMyLocation} style={{ marginTop: 10, fontSize: 13, color: '#6cb4ff', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
-            Use my current location
+            {t.delivery.useLocation}
           </button>
           <p style={{ fontSize: 12, color: '#86868b', margin: '8px 0 0', lineHeight: 1.5 }}>
-            {fmt(DELIVERY.baseFee)} + ${DELIVERY.perKm.toFixed(2)}/km, up to {DELIVERY.maxKm} km. We collect the car from the same address at the end.
+            {t.delivery.pricing(fmt(DELIVERY.baseFee), `$${DELIVERY.perKm.toFixed(2)}`, DELIVERY.maxKm)}
           </p>
         </div>
       )}

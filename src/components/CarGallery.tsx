@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { carImage, type Car } from '../data/cars'
+import { useI18n } from '../i18n/I18nContext'
 
 // Photo gallery for the car details page: large photo with arrows,
 // thumbnails, keyboard (← →) and swipe navigation.
@@ -7,6 +8,7 @@ export function CarGallery({ car }: { car: Car }) {
   const [index, setIndex] = useState(0)
   const count = car.photos.length
   const touchX = useRef<number | null>(null)
+  const { t } = useI18n()
   const name = `${car.year} ${car.brand} ${car.model}`
 
   const go = (step: number) => setIndex(i => (i + step + count) % count)
@@ -38,14 +40,14 @@ export function CarGallery({ car }: { car: Car }) {
           <img
             key={i}
             src={carImage(car, 1400, 875, i)}
-            alt={`${name}, photo ${i + 1} of ${count}`}
+            alt={t.gallery.photoAlt(name, i + 1, count)}
             aria-hidden={i !== index}
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: i === index ? 1 : 0, transition: 'opacity 0.35s ease' }}
           />
         ))}
 
-        <ArrowButton side="left" label="Previous photo" onClick={() => go(-1)} />
-        <ArrowButton side="right" label="Next photo" onClick={() => go(1)} />
+        <ArrowButton side="left" label={t.gallery.previous} onClick={() => go(-1)} />
+        <ArrowButton side="right" label={t.gallery.next} onClick={() => go(1)} />
 
         <span style={{ position: 'absolute', right: 14, bottom: 14, fontSize: 12, fontWeight: 500, color: '#fff', background: 'rgba(28,28,30,0.7)', backdropFilter: 'blur(8px)', padding: '5px 11px', borderRadius: 980 }}>
           {index + 1} / {count}
@@ -57,7 +59,7 @@ export function CarGallery({ car }: { car: Car }) {
           <button
             key={i}
             onClick={() => setIndex(i)}
-            aria-label={`Show photo ${i + 1}`}
+            aria-label={t.gallery.show(i + 1)}
             aria-current={i === index}
             style={{ padding: 0, border: 'none', borderRadius: 12, overflow: 'hidden', aspectRatio: '16/10', cursor: 'pointer', background: '#e8e8ed', outline: i === index ? '2px solid #1c1c1e' : 'none', outlineOffset: 2, opacity: i === index ? 1 : 0.6, transition: 'opacity 0.2s' }}
           >

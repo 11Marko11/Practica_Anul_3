@@ -1,5 +1,7 @@
 import type { Car } from '../data/cars'
 import type { Handover } from './delivery'
+import type { Dict } from '../i18n/en'
+import type { Lang } from '../i18n/I18nContext'
 
 export function fmt(n: number) {
   return '$' + n.toLocaleString('en-US')
@@ -22,21 +24,20 @@ export function daysBetween(from: string, to: string) {
   return Math.max(1, Math.round(ms / 86_400_000))
 }
 
-export function plural(n: number, word: string) {
-  return `${n} ${word}${n !== 1 ? 's' : ''}`
+// "5 October 2026" / "5 octombrie 2026" / "5 октября 2026 г.", for a 'YYYY-MM-DD' date.
+export function formatDate(date: string, lang: Lang) {
+  return new Date(date + 'T00:00:00Z').toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
 }
 
-// The prefilled message sent to the Contact page when someone books a car.
-export function bookingMessage(car: Car, pickup: string, dropoff: string, handover: Handover) {
+// The prefilled message sent to the Contact page when someone books a car, in the site's language.
+export function bookingMessage(car: Car, pickup: string, dropoff: string, handover: Handover, t: Dict, lang: Lang) {
   const days = daysBetween(pickup, dropoff)
   const rental = car.pricePerDay * days
   const quote = handover.mode === 'delivery' && handover.quote?.ok ? handover.quote : null
   const lines = [
-    `I'd like to rent the ${car.brand} ${car.model} from ${pickup} to ${dropoff} (${plural(days, 'day')}, ${fmt(rental)}).`,
-    quote
-      ? `Please deliver it to ${quote.place.label} (≈ ${quote.km} km, ${fmt(quote.fee)} delivery) and collect it there at the end.`
-      : `I'll pick it up at ${car.pickup.address}.`,
-    `Total: ${fmt(rental + (quote?.fee ?? 0))}.`,
+    t.booking.rent(`${car.brand} ${car.model}`, formatDate(pickup, lang), formatDate(dropoff, lang), days, fmt(rental)),
+    quote ? t.booking.deliver(quote.place.label, quote.km, fmt(quote.fee)) : t.booking.pickup(car.pickup.address),
+    t.booking.total(fmt(rental + (quote?.fee ?? 0))),
   ]
   return lines.join(' ')
 }

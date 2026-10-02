@@ -33,9 +33,9 @@ export function quoteDelivery(from: { lat: number; lng: number }, place: Place):
 
 // Address search through OpenStreetMap's Nominatim service (free, no API key).
 // Its usage policy allows light use like this: one search per user action, no autocomplete.
-export async function searchAddress(query: string, signal?: AbortSignal): Promise<Place[]> {
+export async function searchAddress(query: string, lang: string, signal?: AbortSignal): Promise<Place[]> {
   const url = new URL('https://nominatim.openstreetmap.org/search')
-  url.search = new URLSearchParams({ q: query, format: 'json', limit: '5', addressdetails: '1', 'accept-language': 'en' }).toString()
+  url.search = new URLSearchParams({ q: query, format: 'json', limit: '5', addressdetails: '1', 'accept-language': lang }).toString()
   const res = await fetch(url, { signal })
   if (!res.ok) throw new Error(`Address search failed (${res.status})`)
   const rows = (await res.json()) as NominatimResult[]
