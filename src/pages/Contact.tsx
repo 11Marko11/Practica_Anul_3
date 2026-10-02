@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
+import { useI18n } from '../i18n/I18nContext'
 
 type Prefill = { subject?: string; message?: string } | null
 
@@ -8,6 +9,7 @@ export function Contact() {
   const location = useLocation()
   const prefill = location.state as Prefill
   const { user } = useAuth()
+  const { t } = useI18n()
   const empty = { name: user?.name ?? '', email: user?.email ?? '', subject: 'booking', message: '' }
   const [form, setForm] = useState({ ...empty, ...prefill })
   const [sent, setSent] = useState(false)
@@ -43,9 +45,9 @@ export function Contact() {
       {/* Header */}
       <section style={{ padding: '80px 24px 56px', borderBottom: '1px solid #f0f0f0' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <p style={{ fontSize: 13, color: '#6e6e73', margin: '0 0 12px' }}>Contact</p>
+          <p style={{ fontSize: 13, color: '#6e6e73', margin: '0 0 12px' }}>{t.contact.eyebrow}</p>
           <h1 style={{ fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 600, letterSpacing: '-0.035em', color: '#1d1d1f', margin: 0, lineHeight: 1.05 }}>
-            Get in touch.
+            {t.contact.title}
           </h1>
         </div>
       </section>
@@ -56,17 +58,17 @@ export function Contact() {
 
           {/* Left info */}
           <div style={{ background: '#1c1c1e', borderRadius: 24, padding: '40px 32px' }}>
-            <h2 style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em', color: '#f5f5f7', margin: '0 0 16px' }}>We're here to help.</h2>
+            <h2 style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em', color: '#f5f5f7', margin: '0 0 16px' }}>{t.contact.helpTitle}</h2>
             <p style={{ fontSize: 15, color: '#a1a1a6', lineHeight: 1.7, fontWeight: 300, margin: '0 0 40px' }}>
-              Whether you're booking a car, listing your own, or have a question about a reservation — our team typically responds within a few hours.
+              {t.contact.helpText}
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
               {[
-                { label: 'Email', value: 'hello@rentmotors.com' },
-                { label: 'Phone', value: '+1 (415) 555 0192' },
-                { label: 'Hours', value: 'Mon–Fri, 9am – 6pm CET' },
-                { label: 'Address', value: '14 Rue de Rivoli, Paris, France' },
+                { label: t.contact.info.email, value: 'hello@rentmotors.com' },
+                { label: t.contact.info.phone, value: '+1 (415) 555 0192' },
+                { label: t.contact.info.hours, value: t.contact.hours },
+                { label: t.contact.info.address, value: t.contact.address },
               ].map(item => (
                 <div key={item.label}>
                   <div style={{ fontSize: 12, color: '#86868b', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4, fontWeight: 500 }}>{item.label}</div>
@@ -81,20 +83,20 @@ export function Contact() {
             {sent ? (
               <div style={{ background: '#f5f5f7', borderRadius: 20, padding: '56px 40px', textAlign: 'center' }}>
                 <div style={{ fontSize: 40, marginBottom: 16 }}>✓</div>
-                <h3 style={{ fontSize: 24, fontWeight: 600, letterSpacing: '-0.025em', color: '#1d1d1f', margin: '0 0 10px' }}>Message sent!</h3>
-                <p style={{ fontSize: 15, color: '#6e6e73', fontWeight: 300 }}>We'll confirm your request within 24 hours.</p>
+                <h3 style={{ fontSize: 24, fontWeight: 600, letterSpacing: '-0.025em', color: '#1d1d1f', margin: '0 0 10px' }}>{t.contact.sentTitle}</h3>
+                <p style={{ fontSize: 15, color: '#6e6e73', fontWeight: 300 }}>{t.contact.sentText}</p>
                 <button
                   onClick={() => { setSent(false); setForm(empty) }}
                   style={{ marginTop: 24, fontSize: 14, color: '#0071e3', background: 'none', border: 'none', cursor: 'pointer' }}
                 >
-                  Send another message
+                  {t.contact.sendAnother}
                 </button>
               </div>
             ) : (
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div className="form-row">
                   <div>
-                    <label style={{ fontSize: 13, color: '#6e6e73', display: 'block', marginBottom: 6, fontWeight: 400 }}>Name</label>
+                    <label style={{ fontSize: 13, color: '#6e6e73', display: 'block', marginBottom: 6, fontWeight: 400 }}>{t.contact.name}</label>
                     <input
                       required
                       value={form.name}
@@ -106,7 +108,7 @@ export function Contact() {
                     />
                   </div>
                   <div>
-                    <label style={{ fontSize: 13, color: '#6e6e73', display: 'block', marginBottom: 6, fontWeight: 400 }}>Email</label>
+                    <label style={{ fontSize: 13, color: '#6e6e73', display: 'block', marginBottom: 6, fontWeight: 400 }}>{t.contact.email}</label>
                     <input
                       required
                       type="email"
@@ -121,27 +123,25 @@ export function Contact() {
                 </div>
 
                 <div>
-                  <label style={{ fontSize: 13, color: '#6e6e73', display: 'block', marginBottom: 6 }}>I'm interested in</label>
+                  <label style={{ fontSize: 13, color: '#6e6e73', display: 'block', marginBottom: 6 }}>{t.contact.interestedIn}</label>
                   <select
                     value={form.subject}
                     onChange={e => setForm(f => ({ ...f, subject: e.target.value }))}
                     style={{ ...inputStyle, cursor: 'pointer', appearance: 'none' }}
                   >
-                    <option value="booking">Booking a car</option>
-                    <option value="reservation">An existing reservation</option>
-                    <option value="hosting">Listing my car for rent</option>
-                    <option value="partnership">Partnership</option>
-                    <option value="other">Other</option>
+                    {Object.entries(t.contact.subjects).map(([value, label]) => (
+                      <option key={value} value={value}>{label}</option>
+                    ))}
                   </select>
                 </div>
 
                 <div>
-                  <label style={{ fontSize: 13, color: '#6e6e73', display: 'block', marginBottom: 6 }}>Message</label>
+                  <label style={{ fontSize: 13, color: '#6e6e73', display: 'block', marginBottom: 6 }}>{t.contact.message}</label>
                   <textarea
                     required
                     value={form.message}
                     onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
-                    placeholder="Tell us about your trip: dates, car and pick-up location..."
+                    placeholder={t.contact.messagePlaceholder}
                     rows={5}
                     style={{ ...inputStyle, resize: 'none', lineHeight: 1.6 }}
                     onFocus={e => (e.target.style.borderColor = '#1d1d1f')}
@@ -155,7 +155,7 @@ export function Contact() {
                   onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
                   onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
                 >
-                  Send Message
+                  {t.contact.send}
                 </button>
               </form>
             )}

@@ -1,12 +1,14 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 
 // Accounts live in localStorage until the site has a real backend.
-// Passwords are stored only as SHA-256 hashes.
+// Passwords are stored only as SHA-256 hashes. Errors carry a code (AuthErrorCode)
+// as their message so the login page can show it in the current language.
 const USERS_KEY = 'rentmotors.users'
 const SESSION_KEY = 'rentmotors.session'
 
 export type User = { name: string; email: string }
 type StoredUser = User & { passwordHash: string }
+export type AuthErrorCode = 'invalid-credentials' | 'email-taken'
 
 type AuthContextValue = {
   user: User | null
@@ -52,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const users = read<StoredUser[]>(USERS_KEY, [])
     const found = users.find(u => u.email === email.trim().toLowerCase())
     if (!found || found.passwordHash !== (await hash(password))) {
-      throw new Error('Incorrect email or password.')
+      throw new Error('invalid-credentials' satisfies AuthErrorCode)
     }
     startSession({ name: found.name, email: found.email })
   }
@@ -61,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const users = read<StoredUser[]>(USERS_KEY, [])
     const normalized = email.trim().toLowerCase()
     if (users.some(u => u.email === normalized)) {
-      throw new Error('An account with this email already exists.')
+      throw new Error('email-taken' satisfies AuthErrorCode)
     }
     const created = { name: name.trim(), email: normalized }
     write(USERS_KEY, [...users, { ...created, passwordHash: await hash(password) }])

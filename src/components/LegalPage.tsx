@@ -1,14 +1,17 @@
 import type { ReactNode } from 'react'
+import { useI18n } from '../i18n/I18nContext'
+import { formatDate } from '../lib/rental'
 
 export type LegalSection = { title: string; body: ReactNode }
 
 export function LegalPage({ eyebrow, title, updated, intro, sections }: {
   eyebrow: string
   title: string
-  updated: string
+  updated: string // 'YYYY-MM-DD'
   intro: string
   sections: LegalSection[]
 }) {
+  const { lang, t } = useI18n()
   return (
     <div style={{ paddingTop: 52 }}>
       <section style={{ padding: '56px 24px 48px', background: '#1c1c1e' }}>
@@ -17,7 +20,7 @@ export function LegalPage({ eyebrow, title, updated, intro, sections }: {
           <h1 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#f5f5f7', margin: '0 0 16px', lineHeight: 1.05 }}>
             {title}
           </h1>
-          <p style={{ fontSize: 14, color: '#86868b', margin: 0 }}>Last updated: {updated}</p>
+          <p style={{ fontSize: 14, color: '#86868b', margin: 0 }}>{t.legal.updated} {formatDate(updated, lang)}</p>
         </div>
       </section>
 
