@@ -9,7 +9,7 @@ type CarCopy = { descriptions: Record<string, string>; terms: Record<string, str
 const RO: CarCopy = {
   descriptions: {
     'porsche-911-carrera-4s': 'Supercarul de fiecare zi. Tracțiunea integrală ține Carrera 4S lipit de drum pe orice vreme, iar motorul boxer twin-turbo trage puternic până la limita de turații. Destul de confortabil pentru un weekend lung, destul de precis pentru un drum de munte.',
-    'ferrari-roma-spider': 'La nuova dolce vita, cu plafonul coborât. Capota din pânză se pliază în 13 secunde la viteze de până la 60 km/h, iar motorul V8 montat în față oferă un ritm de grand tourer fără efort. Făcută pentru drumuri de coastă și prânzuri lungi.',
+    'ferrari-roma-spider': 'La nuova dolce vita, cu plafonul coborât. Capota din pânză se pliază în 13 secunde la viteze de până la 60 km/h, iar motorul V8 montat în față oferă un ritm de grand tourer fără efort. Făcută pentru drumuri printre podgorii și prânzuri lungi.',
     'bmw-m4-competition': 'Un coupé adevărat pentru pasionați. Motorul cu șase cilindri în linie cântă, șasiul cu tracțiune spate e jucăuș, dar precis, iar scaunele sport M din carbon te țin bine pe loc. Patru locuri reale îl fac surprinzător de practic.',
     'tesla-model-s-plaid': 'Accelerație de hypercar într-un sedan de familie silențios. Trei motoare, peste 1.000 CP și o autonomie reală mare fac din Plaid o mașină la fel de bună pentru drumul la școală și pentru călătorii lungi pe autostradă. Accesul la Supercharger este inclus.',
     'mercedes-amg-gt-63-s': 'Un AMG cu patru uși și un V8 twin-turbo asamblat manual. Luxos și spațios pentru patru adulți, dar capabil să pună în dificultate mașini sport pe circuit. Direcția pe puntea spate îl face să pară mult mai mic decât este.',
@@ -22,18 +22,6 @@ const RO: CarCopy = {
     'ferrari-sf90-stradale': 'Hypercarul plug-in hibrid de la Ferrari. Un V8 twin-turbo și trei motoare electrice însumează 1.000 CP, dar mașina poate rula silențios prin oraș doar pe energie electrică. Cea mai exclusivistă mașină din colecție.',
   },
   terms: {
-    'Munich, Germany': 'München, Germania',
-    'Milan, Italy': 'Milano, Italia',
-    'Berlin, Germany': 'Berlin, Germania',
-    'Amsterdam, Netherlands': 'Amsterdam, Țările de Jos',
-    'Stuttgart, Germany': 'Stuttgart, Germania',
-    'Vienna, Austria': 'Viena, Austria',
-    'Los Angeles, USA': 'Los Angeles, SUA',
-    'Zurich, Switzerland': 'Zürich, Elveția',
-    'Hamburg, Germany': 'Hamburg, Germania',
-    'Paris, France': 'Paris, Franța',
-    'Maranello, Italy': 'Maranello, Italia',
-
     '8-speed PDK automatic': 'Automată PDK, 8 trepte',
     '8-speed dual-clutch': 'Dublu ambreiaj, 8 trepte',
     '8-speed M Steptronic': 'M Steptronic, 8 trepte',
@@ -97,7 +85,7 @@ const RO: CarCopy = {
 const RU: CarCopy = {
   descriptions: {
     'porsche-911-carrera-4s': 'Суперкар на каждый день. Полный привод уверенно держит Carrera 4S на дороге в любую погоду, а оппозитная «шестёрка» с двумя турбинами мощно тянет до самой отсечки. Достаточно комфортен для долгих выходных и достаточно точен для горного серпантина.',
-    'ferrari-roma-spider': 'La nuova dolce vita — с опущенной крышей. Мягкий верх складывается за 13 секунд на скорости до 60 км/ч, а V8 спереди обеспечивает лёгкий темп гран-туризмо. Создан для прибрежных дорог и долгих обедов.',
+    'ferrari-roma-spider': 'La nuova dolce vita — с опущенной крышей. Мягкий верх складывается за 13 секунд на скорости до 60 км/ч, а V8 спереди обеспечивает лёгкий темп гран-туризмо. Создан для дорог среди виноградников и долгих обедов.',
     'bmw-m4-competition': 'Настоящее купе для водителя. Рядная «шестёрка» поёт, заднеприводное шасси игривое, но точное, а карбоновые ковши M надёжно держат в повороте. Четыре полноценных места делают его на удивление практичным.',
     'tesla-model-s-plaid': 'Разгон гиперкара в тихом семейном седане. Три мотора, более 1000 л. с. и большой реальный запас хода делают Plaid одинаково хорошим и для поездок в школу, и для дальних путешествий по трассе. Доступ к Supercharger включён.',
     'mercedes-amg-gt-63-s': 'Четырёхдверный AMG с собранным вручную V8 битурбо. Роскошный и просторный для четырёх взрослых, но способный смутить спорткары на трек-дне. Подруливающая задняя ось делает его гораздо компактнее в ощущениях.',
@@ -110,18 +98,12 @@ const RU: CarCopy = {
     'ferrari-sf90-stradale': 'Гибридный гиперкар Ferrari с подзарядкой от розетки. V8 битурбо и три электромотора выдают вместе 1000 л. с., но по городу он может бесшумно ехать только на электричестве. Самый эксклюзивный автомобиль в коллекции.',
   },
   terms: {
-    'Munich, Germany': 'Мюнхен, Германия',
-    'Milan, Italy': 'Милан, Италия',
-    'Berlin, Germany': 'Берлин, Германия',
-    'Amsterdam, Netherlands': 'Амстердам, Нидерланды',
-    'Stuttgart, Germany': 'Штутгарт, Германия',
-    'Monaco': 'Монако',
-    'Vienna, Austria': 'Вена, Австрия',
-    'Los Angeles, USA': 'Лос-Анджелес, США',
-    'Zurich, Switzerland': 'Цюрих, Швейцария',
-    'Hamburg, Germany': 'Гамбург, Германия',
-    'Paris, France': 'Париж, Франция',
-    'Maranello, Italy': 'Маранелло, Италия',
+    'Chișinău, Moldova': 'Кишинёв, Молдова',
+    'Bălți, Moldova': 'Бельцы, Молдова',
+    'Cahul, Moldova': 'Кагул, Молдова',
+    'Orhei, Moldova': 'Орхей, Молдова',
+    'Ungheni, Moldova': 'Унгены, Молдова',
+    'Soroca, Moldova': 'Сороки, Молдова',
 
     '8-speed PDK automatic': '8-ступенчатая PDK',
     '8-speed dual-clutch': '8-ступенчатый робот',
