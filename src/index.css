@@ -65,7 +65,18 @@ body {
 .booking-card { position: sticky; top: 72px; }
 .spec-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .feature-list { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 24px; margin: 0; padding: 0; list-style: none; }
-.similar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+/* Recommended cars: a sideways-scrolling row that snaps to each card. */
+.similar-row {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+.similar-row::-webkit-scrollbar { display: none; }
+.similar-card { flex: 0 0 calc((100% - 60px) / 3.4); scroll-snap-align: start; }
+.similar-arrows { display: flex; }
 
 /* Layouts that change on phones. Inline styles can't use media queries, so they live here. */
 .nav-links, .nav-account { display: flex; }
@@ -115,7 +126,10 @@ body {
   .date-pair--inline { width: 100%; grid-template-columns: 1fr 1fr; }
   .booking-card { position: static; }
   .spec-grid { grid-template-columns: repeat(2, 1fr); }
-  .feature-list, .similar-grid { grid-template-columns: 1fr; }
+  .feature-list { grid-template-columns: 1fr; }
+  .similar-row { gap: 14px; }
+  .similar-card { flex-basis: 72%; }
+  .similar-arrows { display: none; }
 }
 
 @media (max-width: 480px) {

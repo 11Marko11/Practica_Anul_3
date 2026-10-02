@@ -172,6 +172,8 @@ export const ro: Dict = {
     freeCancel: 'Anulare gratuită cu până la 24 de ore înainte de preluare.',
     terms: 'Termeni',
     similar: 'Ți-ar putea plăcea și',
+    scrollPrev: 'Mașinile anterioare',
+    scrollNext: 'Mai multe mașini',
     mapTitle: (address: string) => `Harta pentru ${address}`,
     meetHost: 'Aici te întâlnești cu gazda la începutul și la finalul călătoriei',
     openMap: 'Deschide harta ↗',

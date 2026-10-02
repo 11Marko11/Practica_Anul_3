@@ -172,6 +172,8 @@ export const en = {
     freeCancel: 'Free cancellation up to 24 hours before pick-up.',
     terms: 'Terms',
     similar: 'You may also like',
+    scrollPrev: 'Previous cars',
+    scrollNext: 'More cars',
     mapTitle: (address: string) => `Map of ${address}`,
     meetHost: 'Meet your host here at the start and end of the trip',
     openMap: 'Open map ↗',

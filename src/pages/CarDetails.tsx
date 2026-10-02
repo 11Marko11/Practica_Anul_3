@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
-import { CARS, carImage, findCar, type Car } from '../data/cars'
+import { CARS, findCar, type Car } from '../data/cars'
 import { addDays, bookingMessage, fmt, today } from '../lib/rental'
 import { useRentalDates } from '../lib/useRentalDates'
 import { DateField } from '../components/DateField'
 import { CarGallery } from '../components/CarGallery'
 import { DeliveryPicker } from '../components/DeliveryPicker'
+import { SimilarCars } from '../components/SimilarCars'
 import { DELIVERY, type Handover } from '../lib/delivery'
 import { useI18n } from '../i18n/I18nContext'
 import { carText } from '../i18n/cars'
@@ -46,7 +47,7 @@ function CarDetailsContent({ car }: { car: Car }) {
     .filter(c => c.id !== car.id)
     .map(c => ({ c, score: (c.brand === car.brand ? 2 : 0) + (c.fuel === car.fuel ? 1 : 0) }))
     .sort((a, b) => b.score - a.score || a.c.pricePerDay - b.c.pricePerDay)
-    .slice(0, 3)
+    .slice(0, 8)
     .map(({ c }) => c)
 
   function book() {
@@ -165,27 +166,7 @@ function CarDetailsContent({ car }: { car: Car }) {
           </aside>
         </div>
 
-        <section style={{ marginTop: 72 }}>
-          <h2 style={{ fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#1d1d1f', margin: '0 0 24px' }}>
-            {t.car.similar}
-          </h2>
-          <div className="similar-grid">
-            {similar.map(c => (
-              <Link key={c.id} to={`/cars/${c.slug}${query}`} style={{ textDecoration: 'none', borderRadius: 18, overflow: 'hidden', background: '#f5f5f7', display: 'block' }}>
-                <div style={{ aspectRatio: '16/10', background: '#e8e8ed' }}>
-                  <img src={carImage(c, 600, 375)} alt={`${c.year} ${c.brand} ${c.model}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </div>
-                <div style={{ padding: '16px 18px 18px' }}>
-                  <div style={{ fontSize: 12, color: '#6e6e73' }}>{c.brand} · {c.year}</div>
-                  <div style={{ fontSize: 17, fontWeight: 600, color: '#1d1d1f', letterSpacing: '-0.02em', margin: '2px 0 6px' }}>{c.model}</div>
-                  <div style={{ fontSize: 15, color: '#1d1d1f' }}>
-                    {fmt(c.pricePerDay)}<span style={{ fontSize: 13, color: '#6e6e73' }}>{t.common.perDay}</span>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
+        <SimilarCars cars={similar} query={query} />
       </div>
     </div>
   )
