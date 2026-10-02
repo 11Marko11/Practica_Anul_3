@@ -167,7 +167,7 @@ export const ru: Dict = {
     included: 'Включено',
     total: 'Итого',
     book: 'Забронировать',
-    chooseInRange: (km: number) => `Выберите адрес в пределах ${km} км, чтобы продолжить`,
+    chooseInCountry: 'Выберите адрес в Молдове, чтобы продолжить',
     chooseAddress: 'Выберите адрес доставки, чтобы продолжить',
     freeCancel: 'Бесплатная отмена не позднее чем за 24 часа до получения.',
     terms: 'Условия',
@@ -214,7 +214,7 @@ export const ru: Dict = {
     free: '. Бесплатно.',
     deliverTo: 'Доставить по адресу',
     quote: (km: number, fee: string) => `≈ ${km} км от автомобиля · доставка ${fee}`,
-    outOfRange: (km: number, max: number, city: string) => `≈ ${km} км. Доставка возможна в пределах ${max} км от города ${city}.`,
+    outsideCountry: 'Этот адрес находится за пределами Молдовы. Мы доставляем по всей стране.',
     changeAddress: 'Изменить адрес',
     placeholder: 'Улица и город',
     addressLabel: 'Адрес доставки',
@@ -223,7 +223,7 @@ export const ru: Dict = {
     error: 'Не удалось найти адрес. Попробуйте ещё раз.',
     useLocation: 'Использовать моё местоположение',
     currentLocation: 'Ваше текущее местоположение',
-    pricing: (base: string, perKm: string, max: number) => `${base} + ${perKm}/км, до ${max} км. В конце аренды мы заберём автомобиль с того же адреса.`,
+    pricing: (base: string, perKm: string) => `${base} + ${perKm}/км, по всей Молдове. В конце аренды мы заберём автомобиль с того же адреса.`,
   },
   booking: {
     rent: (car: string, from: string, to: string, days: number, price: string) =>

@@ -9,7 +9,7 @@ import { DeliveryPicker } from '../components/DeliveryPicker'
 import { SimilarCars } from '../components/SimilarCars'
 import { CarReviews } from '../components/CarReviews'
 import { useReviews } from '../lib/useReviews'
-import { DELIVERY, type Handover } from '../lib/delivery'
+import type { Handover } from '../lib/delivery'
 import { useI18n } from '../i18n/I18nContext'
 import { carText } from '../i18n/cars'
 
@@ -166,7 +166,7 @@ function CarDetailsContent({ car }: { car: Car }) {
             </button>
             {!canBook && (
               <p style={{ fontSize: 12, color: '#a1a1a6', textAlign: 'center', margin: '8px 0 0' }}>
-                {deliveryQuote ? t.car.chooseInRange(DELIVERY.maxKm) : t.car.chooseAddress}
+                {deliveryQuote ? t.car.chooseInCountry : t.car.chooseAddress}
               </p>
             )}
             <p style={{ fontSize: 12, color: '#86868b', textAlign: 'center', margin: '12px 0 0' }}>

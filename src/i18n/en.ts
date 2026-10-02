@@ -167,7 +167,7 @@ export const en = {
     included: 'Included',
     total: 'Total',
     book: 'Book Now',
-    chooseInRange: (km: number) => `Choose an address within ${km} km to continue`,
+    chooseInCountry: 'Choose an address in Moldova to continue',
     chooseAddress: 'Choose a delivery address to continue',
     freeCancel: 'Free cancellation up to 24 hours before pick-up.',
     terms: 'Terms',
@@ -214,7 +214,7 @@ export const en = {
     free: '. Free.',
     deliverTo: 'Deliver to',
     quote: (km: number, fee: string) => `≈ ${km} km from the car · ${fee} delivery`,
-    outOfRange: (km: number, max: number, city: string) => `≈ ${km} km away. Delivery is available up to ${max} km from ${city}.`,
+    outsideCountry: 'This address is outside Moldova. We deliver anywhere in the country.',
     changeAddress: 'Change address',
     placeholder: 'Street and city',
     addressLabel: 'Delivery address',
@@ -223,7 +223,7 @@ export const en = {
     error: "Couldn't look up that address. Please try again.",
     useLocation: 'Use my current location',
     currentLocation: 'Your current location',
-    pricing: (base: string, perKm: string, max: number) => `${base} + ${perKm}/km, up to ${max} km. We collect the car from the same address at the end.`,
+    pricing: (base: string, perKm: string) => `${base} + ${perKm}/km, anywhere in Moldova. We collect the car from the same address at the end.`,
   },
   booking: {
     rent: (car: string, from: string, to: string, days: number, price: string) =>

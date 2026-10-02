@@ -44,7 +44,7 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         body: (
           <>
             <p>Car and team photos are loaded from Unsplash, the font from Google Fonts and pick-up maps from OpenStreetMap. When your browser loads them, those services receive standard request information such as your IP address, under their own privacy policies.</p>
-            <p>If you choose delivery, the address you type is sent to OpenStreetMap's Nominatim search to find it on the map. If you use "Use my current location", your browser asks for permission first and your position is only used on this page to calculate the delivery distance.</p>
+            <p>If you choose delivery, the address you type is sent to OpenStreetMap's Nominatim search to find it on the map. If you use "Use my current location", your browser asks for permission first; your position is sent to Nominatim only to check that it is in Moldova and is otherwise used only on this page to calculate the delivery distance.</p>
           </>
         ),
       },
@@ -105,7 +105,7 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         body: (
           <>
             <p>Fotografiile mașinilor și ale echipei sunt încărcate de pe Unsplash, fontul de pe Google Fonts, iar hărțile de preluare de pe OpenStreetMap. Când browserul tău le încarcă, aceste servicii primesc informații standard despre cerere, cum ar fi adresa IP, conform propriilor politici de confidențialitate.</p>
-            <p>Dacă alegi livrarea, adresa pe care o scrii este trimisă către serviciul de căutare Nominatim al OpenStreetMap pentru a o găsi pe hartă. Dacă folosești „Folosește locația mea curentă”, browserul îți cere mai întâi permisiunea, iar poziția ta este folosită doar pe această pagină, pentru a calcula distanța de livrare.</p>
+            <p>Dacă alegi livrarea, adresa pe care o scrii este trimisă către serviciul de căutare Nominatim al OpenStreetMap pentru a o găsi pe hartă. Dacă folosești „Folosește locația mea curentă”, browserul îți cere mai întâi permisiunea; poziția ta este trimisă către Nominatim doar pentru a verifica dacă se află în Republica Moldova și, în rest, este folosită doar pe această pagină, pentru a calcula distanța de livrare.</p>
           </>
         ),
       },
@@ -166,7 +166,7 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         body: (
           <>
             <p>Фотографии автомобилей и команды загружаются с Unsplash, шрифт — с Google Fonts, а карты мест получения — с OpenStreetMap. Когда ваш браузер их загружает, эти сервисы получают стандартные данные запроса, например ваш IP-адрес, в соответствии со своими политиками конфиденциальности.</p>
-            <p>Если вы выбираете доставку, введённый адрес отправляется в поиск Nominatim от OpenStreetMap, чтобы найти его на карте. Если вы нажимаете «Использовать моё местоположение», браузер сначала запрашивает разрешение, а ваше местоположение используется только на этой странице для расчёта расстояния доставки.</p>
+            <p>Если вы выбираете доставку, введённый адрес отправляется в поиск Nominatim от OpenStreetMap, чтобы найти его на карте. Если вы нажимаете «Использовать моё местоположение», браузер сначала запрашивает разрешение; ваше местоположение отправляется в Nominatim только для проверки, что оно находится в Молдове, а в остальном используется только на этой странице для расчёта расстояния доставки.</p>
           </>
         ),
       },

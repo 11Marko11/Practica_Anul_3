@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Car } from '../data/cars'
-import { DELIVERY, quoteDelivery, searchAddress, type Handover, type Place } from '../lib/delivery'
+import { DELIVERY, countryAt, quoteDelivery, searchAddress, type Handover, type Place } from '../lib/delivery'
 import { fmt } from '../lib/rental'
 import { useI18n } from '../i18n/I18nContext'
-import { carText } from '../i18n/cars'
 
 // "Pick up" / "Delivery" choice in the booking card. For delivery the user searches
 // for an address (or uses their current location) and gets a distance-based fee.
@@ -44,7 +43,14 @@ export function DeliveryPicker({ car, value, onChange }: { car: Car; value: Hand
     if (!navigator.geolocation) return setStatus('error')
     setStatus('loading')
     navigator.geolocation.getCurrentPosition(
-      pos => choose({ label: t.delivery.currentLocation, lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      async pos => {
+        const { latitude: lat, longitude: lng } = pos.coords
+        try {
+          choose({ label: t.delivery.currentLocation, lat, lng, countryCode: await countryAt(lat, lng) })
+        } catch {
+          setStatus('error')
+        }
+      },
       () => setStatus('error'),
       { timeout: 10000 },
     )
@@ -78,7 +84,7 @@ export function DeliveryPicker({ car, value, onChange }: { car: Car; value: Hand
             <div style={{ fontSize: 13, color: '#a1a1a6' }}>{t.delivery.quote(quote.km, fmt(quote.fee))}</div>
           ) : (
             <div role="alert" style={{ fontSize: 13, color: '#ff6961' }}>
-              {t.delivery.outOfRange(quote.km, DELIVERY.maxKm, carText(car, lang).location.split(',')[0])}
+              {t.delivery.outsideCountry}
             </div>
           )}
           <button onClick={() => onChange({ mode: 'delivery', quote: null })} style={{ marginTop: 8, fontSize: 13, color: '#6cb4ff', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
@@ -124,7 +130,7 @@ export function DeliveryPicker({ car, value, onChange }: { car: Car; value: Hand
             {t.delivery.useLocation}
           </button>
           <p style={{ fontSize: 12, color: '#86868b', margin: '8px 0 0', lineHeight: 1.5 }}>
-            {t.delivery.pricing(fmt(DELIVERY.baseFee), fmt(DELIVERY.perKm), DELIVERY.maxKm)}
+            {t.delivery.pricing(fmt(DELIVERY.baseFee), fmt(DELIVERY.perKm))}
           </p>
         </div>
       )}

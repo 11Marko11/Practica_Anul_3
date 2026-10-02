@@ -167,7 +167,7 @@ export const ro: Dict = {
     included: 'Inclus',
     total: 'Total',
     book: 'Rezervă acum',
-    chooseInRange: (km: number) => `Alege o adresă pe o rază de ${km} km pentru a continua`,
+    chooseInCountry: 'Alege o adresă din Republica Moldova pentru a continua',
     chooseAddress: 'Alege o adresă de livrare pentru a continua',
     freeCancel: 'Anulare gratuită cu până la 24 de ore înainte de preluare.',
     terms: 'Termeni',
@@ -214,7 +214,7 @@ export const ro: Dict = {
     free: '. Gratuit.',
     deliverTo: 'Livrare la',
     quote: (km: number, fee: string) => `≈ ${km} km de mașină · livrare ${fee}`,
-    outOfRange: (km: number, max: number, city: string) => `≈ ${km} km distanță. Livrăm pe o rază de până la ${max} km de ${city}.`,
+    outsideCountry: 'Această adresă este în afara Republicii Moldova. Livrăm oriunde în țară.',
     changeAddress: 'Schimbă adresa',
     placeholder: 'Strada și orașul',
     addressLabel: 'Adresa de livrare',
@@ -223,7 +223,7 @@ export const ro: Dict = {
     error: 'Nu am putut căuta adresa. Încearcă din nou.',
     useLocation: 'Folosește locația mea curentă',
     currentLocation: 'Locația ta curentă',
-    pricing: (base: string, perKm: string, max: number) => `${base} + ${perKm}/km, până la ${max} km. La final preluăm mașina de la aceeași adresă.`,
+    pricing: (base: string, perKm: string) => `${base} + ${perKm}/km, oriunde în Republica Moldova. La final preluăm mașina de la aceeași adresă.`,
   },
   booking: {
     rent: (car: string, from: string, to: string, days: number, price: string) =>
