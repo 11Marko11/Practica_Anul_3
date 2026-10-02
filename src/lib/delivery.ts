@@ -2,8 +2,8 @@
 // from the car's pick-up address. Distances are straight-line distances scaled by a
 // road factor, which is a fair estimate of driving distance without a routing service.
 export const DELIVERY = {
-  baseFee: 20,
-  perKm: 1.2,
+  baseFee: 350, // MDL
+  perKm: 20, // MDL
   maxKm: 100,
   roadFactor: 1.3,
 }

@@ -124,7 +124,7 @@ export function DeliveryPicker({ car, value, onChange }: { car: Car; value: Hand
             {t.delivery.useLocation}
           </button>
           <p style={{ fontSize: 12, color: '#86868b', margin: '8px 0 0', lineHeight: 1.5 }}>
-            {t.delivery.pricing(fmt(DELIVERY.baseFee), `$${DELIVERY.perKm.toFixed(2)}`, DELIVERY.maxKm)}
+            {t.delivery.pricing(fmt(DELIVERY.baseFee), fmt(DELIVERY.perKm), DELIVERY.maxKm)}
           </p>
         </div>
       )}

@@ -4,7 +4,7 @@ export type Car = {
   brand: string
   model: string
   year: number
-  pricePerDay: number
+  pricePerDay: number // Moldovan lei (MDL)
   fuel: 'Petrol' | 'Electric' | 'Hybrid'
   seats: number
   photos: string[] // Unsplash photo ids; the first one is the cover
@@ -23,7 +23,7 @@ export type Car = {
 
 export const CARS: Car[] = [
   {
-    id: 1, slug: 'porsche-911-carrera-4s', brand: 'Porsche', model: '911 Carrera 4S', year: 2024, pricePerDay: 390, fuel: 'Petrol', seats: 4,
+    id: 1, slug: 'porsche-911-carrera-4s', brand: 'Porsche', model: '911 Carrera 4S', year: 2024, pricePerDay: 6800, fuel: 'Petrol', seats: 4,
     photos: [
       'photo-1611821064430-0d40291d0f0b',
       'photo-1633348572662-1cf11058426e',
@@ -37,7 +37,7 @@ export const CARS: Car[] = [
     features: ['Sport Chrono package', 'Bose surround sound', 'Apple CarPlay', 'Heated seats', 'Adaptive cruise control', 'Parking camera'],
   },
   {
-    id: 2, slug: 'ferrari-roma-spider', brand: 'Ferrari', model: 'Roma Spider', year: 2024, pricePerDay: 890, fuel: 'Petrol', seats: 4,
+    id: 2, slug: 'ferrari-roma-spider', brand: 'Ferrari', model: 'Roma Spider', year: 2024, pricePerDay: 15600, fuel: 'Petrol', seats: 4,
     photos: [
       'photo-1666790995628-9b55f65cdeeb',
       'photo-1645028875875-d3611dc96fe0',
@@ -51,7 +51,7 @@ export const CARS: Car[] = [
     features: ['Retractable soft top', 'Wind deflector', 'Passenger display', 'Heated seats', 'Apple CarPlay', 'Front lift system'],
   },
   {
-    id: 3, slug: 'bmw-m4-competition', brand: 'BMW', model: 'M4 Competition', year: 2023, pricePerDay: 260, fuel: 'Petrol', seats: 4,
+    id: 3, slug: 'bmw-m4-competition', brand: 'BMW', model: 'M4 Competition', year: 2023, pricePerDay: 4600, fuel: 'Petrol', seats: 4,
     photos: [
       'photo-1682242288217-2c188bd79f0a',
       'photo-1660310477229-d03d8565f15d',
@@ -65,7 +65,7 @@ export const CARS: Car[] = [
     features: ['M carbon bucket seats', 'Harman Kardon audio', 'Head-up display', 'Laser headlights', 'Apple CarPlay', 'Parking assistant'],
   },
   {
-    id: 4, slug: 'tesla-model-s-plaid', brand: 'Tesla', model: 'Model S Plaid', year: 2024, pricePerDay: 240, fuel: 'Electric', seats: 5,
+    id: 4, slug: 'tesla-model-s-plaid', brand: 'Tesla', model: 'Model S Plaid', year: 2024, pricePerDay: 4200, fuel: 'Electric', seats: 5,
     photos: [
       'photo-1536700503339-1e4b06520771',
       'photo-1698514340486-cec73815c18d',
@@ -79,7 +79,7 @@ export const CARS: Car[] = [
     features: ['Autopilot', 'Supercharger access', '17" touchscreen', 'Rear-seat display', 'Glass roof', 'Premium audio'],
   },
   {
-    id: 5, slug: 'mercedes-amg-gt-63-s', brand: 'Mercedes', model: 'AMG GT 63 S', year: 2023, pricePerDay: 420, fuel: 'Petrol', seats: 4,
+    id: 5, slug: 'mercedes-amg-gt-63-s', brand: 'Mercedes', model: 'AMG GT 63 S', year: 2023, pricePerDay: 7400, fuel: 'Petrol', seats: 4,
     photos: [
       'photo-1622551997608-400d763b0f64',
       'photo-1692632146184-08b6f4828a23',
@@ -93,7 +93,7 @@ export const CARS: Car[] = [
     features: ['AMG Performance exhaust', 'Burmester audio', 'Massage seats', 'Rear-axle steering', 'Head-up display', '360° camera'],
   },
   {
-    id: 6, slug: 'lamborghini-huracan-evo', brand: 'Lamborghini', model: 'Huracán EVO', year: 2022, pricePerDay: 990, fuel: 'Petrol', seats: 2,
+    id: 6, slug: 'lamborghini-huracan-evo', brand: 'Lamborghini', model: 'Huracán EVO', year: 2022, pricePerDay: 17300, fuel: 'Petrol', seats: 2,
     photos: [
       'photo-1612825173281-9a193378527e',
       'photo-1657217674164-9cbf85acfc6d',
@@ -107,7 +107,7 @@ export const CARS: Car[] = [
     features: ['Front-axle lift', 'Carbon ceramic brakes', 'Sensonum audio', 'Apple CarPlay', 'Parking camera', 'Launch control'],
   },
   {
-    id: 7, slug: 'audi-rs-e-tron-gt', brand: 'Audi', model: 'RS e-tron GT', year: 2024, pricePerDay: 350, fuel: 'Electric', seats: 4,
+    id: 7, slug: 'audi-rs-e-tron-gt', brand: 'Audi', model: 'RS e-tron GT', year: 2024, pricePerDay: 6100, fuel: 'Electric', seats: 4,
     photos: [
       'photo-1654853976163-7ecedd0dd4d3',
       'photo-1629897872216-47ceb52635ab',
@@ -121,7 +121,7 @@ export const CARS: Car[] = [
     features: ['270 kW fast charging', 'Matrix LED headlights', 'Bang & Olufsen audio', 'Heated & ventilated seats', 'Adaptive air suspension', 'Head-up display'],
   },
   {
-    id: 8, slug: 'ford-mustang-gt500', brand: 'Ford', model: 'Mustang GT500', year: 2023, pricePerDay: 220, fuel: 'Petrol', seats: 4,
+    id: 8, slug: 'ford-mustang-gt500', brand: 'Ford', model: 'Mustang GT500', year: 2023, pricePerDay: 3900, fuel: 'Petrol', seats: 4,
     photos: [
       'photo-1611566026373-c6c8da0ea861',
       'photo-1626732288613-347e78fd139c',
@@ -135,7 +135,7 @@ export const CARS: Car[] = [
     features: ['Supercharged V8', 'Recaro seats', 'Bang & Olufsen audio', 'Track apps', 'Launch control', 'Apple CarPlay'],
   },
   {
-    id: 9, slug: 'bmw-ix-m60', brand: 'BMW', model: 'iX M60', year: 2024, pricePerDay: 280, fuel: 'Electric', seats: 5,
+    id: 9, slug: 'bmw-ix-m60', brand: 'BMW', model: 'iX M60', year: 2024, pricePerDay: 4900, fuel: 'Electric', seats: 5,
     photos: [
       'photo-1651078944944-5d5507799a51',
       'photo-1702139146899-df34319ede56',
@@ -149,7 +149,7 @@ export const CARS: Car[] = [
     features: ['Panoramic sky lounge roof', 'Bowers & Wilkins audio', 'Driving Assistant Pro', 'Heated steering wheel', 'Air suspension', 'Towing hitch'],
   },
   {
-    id: 10, slug: 'porsche-taycan-turbo-s', brand: 'Porsche', model: 'Taycan Turbo S', year: 2024, pricePerDay: 450, fuel: 'Electric', seats: 4,
+    id: 10, slug: 'porsche-taycan-turbo-s', brand: 'Porsche', model: 'Taycan Turbo S', year: 2024, pricePerDay: 7900, fuel: 'Electric', seats: 4,
     photos: [
       'photo-1642911041553-297e5295276b',
       'photo-1570374910698-6db3d787e6fb',
@@ -163,7 +163,7 @@ export const CARS: Car[] = [
     features: ['800-volt fast charging', 'Rear-axle steering', 'Burmester audio', 'Passenger display', 'Panoramic roof', 'Adaptive cruise control'],
   },
   {
-    id: 11, slug: 'mercedes-eqs-580', brand: 'Mercedes', model: 'EQS 580', year: 2023, pricePerDay: 300, fuel: 'Electric', seats: 5,
+    id: 11, slug: 'mercedes-eqs-580', brand: 'Mercedes', model: 'EQS 580', year: 2023, pricePerDay: 5300, fuel: 'Electric', seats: 5,
     photos: [
       'photo-1672644087841-7c28b3e501ee',
       'photo-1788873828604-9e5a7e2892db',
@@ -177,7 +177,7 @@ export const CARS: Car[] = [
     features: ['MBUX Hyperscreen', 'Massage seats', 'Burmester 3D audio', 'Rear-axle steering', 'Air suspension', 'Ambient lighting'],
   },
   {
-    id: 12, slug: 'ferrari-sf90-stradale', brand: 'Ferrari', model: 'SF90 Stradale', year: 2023, pricePerDay: 1450, fuel: 'Hybrid', seats: 2,
+    id: 12, slug: 'ferrari-sf90-stradale', brand: 'Ferrari', model: 'SF90 Stradale', year: 2023, pricePerDay: 25400, fuel: 'Hybrid', seats: 2,
     photos: [
       'photo-1675426513824-25a43c3ae0ba',
       'photo-1626995449612-aece6b418f55',

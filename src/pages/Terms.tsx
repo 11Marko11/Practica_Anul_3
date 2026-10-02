@@ -18,7 +18,7 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         title: 'Who can rent',
         body: (
           <ul>
-            <li>You must be at least 21 years old, and at least 25 for cars priced above $500 per day.</li>
+            <li>You must be at least 21 years old, and at least 25 for cars priced above 9 000 MDL per day.</li>
             <li>You must hold a full driving licence that has been valid for at least 2 years.</li>
             <li>The name on your account, licence and payment card must match.</li>
           </ul>
@@ -28,7 +28,7 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         title: 'Bookings and prices',
         body: (
           <>
-            <p>Prices are shown per day in US dollars. The trip total shown on a listing is the daily price multiplied by the number of rental days between your pick-up and return dates.</p>
+            <p>Prices are shown per day in Moldovan lei (MDL). The trip total shown on a listing is the daily price multiplied by the number of rental days between your pick-up and return dates.</p>
             <p>The daily price includes basic insurance and roadside assistance. Fuel or charging, tolls, parking, traffic fines and optional extras are not included.</p>
             <p>A booking is confirmed only when the host accepts it and we send you a confirmation. Until then, a request can be declined.</p>
           </>
@@ -84,7 +84,7 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         title: 'Cine poate închiria',
         body: (
           <ul>
-            <li>Trebuie să ai cel puțin 21 de ani și cel puțin 25 de ani pentru mașinile care costă peste 500 $ pe zi.</li>
+            <li>Trebuie să ai cel puțin 21 de ani și cel puțin 25 de ani pentru mașinile care costă peste 9 000 MDL pe zi.</li>
             <li>Trebuie să deții un permis de conducere valabil de cel puțin 2 ani.</li>
             <li>Numele din cont, de pe permis și de pe cardul de plată trebuie să coincidă.</li>
           </ul>
@@ -94,7 +94,7 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         title: 'Rezervări și prețuri',
         body: (
           <>
-            <p>Prețurile sunt afișate pe zi, în dolari americani. Totalul afișat pentru o mașină este prețul pe zi înmulțit cu numărul de zile dintre data preluării și data returnării.</p>
+            <p>Prețurile sunt afișate pe zi, în lei moldovenești (MDL). Totalul afișat pentru o mașină este prețul pe zi înmulțit cu numărul de zile dintre data preluării și data returnării.</p>
             <p>Prețul pe zi include asigurarea de bază și asistența rutieră. Combustibilul sau încărcarea, taxele de drum, parcarea, amenzile și opțiunile suplimentare nu sunt incluse.</p>
             <p>O rezervare este confirmată doar după ce gazda o acceptă și îți trimitem o confirmare. Până atunci, cererea poate fi refuzată.</p>
           </>
@@ -150,7 +150,7 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         title: 'Кто может арендовать',
         body: (
           <ul>
-            <li>Вам должно быть не менее 21 года, а для автомобилей дороже 500 $ в сутки — не менее 25 лет.</li>
+            <li>Вам должно быть не менее 21 года, а для автомобилей дороже 9 000 MDL в сутки — не менее 25 лет.</li>
             <li>У вас должно быть водительское удостоверение со стажем не менее 2 лет.</li>
             <li>Имя в аккаунте, водительском удостоверении и на платёжной карте должно совпадать.</li>
           </ul>
@@ -160,7 +160,7 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         title: 'Бронирование и цены',
         body: (
           <>
-            <p>Цены указаны за сутки в долларах США. Итоговая сумма поездки — это суточная цена, умноженная на количество дней между датами получения и возврата.</p>
+            <p>Цены указаны за сутки в молдавских леях (MDL). Итоговая сумма поездки — это суточная цена, умноженная на количество дней между датами получения и возврата.</p>
             <p>Суточная цена включает базовую страховку и помощь на дороге. Топливо или зарядка, платные дороги, парковка, штрафы и дополнительные опции не включены.</p>
             <p>Бронирование подтверждается только после того, как владелец его примет и мы отправим вам подтверждение. До этого запрос может быть отклонён.</p>
           </>

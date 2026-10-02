@@ -3,8 +3,9 @@ import type { Handover } from './delivery'
 import type { Dict } from '../i18n/en'
 import type { Lang } from '../i18n/I18nContext'
 
+// Prices are in Moldovan lei: 6800 → "6 800 MDL".
 export function fmt(n: number) {
-  return '$' + n.toLocaleString('en-US')
+  return n.toLocaleString('en-US').replace(/,/g, ' ') + ' MDL'
 }
 
 // Dates are 'YYYY-MM-DD' strings, handled in UTC so time zones can't shift the day.
