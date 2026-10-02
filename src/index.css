@@ -68,7 +68,7 @@ body {
 .similar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 
 /* Layouts that change on phones. Inline styles can't use media queries, so they live here. */
-.nav-links { display: flex; }
+.nav-links, .nav-account { display: flex; }
 .nav-toggle { display: none; }
 
 .stats-grid {

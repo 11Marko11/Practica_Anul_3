@@ -1,8 +1,10 @@
 import { Outlet, NavLink, useLocation } from 'react-router'
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../auth/AuthContext'
+import { useI18n } from '../i18n/I18nContext'
+import { LanguageSwitcher } from '../components/LanguageSwitcher'
 
-const NAV_LINKS = [['marketplace', 'Rent a Car'], ['about', 'About'], ['contact', 'Contact']]
+const NAV_LINKS = [['marketplace', 'rent'], ['about', 'about'], ['contact', 'contact']] as const
 
 const NAV_HEIGHT = 52
 
@@ -32,6 +34,7 @@ function useNavScroll() {
 export function Root() {
   const [menuOpen, setMenuOpen] = useState(false)
   const { scrolled, hidden } = useNavScroll()
+  const { t } = useI18n()
   const location = useLocation()
   const isHome = location.pathname === '/'
 
@@ -68,7 +71,7 @@ export function Root() {
             Rent Motors
           </NavLink>
           <div className="nav-links" style={{ gap: 28, alignItems: 'center' }}>
-            {NAV_LINKS.map(([path, label]) => (
+            {NAV_LINKS.map(([path, key]) => (
               <NavLink
                 key={path}
                 to={`/${path}`}
@@ -80,17 +83,18 @@ export function Root() {
                   transition: 'color 0.3s',
                 })}
               >
-                {label}
+                {t.nav[key]}
               </NavLink>
             ))}
           </div>
-          <div className="nav-account">
+          <div className="nav-account" style={{ alignItems: 'center', gap: 12 }}>
+            <LanguageSwitcher />
             <AccountButton btnStyle={btnStyle} />
           </div>
           <button
             className="nav-toggle"
             onClick={() => setMenuOpen(o => !o)}
-            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-label={menuOpen ? t.nav.closeMenu : t.nav.openMenu}
             aria-expanded={menuOpen}
             style={{ width: 40, height: 40, marginRight: -8, alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: '#fff' }}
           >
@@ -111,11 +115,11 @@ export function Root() {
       <footer style={{ background: '#161618', padding: '28px 24px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
           <span style={{ fontSize: 14, fontWeight: 600, color: '#f5f5f7', letterSpacing: '-0.02em' }}>Rent Motors</span>
-          <p style={{ fontSize: 13, color: '#86868b', margin: 0 }}>© 2026 Rent Motors, Inc. All rights reserved.</p>
+          <p style={{ fontSize: 13, color: '#86868b', margin: 0 }}>{t.footer.rights}</p>
           <div style={{ display: 'flex', gap: 20 }}>
-            {[['privacy', 'Privacy'], ['terms', 'Terms'], ['contact', 'Contact']].map(([path, label]) => (
+            {(['privacy', 'terms', 'contact'] as const).map(path => (
               <NavLink key={path} to={`/${path}`} style={({ isActive }) => ({ fontSize: 13, color: isActive ? '#f5f5f7' : '#a1a1a6', textDecoration: 'none' })}>
-                {label}
+                {t.footer[path]}
               </NavLink>
             ))}
           </div>
@@ -127,6 +131,7 @@ export function Root() {
 
 function AccountButton({ btnStyle }: { btnStyle: React.CSSProperties }) {
   const { user, signOut } = useAuth()
+  const { t } = useI18n()
   const location = useLocation()
   const [open, setOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -147,7 +152,7 @@ function AccountButton({ btnStyle }: { btnStyle: React.CSSProperties }) {
   if (!user) {
     return (
       <NavLink to="/login" state={{ from: location.pathname }} style={{ ...pill, display: 'inline-block', textDecoration: 'none' }}>
-        Sign In
+        {t.account.signIn}
       </NavLink>
     )
   }
@@ -178,7 +183,7 @@ function AccountButton({ btnStyle }: { btnStyle: React.CSSProperties }) {
             onMouseEnter={e => (e.currentTarget.style.background = '#3a3a3d')}
             onMouseLeave={e => (e.currentTarget.style.background = 'none')}
           >
-            Sign Out
+            {t.account.signOut}
           </button>
         </div>
       )}
@@ -188,16 +193,17 @@ function AccountButton({ btnStyle }: { btnStyle: React.CSSProperties }) {
 
 function MobileMenu() {
   const { user, signOut } = useAuth()
+  const { t } = useI18n()
   const location = useLocation()
   return (
     <div className="mobile-menu" style={{ background: '#1c1c1e', borderTop: '1px solid #2c2c2e', padding: '8px 24px 24px' }}>
-      {NAV_LINKS.map(([path, label]) => (
+      {NAV_LINKS.map(([path, key]) => (
         <NavLink
           key={path}
           to={`/${path}`}
           style={({ isActive }) => ({ display: 'block', padding: '14px 0', fontSize: 20, fontWeight: 500, letterSpacing: '-0.02em', color: isActive ? '#fff' : 'rgba(255,255,255,0.7)', textDecoration: 'none', borderBottom: '1px solid #2c2c2e' })}
         >
-          {label}
+          {t.nav[key]}
         </NavLink>
       ))}
       {user ? (
@@ -207,7 +213,7 @@ function MobileMenu() {
             <div style={{ fontSize: 13, color: '#a1a1a6', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.email}</div>
           </div>
           <button onClick={signOut} style={{ flexShrink: 0, fontSize: 14, fontWeight: 500, color: '#ff6961', background: '#2a2a2d', border: 'none', borderRadius: 980, padding: '10px 18px', cursor: 'pointer' }}>
-            Sign Out
+            {t.account.signOut}
           </button>
         </div>
       ) : (
@@ -216,9 +222,12 @@ function MobileMenu() {
           state={{ from: location.pathname }}
           style={{ display: 'block', marginTop: 20, textAlign: 'center', fontSize: 15, fontWeight: 500, padding: '14px 0', borderRadius: 980, background: '#f5f5f7', color: '#1c1c1e', textDecoration: 'none' }}
         >
-          Sign In
+          {t.account.signIn}
         </NavLink>
       )}
+      <div style={{ marginTop: 20 }}>
+        <LanguageSwitcher large />
+      </div>
     </div>
   )
 }
