@@ -174,7 +174,7 @@ export function carText(car: Car, lang: Lang) {
   return {
     location: term(car.location),
     transmission: term(car.transmission),
-    description: descriptions[car.slug] ?? car.description,
+    description: car.translations?.[lang]?.description || descriptions[car.slug] || car.description,
     features: car.features.map(term),
   }
 }

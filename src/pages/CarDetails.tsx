@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
-import { CARS, findCar, type Car } from '../data/cars'
+import type { Car } from '../data/cars'
+import { useCar, useCars } from '../lib/carStore'
 import { addDays, bookingMessage, fmt, today } from '../lib/rental'
 import { useRentalDates } from '../lib/useRentalDates'
 import { DateField } from '../components/DateField'
@@ -15,7 +16,7 @@ import { carText } from '../i18n/cars'
 
 export function CarDetails() {
   const { slug = '' } = useParams()
-  const car = findCar(slug)
+  const car = useCar(slug)
   if (!car) return <CarNotFound />
   return <CarDetailsContent key={car.slug} car={car} />
 }
@@ -27,6 +28,7 @@ function CarDetailsContent({ car }: { car: Car }) {
   const { pickup, dropoff, days, query, changePickup, changeDropoff } = useRentalDates()
   const [handover, setHandover] = useState<Handover>({ mode: 'pickup' })
   const reviewData = useReviews(car.slug)
+  const cars = useCars()
   const { reviews, average } = reviewData
   const rental = car.pricePerDay * days
   const deliveryQuote = handover.mode === 'delivery' ? handover.quote : null
@@ -47,7 +49,7 @@ function CarDetailsContent({ car }: { car: Car }) {
   ]
 
   // Same brand first, then same fuel type, then anything else.
-  const similar = CARS
+  const similar = cars
     .filter(c => c.id !== car.id)
     .map(c => ({ c, score: (c.brand === car.brand ? 2 : 0) + (c.fuel === car.fuel ? 1 : 0) }))
     .sort((a, b) => b.score - a.score || a.c.pricePerDay - b.c.pricePerDay)

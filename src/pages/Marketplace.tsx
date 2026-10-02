@@ -1,25 +1,26 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router'
-import { CARS, carImage, type Car } from '../data/cars'
+import { carImage, type Car } from '../data/cars'
+import { useCars } from '../lib/carStore'
 import { addDays, fmt, today } from '../lib/rental'
 import { useRentalDates } from '../lib/useRentalDates'
 import { DateField } from '../components/DateField'
 import { useI18n } from '../i18n/I18nContext'
 
-// Every brand that has at least one car, alphabetically, with how many cars it has.
-const BRANDS = Object.entries(
-  CARS.reduce<Record<string, number>>((acc, c) => ({ ...acc, [c.brand]: (acc[c.brand] ?? 0) + 1 }), {}),
-).sort(([a], [b]) => a.localeCompare(b))
-
 export function Marketplace() {
   const location = useLocation()
   const { t } = useI18n()
+  const cars = useCars()
+  // Every brand that has at least one car, alphabetically, with how many cars it has.
+  const brands = Object.entries(
+    cars.reduce<Record<string, number>>((acc, c) => ({ ...acc, [c.brand]: (acc[c.brand] ?? 0) + 1 }), {}),
+  ).sort(([a], [b]) => a.localeCompare(b))
   const requestedBrand = (location.state as { brand?: string } | null)?.brand
-  const [brand, setBrand] = useState(() => BRANDS.some(([b]) => b === requestedBrand) ? requestedBrand! : 'All')
+  const [brand, setBrand] = useState(() => brands.some(([b]) => b === requestedBrand) ? requestedBrand! : 'All')
   const [sort, setSort] = useState<'newest' | 'price-asc' | 'price-desc'>('newest')
   const { pickup, dropoff, days, query, changePickup, changeDropoff } = useRentalDates()
 
-  const list = CARS
+  const list = cars
     .filter(c => brand === 'All' || c.brand === brand)
     .sort((a, b) =>
       sort === 'price-asc' ? a.pricePerDay - b.pricePerDay :
@@ -64,8 +65,8 @@ export function Marketplace() {
                   onChange={e => setBrand(e.target.value)}
                   style={{ appearance: 'none', fontSize: 14, fontFamily: 'inherit', padding: '9px 40px 9px 16px', minWidth: 220, borderRadius: 980, border: '1px solid', borderColor: brand === 'All' ? '#d2d2d7' : '#1d1d1f', background: '#fff', color: '#1d1d1f', cursor: 'pointer', outline: 'none' }}
                 >
-                  <option value="All">{t.marketplace.allBrands(CARS.length)}</option>
-                  {BRANDS.map(([b, count]) => (
+                  <option value="All">{t.marketplace.allBrands(cars.length)}</option>
+                  {brands.map(([b, count]) => (
                     <option key={b} value={b}>{b} ({count})</option>
                   ))}
                 </select>

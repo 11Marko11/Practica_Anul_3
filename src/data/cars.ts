@@ -7,7 +7,7 @@ export type Car = {
   pricePerDay: number // Moldovan lei (MDL)
   fuel: 'Petrol' | 'Electric' | 'Hybrid'
   seats: number
-  photos: string[] // Unsplash photo ids; the first one is the cover
+  photos: string[] // Unsplash photo ids or full image links; the first one is the cover
   horsepower: number
   acceleration: number // 0–100 km/h in seconds
   topSpeed: number // km/h
@@ -17,11 +17,14 @@ export type Car = {
   location: string // city shown in listings
   pickup: { address: string; lat: number; lng: number } // where the car is collected
   host: { name: string; rating: number; trips: number }
-  description: string
+  description: string // English
   features: string[]
+  // Descriptions added in the admin pages; sample cars are translated in i18n/cars.ts.
+  translations?: Partial<Record<'ro' | 'ru', { description: string }>>
 }
 
-export const CARS: Car[] = [
+// The cars the site starts with. The live catalogue, including admin changes, comes from lib/carStore.ts.
+export const SAMPLE_CARS: Car[] = [
   {
     id: 1, slug: 'porsche-911-carrera-4s', brand: 'Porsche', model: '911 Carrera 4S', year: 2024, pricePerDay: 6800, fuel: 'Petrol', seats: 4,
     photos: [
@@ -193,9 +196,7 @@ export const CARS: Car[] = [
 ]
 
 export function carImage(car: Car, width: number, height: number, index = 0) {
-  return `https://images.unsplash.com/${car.photos[index]}?w=${width}&h=${height}&fit=crop&auto=format`
-}
-
-export function findCar(slug: string) {
-  return CARS.find(c => c.slug === slug)
+  const photo = car.photos[index]
+  if (/^https?:\/\//.test(photo)) return photo
+  return `https://images.unsplash.com/${photo}?w=${width}&h=${height}&fit=crop&auto=format`
 }

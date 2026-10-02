@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
-import { CARS, carImage, type Car } from '../data/cars'
+import { carImage, type Car } from '../data/cars'
+import { useCars } from '../lib/carStore'
 import { fmt } from '../lib/rental'
 import { useI18n } from '../i18n/I18nContext'
 
@@ -8,6 +9,7 @@ import { useI18n } from '../i18n/I18nContext'
 // recommended cars, ending with a card that links to the full listing.
 export function SimilarCars({ cars, query }: { cars: Car[]; query: string }) {
   const { t } = useI18n()
+  const total = useCars().length
   const row = useRef<HTMLDivElement>(null)
   const [edges, setEdges] = useState({ start: true, end: false })
 
@@ -68,7 +70,7 @@ export function SimilarCars({ cars, query }: { cars: Car[]; query: string }) {
             </svg>
           </span>
           <span style={{ fontSize: 18, fontWeight: 600, color: '#f5f5f7', letterSpacing: '-0.02em' }}>{t.car.browseAll}</span>
-          <span style={{ fontSize: 13, color: '#a1a1a6' }}>{t.marketplace.available(CARS.length)}</span>
+          <span style={{ fontSize: 13, color: '#a1a1a6' }}>{t.marketplace.available(total)}</span>
         </Link>
       </div>
     </section>
