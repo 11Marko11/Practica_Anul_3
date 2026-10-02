@@ -23,6 +23,9 @@ export type Car = {
   translations?: Partial<Record<'ro' | 'ru', { description: string }>>
 }
 
+// Cities a car can be collected in (offered in the admin form).
+export const CITIES = ['Chișinău', 'Bălți', 'Cahul', 'Căușeni', 'Comrat', 'Drochia', 'Edineț', 'Florești', 'Hîncești', 'Ialoveni', 'Orhei', 'Soroca', 'Strășeni', 'Ungheni']
+
 // The cars the site starts with. The live catalogue, including admin changes, comes from lib/carStore.ts.
 export const SAMPLE_CARS: Car[] = [
   {
@@ -196,7 +199,11 @@ export const SAMPLE_CARS: Car[] = [
 ]
 
 export function carImage(car: Car, width: number, height: number, index = 0) {
-  const photo = car.photos[index]
+  return photoUrl(car.photos[index], width, height)
+}
+
+// A full image link is used as is; anything else is treated as an Unsplash photo id.
+export function photoUrl(photo: string, width: number, height: number) {
   if (/^https?:\/\//.test(photo)) return photo
   return `https://images.unsplash.com/${photo}?w=${width}&h=${height}&fit=crop&auto=format`
 }

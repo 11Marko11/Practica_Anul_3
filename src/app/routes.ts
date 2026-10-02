@@ -8,6 +8,8 @@ import { Contact } from '../pages/Contact'
 import { Login } from '../pages/Login'
 import { Terms } from '../pages/Terms'
 import { Privacy } from '../pages/Privacy'
+import { AdminCars } from '../pages/admin/AdminCars'
+import { AdminCarForm } from '../pages/admin/AdminCarForm'
 
 export const router = createBrowserRouter([
   {
@@ -22,6 +24,9 @@ export const router = createBrowserRouter([
       { path: 'login', Component: Login },
       { path: 'terms', Component: Terms },
       { path: 'privacy', Component: Privacy },
+      { path: 'admin', Component: AdminCars },
+      { path: 'admin/cars/new', Component: AdminCarForm },
+      { path: 'admin/cars/:slug', Component: AdminCarForm },
     ],
   },
 ])

@@ -78,6 +78,9 @@ body {
 .similar-card { flex: 0 0 calc((100% - 60px) / 3.4); scroll-snap-align: start; }
 .similar-arrows { display: flex; }
 
+.admin-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+.admin-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+
 .review-summary { display: grid; grid-template-columns: 120px 1fr; gap: 24px; align-items: center; }
 
 /* Layouts that change on phones. Inline styles can't use media queries, so they live here. */

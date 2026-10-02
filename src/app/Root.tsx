@@ -1,6 +1,7 @@
 import { Outlet, NavLink, useLocation } from 'react-router'
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../auth/AuthContext'
+import { isAdmin } from '../auth/admin'
 import { useI18n } from '../i18n/I18nContext'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
 
@@ -176,6 +177,17 @@ function AccountButton({ btnStyle }: { btnStyle: React.CSSProperties }) {
             <div style={{ fontSize: 14, fontWeight: 600, color: '#f5f5f7' }}>{user.name}</div>
             <div style={{ fontSize: 13, color: '#a1a1a6', marginTop: 2 }}>{user.email}</div>
           </div>
+          {isAdmin(user) && (
+            <NavLink
+              role="menuitem"
+              to="/admin"
+              style={{ display: 'block', fontSize: 14, color: '#f5f5f7', textDecoration: 'none', borderRadius: 8, padding: '8px 10px' }}
+              onMouseEnter={e => (e.currentTarget.style.background = '#3a3a3d')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+            >
+              {t.admin.link}
+            </NavLink>
+          )}
           <button
             role="menuitem"
             onClick={() => { signOut(); setOpen(false) }}
@@ -206,6 +218,14 @@ function MobileMenu() {
           {t.nav[key]}
         </NavLink>
       ))}
+      {isAdmin(user) && (
+        <NavLink
+          to="/admin"
+          style={({ isActive }) => ({ display: 'block', padding: '14px 0', fontSize: 20, fontWeight: 500, letterSpacing: '-0.02em', color: isActive ? '#fff' : 'rgba(255,255,255,0.7)', textDecoration: 'none', borderBottom: '1px solid #2c2c2e' })}
+        >
+          {t.admin.link}
+        </NavLink>
+      )}
       {user ? (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 20 }}>
           <div style={{ minWidth: 0 }}>
