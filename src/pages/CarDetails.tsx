@@ -7,6 +7,8 @@ import { DateField } from '../components/DateField'
 import { CarGallery } from '../components/CarGallery'
 import { DeliveryPicker } from '../components/DeliveryPicker'
 import { SimilarCars } from '../components/SimilarCars'
+import { CarReviews } from '../components/CarReviews'
+import { useReviews } from '../lib/useReviews'
 import { DELIVERY, type Handover } from '../lib/delivery'
 import { useI18n } from '../i18n/I18nContext'
 import { carText } from '../i18n/cars'
@@ -24,6 +26,8 @@ function CarDetailsContent({ car }: { car: Car }) {
   const text = carText(car, lang)
   const { pickup, dropoff, days, query, changePickup, changeDropoff } = useRentalDates()
   const [handover, setHandover] = useState<Handover>({ mode: 'pickup' })
+  const reviewData = useReviews(car.slug)
+  const { reviews, average } = reviewData
   const rental = car.pricePerDay * days
   const deliveryQuote = handover.mode === 'delivery' ? handover.quote : null
   const deliveryFee = deliveryQuote?.ok ? deliveryQuote.fee : 0
@@ -67,7 +71,8 @@ function CarDetailsContent({ car }: { car: Car }) {
             {car.model}
           </h1>
           <p style={{ fontSize: 14, color: '#6e6e73', margin: 0 }}>
-            <span style={{ color: '#1d1d1f', fontWeight: 500 }}>★ {car.host.rating.toFixed(1)}</span> · {t.common.trips(car.host.trips)} · {text.location}
+            {reviews.length > 0 && <span style={{ color: '#1d1d1f', fontWeight: 500 }}>★ {average.toFixed(1)} · </span>}
+            <a href="#reviews" style={{ color: '#0071e3', textDecoration: 'none' }}>{t.reviews.count(reviews.length)}</a> · {text.location}
           </p>
         </header>
 
@@ -123,6 +128,10 @@ function CarDetailsContent({ car }: { car: Car }) {
                   </div>
                 </div>
               </div>
+            </Section>
+
+            <Section title={t.reviews.title} id="reviews">
+              <CarReviews data={reviewData} />
             </Section>
           </div>
 
@@ -203,9 +212,9 @@ function PickupMap({ car }: { car: Car }) {
   )
 }
 
-function Section({ title, children, first = false }: { title: string; children: React.ReactNode; first?: boolean }) {
+function Section({ title, children, first = false, id }: { title: string; children: React.ReactNode; first?: boolean; id?: string }) {
   return (
-    <section style={{ marginTop: first ? 0 : 40 }}>
+    <section id={id} style={{ marginTop: first ? 0 : 40, scrollMarginTop: 72 }}>
       <h2 style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.025em', color: '#1d1d1f', margin: '0 0 16px' }}>{title}</h2>
       {children}
     </section>
