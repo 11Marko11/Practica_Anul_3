@@ -1,0 +1,196 @@
+// Rent Motors database (PostgreSQL on Supabase).
+// After changing this file: `npm run db:new-migration -- --name <what-changed>`, review the SQL, commit it.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+// Values match the front-end's Car type ('Petrol', 'AWD'…).
+enum Fuel {
+  Petrol
+  Electric
+  Hybrid
+}
+
+enum Drive {
+  AWD
+  RWD
+}
+
+enum CarStatus {
+  ACTIVE // shown on the site
+  HIDDEN // kept for past bookings, not bookable
+}
+
+enum Handover {
+  PICKUP
+  DELIVERY
+}
+
+// PENDING_PAYMENT → AWAITING_CONFIRMATION (paid, card hold) → CONFIRMED (charged) → COMPLETED (car returned)
+// Side exits: EXPIRED (not paid in time), REJECTED (by the admin, hold released), CANCELLED (by the customer).
+enum BookingStatus {
+  PENDING_PAYMENT
+  AWAITING_CONFIRMATION
+  CONFIRMED
+  COMPLETED
+  EXPIRED
+  REJECTED
+  CANCELLED
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique // stored lowercase
+  passwordHash String
+  role         Role     @default(CUSTOMER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sessions Session[]
+  bookings Booking[]
+  reviews  Review[]
+  messages ContactMessage[]
+}
+
+// Sign-in sessions. The browser keeps a random token in an httpOnly cookie; only its SHA-256 hash is stored.
+model Session {
+  id        String   @id // SHA-256 hash of the cookie token
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Car {
+  id            Int       @id @default(autoincrement())
+  slug          String    @unique // used in the car's web address
+  brand         String
+  model         String
+  year          Int
+  pricePerDay   Int // MDL
+  fuel          Fuel
+  seats         Int
+  horsepower    Int
+  acceleration  Float // 0–100 km/h in seconds
+  topSpeed      Int // km/h
+  transmission  String
+  drive         Drive
+  range         Int? // electric range in km
+  city          String // e.g. "Chișinău"
+  pickupAddress String
+  pickupLat     Float
+  pickupLng     Float
+  hostName      String
+  hostRating    Float     @default(5)
+  hostTrips     Int       @default(0)
+  description   String // English
+  descriptionRo String?
+  descriptionRu String?
+  features      String[]
+  status        CarStatus @default(ACTIVE)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  photos   CarPhoto[]
+  bookings Booking[]
+  reviews  Review[]
+
+  @@index([status])
+}
+
+model CarPhoto {
+  id       Int    @id @default(autoincrement())
+  carId    Int
+  url      String // full link, or an Unsplash photo id for the sample cars
+  position Int // 0 is the cover photo
+
+  car Car @relation(fields: [carId], references: [id], onDelete: Cascade)
+
+  @@index([carId, position])
+}
+
+// A rental order. Prices are calculated on the server and stored in MDL.
+model Booking {
+  id              String        @id @default(uuid())
+  userId          String
+  carId           Int
+  pickupDate      DateTime      @db.Date
+  returnDate      DateTime      @db.Date
+  days            Int
+  handover        Handover
+  deliveryAddress String?
+  deliveryLat     Float?
+  deliveryLng     Float?
+  deliveryKm      Int?
+  rentalPrice     Int
+  deliveryFee     Int           @default(0)
+  total           Int
+  status          BookingStatus @default(PENDING_PAYMENT)
+  phone           String
+  note            String?
+
+  // Stripe Checkout. The card is authorised at checkout and charged when the admin confirms.
+  stripeCheckoutSessionId String?   @unique
+  stripePaymentIntentId   String?   @unique
+  paymentExpiresAt        DateTime? // unpaid bookings stop blocking the dates after this
+  refundedAmount          Int       @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Restrict)
+  car    Car     @relation(fields: [carId], references: [id], onDelete: Restrict)
+  review Review?
+
+  @@index([carId, pickupDate, returnDate])
+  @@index([userId])
+  @@index([status])
+}
+
+// Only a customer with a completed booking for the car can review it, once per booking.
+model Review {
+  id         String   @id @default(uuid())
+  carId      Int
+  userId     String? // null for the sample reviews imported from the front-end
+  bookingId  String?  @unique
+  authorName String // shown on the site; sample reviews have no real user behind the name
+  rating     Int // 1–5
+  text       String
+  createdAt  DateTime @default(now())
+
+  car     Car      @relation(fields: [carId], references: [id], onDelete: Cascade)
+  user    User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  booking Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  @@index([carId, createdAt])
+}
+
+model ContactMessage {
+  id        String    @id @default(uuid())
+  userId    String?
+  name      String
+  email     String
+  subject   String
+  message   String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+}

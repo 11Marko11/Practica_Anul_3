@@ -1,0 +1,21 @@
+# Render Blueprint for the API (server/). Render → New → Blueprint → pick this repository.
+services:
+  - type: web
+    name: rent-motors-api
+    runtime: node
+    plan: free
+    region: frankfurt
+    rootDir: server
+    # Dev dependencies (Prisma CLI, TypeScript) are needed to build and to run migrations.
+    buildCommand: npm ci --include=dev && npm run build
+    # The free plan has no pre-deploy step, so pending migrations run right before the server starts.
+    startCommand: npm run db:migrate && npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL
+        sync: false # entered in the Render dashboard, never committed

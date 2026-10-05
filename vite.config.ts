@@ -13,5 +13,9 @@ export default defineConfig({
   },
   server: {
     port: 8443,
+    // In development the API runs locally (`npm run dev` in server/); in production Vercel forwards /api (see vercel.json).
+    proxy: {
+      '/api': 'http://localhost:3000',
+    },
   },
 })
