@@ -1,43 +1,48 @@
-import { useState } from 'react'
-import { SAMPLE_REVIEWS, type Review } from '../data/reviews'
-import { today } from './rental'
+import { useCallback, useEffect, useState } from 'react'
+import { useAuth } from '../auth/AuthContext'
+import { api } from './api'
 
-// Reviews posted on the site live in localStorage until there is a backend,
-// keyed by car slug, and are shown together with the sample reviews.
-const REVIEWS_KEY = 'rentmotors.reviews'
+export type Review = { id: string; name: string; rating: number; date: string; text: string; mine: boolean }
 
-function readPosted(): Record<string, Review[]> {
-  try {
-    const raw = localStorage.getItem(REVIEWS_KEY)
-    return raw ? (JSON.parse(raw) as Record<string, Review[]>) : {}
-  } catch {
-    return {}
-  }
-}
-
-function writePosted(all: Record<string, Review[]>) {
-  try {
-    localStorage.setItem(REVIEWS_KEY, JSON.stringify(all))
-  } catch {
-    // Storage unavailable (private mode): the review just won't persist.
-  }
-}
-
+// A car's reviews from the API, and whether the signed-in user can add one
+// (only after a completed trip with this car).
 export function useReviews(slug: string) {
-  const [posted, setPosted] = useState<Review[]>(() => readPosted()[slug] ?? [])
+  const { user } = useAuth()
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [canReview, setCanReview] = useState(false)
+  const [loading, setLoading] = useState(true)
 
-  function save(next: Review[]) {
-    setPosted(next)
-    writePosted({ ...readPosted(), [slug]: next })
-  }
+  const load = useCallback(async () => {
+    try {
+      const res = await api<{ reviews: Review[]; canReview: boolean }>(`/cars/${encodeURIComponent(slug)}/reviews`)
+      setReviews(res.reviews)
+      setCanReview(res.canReview)
+    } catch {
+      // Keep whatever is shown; reviews are not essential to the page.
+    } finally {
+      setLoading(false)
+    }
+  }, [slug])
 
-  const reviews = [...posted, ...(SAMPLE_REVIEWS[slug] ?? [])].sort((a, b) => b.date.localeCompare(a.date))
+  // Reload when the user signs in or out: "mine" and canReview depend on who is asking.
+  useEffect(() => {
+    load()
+  }, [load, user?.id])
+
   const average = reviews.length ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0
 
   return {
     reviews,
     average,
-    add: (review: Omit<Review, 'id' | 'date'>) => save([{ ...review, id: crypto.randomUUID(), date: today() }, ...posted]),
-    remove: (id: string) => save(posted.filter(r => r.id !== id)),
+    canReview,
+    loading,
+    add: async (rating: number, text: string) => {
+      await api(`/cars/${encodeURIComponent(slug)}/reviews`, { body: { rating, text } })
+      await load()
+    },
+    remove: async (id: string) => {
+      await api(`/reviews/${id}`, { method: 'DELETE' })
+      await load()
+    },
   }
 }

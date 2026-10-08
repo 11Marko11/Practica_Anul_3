@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router'
 import { carImage, type Car } from '../data/cars'
-import { useCars } from '../lib/carStore'
+import { reloadCars, useCars, useCatalogStatus } from '../lib/carStore'
 import { addDays, fmt, today } from '../lib/rental'
 import { useRentalDates } from '../lib/useRentalDates'
 import { DateField } from '../components/DateField'
@@ -11,6 +11,7 @@ export function Marketplace() {
   const location = useLocation()
   const { t } = useI18n()
   const cars = useCars()
+  const status = useCatalogStatus()
   // Every brand that has at least one car, alphabetically, with how many cars it has.
   const brands = Object.entries(
     cars.reduce<Record<string, number>>((acc, c) => ({ ...acc, [c.brand]: (acc[c.brand] ?? 0) + 1 }), {}),
@@ -94,7 +95,18 @@ export function Marketplace() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(340px, 100%), 1fr))', gap: 20 }}>
           {list.map(car => <CarCard key={car.id} car={car} days={days} query={query} />)}
         </div>
-        {list.length === 0 && (
+        {list.length === 0 && status === 'loading' && (
+          <p style={{ textAlign: 'center', padding: '80px 0', fontSize: 15, color: '#6e6e73' }}>{t.marketplace.loading}</p>
+        )}
+        {list.length === 0 && status === 'error' && (
+          <div style={{ textAlign: 'center', padding: '80px 0' }}>
+            <p style={{ fontSize: 15, color: '#6e6e73', margin: '0 0 16px' }}>{t.marketplace.loadError}</p>
+            <button onClick={reloadCars} style={{ fontSize: 14, fontWeight: 500, padding: '10px 22px', borderRadius: 980, background: '#1d1d1f', color: '#fff', border: 'none', cursor: 'pointer' }}>
+              {t.marketplace.retry}
+            </button>
+          </div>
+        )}
+        {list.length === 0 && status === 'ready' && (
           <div style={{ textAlign: 'center', padding: '80px 0' }}>
             <p style={{ fontSize: 22, fontWeight: 500, color: '#1d1d1f' }}>{t.marketplace.emptyTitle}</p>
             <p style={{ fontSize: 15, color: '#6e6e73', marginTop: 8 }}>{t.marketplace.emptyText}</p>

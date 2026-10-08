@@ -101,7 +101,7 @@ export function Contact() {
                       required
                       value={form.name}
                       onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                      placeholder="Elena Rossi"
+                      placeholder="Ion Popescu"
                       style={inputStyle}
                       onFocus={e => (e.target.style.borderColor = '#1d1d1f')}
                       onBlur={e => (e.target.style.borderColor = '#d2d2d7')}
@@ -114,7 +114,7 @@ export function Contact() {
                       type="email"
                       value={form.email}
                       onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                      placeholder="elena@example.com"
+                      placeholder="ion@example.com"
                       style={inputStyle}
                       onFocus={e => (e.target.style.borderColor = '#1d1d1f')}
                       onBlur={e => (e.target.style.borderColor = '#d2d2d7')}

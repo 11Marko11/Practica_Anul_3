@@ -91,12 +91,12 @@ export function Login() {
           {mode === 'signup' && (
             <div>
               <label htmlFor="name" style={labelStyle}>{t.login.fullName}</label>
-              <input id="name" required minLength={2} autoComplete="name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Elena Rossi" style={inputStyle} {...focus} />
+              <input id="name" required minLength={2} autoComplete="name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Ion Popescu" style={inputStyle} {...focus} />
             </div>
           )}
           <div>
             <label htmlFor="email" style={labelStyle}>{t.login.email}</label>
-            <input id="email" required type="email" autoComplete="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="elena@example.com" style={inputStyle} {...focus} />
+            <input id="email" required type="email" autoComplete="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="ion@example.com" style={inputStyle} {...focus} />
           </div>
           <div>
             <label htmlFor="password" style={labelStyle}>{t.login.password}</label>

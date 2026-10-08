@@ -1,17 +1,19 @@
 import { useNavigate } from 'react-router'
 import { useState, useEffect } from 'react'
 import { useI18n } from '../i18n/I18nContext'
+import { api } from '../lib/api'
 
-const BRANDS = [
-  { name: 'BMW', count: 24, logo: 'B' },
-  { name: 'Mercedes', count: 31, logo: 'M' },
-  { name: 'Audi', count: 18, logo: 'A' },
-  { name: 'Porsche', count: 14, logo: 'P' },
-  { name: 'Ferrari', count: 9, logo: 'F' },
-  { name: 'Tesla', count: 22, logo: 'T' },
-  { name: 'Lamborghini', count: 7, logo: 'L' },
-  { name: 'Ford', count: 36, logo: 'F' },
-]
+type Brand = { name: string; count: number }
+type Stats = { cars: number; brands: Brand[]; averageRating: number | null; completedTrips: number }
+
+// Real numbers from the API; null until they arrive (or if the server can't be reached).
+function useStats() {
+  const [stats, setStats] = useState<Stats | null>(null)
+  useEffect(() => {
+    api<Stats>('/stats').then(setStats).catch(() => {})
+  }, [])
+  return stats
+}
 
 type BrandSize = 'lg' | 'md' | 'sm'
 
@@ -20,16 +22,6 @@ function brandSize(count: number, max: number): BrandSize {
   const share = count / max
   return share >= 0.65 ? 'lg' : share >= 0.35 ? 'md' : 'sm'
 }
-
-const MAX_BRAND_COUNT = Math.max(...BRANDS.map(b => b.count))
-const BRANDS_BY_SIZE = [...BRANDS].sort((a, b) => b.count - a.count)
-
-const STATS = [
-  { value: '240+', key: 'cars' },
-  { value: '8', key: 'brands' },
-  { value: '4.9', key: 'rating' },
-  { value: '12,000+', key: 'trips' },
-] as const
 
 const HERO_IMAGES = [
   'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1600&h=900&fit=crop&auto=format',
@@ -41,6 +33,15 @@ export function Home() {
   const navigate = useNavigate()
   const { t } = useI18n()
   const [slide, setSlide] = useState(0)
+  const stats = useStats()
+  const brands = [...(stats?.brands ?? [])].sort((a, b) => b.count - a.count)
+  const maxBrandCount = Math.max(1, ...brands.map(b => b.count))
+  const statTiles = [
+    { key: 'cars', value: stats?.cars },
+    { key: 'brands', value: stats?.brands.length },
+    { key: 'rating', value: stats?.averageRating?.toFixed(1) },
+    { key: 'trips', value: stats?.completedTrips.toLocaleString('en-US') },
+  ] as const
 
   useEffect(() => {
     const t = setInterval(() => setSlide(s => (s + 1) % HERO_IMAGES.length), 5000)
@@ -112,9 +113,9 @@ export function Home() {
       {/* Stats */}
       <section style={{ background: '#1c1c1e', padding: '64px 24px' }}>
         <div className="stats-grid" style={{ maxWidth: 1200, margin: '0 auto' }}>
-          {STATS.map(s => (
+          {statTiles.map(s => (
             <div key={s.key} style={{ textAlign: 'center', padding: '24px 16px' }}>
-              <div style={{ fontSize: 36, fontWeight: 600, letterSpacing: '-0.04em', color: '#f5f5f7' }}>{s.value}</div>
+              <div style={{ fontSize: 36, fontWeight: 600, letterSpacing: '-0.04em', color: '#f5f5f7' }}>{s.value ?? '—'}</div>
               <div style={{ fontSize: 14, color: '#a1a1a6', marginTop: 4, fontWeight: 400 }}>{t.home.stats[s.key]}</div>
             </div>
           ))}
@@ -122,7 +123,7 @@ export function Home() {
       </section>
 
       {/* Brands */}
-      <section style={{ padding: '88px 24px' }}>
+      {brands.length > 0 && <section style={{ padding: '88px 24px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <p style={{ fontSize: 13, color: '#6e6e73', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>{t.home.brandsEyebrow}</p>
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 48, flexWrap: 'wrap', gap: 16 }}>
@@ -137,17 +138,17 @@ export function Home() {
             </button>
           </div>
           <div className="brand-grid">
-            {BRANDS_BY_SIZE.map(brand => (
+            {brands.map(brand => (
               <BrandCard
                 key={brand.name}
                 brand={brand}
-                size={brandSize(brand.count, MAX_BRAND_COUNT)}
+                size={brandSize(brand.count, maxBrandCount)}
                 onClick={() => navigate('/marketplace', { state: { brand: brand.name } })}
               />
             ))}
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* How it works */}
       <section style={{ background: '#1c1c1e', padding: '88px 24px' }}>
@@ -197,7 +198,7 @@ const BRAND_TILE = {
   sm: { gridColumn: 'span 1', gridRow: 'span 1', logo: 36, logoFont: 15, name: 16, count: 13, padding: '20px 20px' },
 }
 
-function BrandCard({ brand, size, onClick }: { brand: typeof BRANDS[0]; size: BrandSize; onClick: () => void }) {
+function BrandCard({ brand, size, onClick }: { brand: Brand; size: BrandSize; onClick: () => void }) {
   const [hov, setHov] = useState(false)
   const { t } = useI18n()
   const tile = BRAND_TILE[size]
@@ -209,7 +210,7 @@ function BrandCard({ brand, size, onClick }: { brand: typeof BRANDS[0]; size: Br
       style={{ gridColumn: tile.gridColumn, gridRow: tile.gridRow, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-start', padding: tile.padding, borderRadius: size === 'lg' ? 20 : 14, background: hov ? '#e8e8ed' : '#f5f5f7', border: 'none', cursor: 'pointer', transition: 'background 0.15s', textAlign: 'left', minWidth: 0 }}
     >
       <div style={{ width: tile.logo, height: tile.logo, flexShrink: 0, borderRadius: tile.logo / 4, background: '#1d1d1f', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: tile.logoFont, fontWeight: 700 }}>
-        {brand.logo}
+        {brand.name.charAt(0).toUpperCase()}
       </div>
       <div>
         <div style={{ fontSize: tile.name, fontWeight: 600, color: '#1d1d1f', letterSpacing: '-0.02em' }}>{brand.name}</div>

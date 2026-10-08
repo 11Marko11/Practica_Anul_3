@@ -3,20 +3,21 @@ import { Link, useLocation } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
 import { useI18n } from '../i18n/I18nContext'
 import { formatDate } from '../lib/rental'
+import { ApiError } from '../lib/api'
 import type { useReviews } from '../lib/useReviews'
 
 const MIN_LENGTH = 10
 const COLLAPSED_COUNT = 4
 
-// Reviews and comments for one car: rating summary, the review list and a form for signed-in users.
+// Reviews and comments for one car: rating summary, the review list, and a form for customers
+// who completed a trip with it.
 export function CarReviews({ data }: { data: ReturnType<typeof useReviews> }) {
-  const { reviews, average, add, remove } = data
+  const { reviews, average, canReview, add, remove } = data
   const { user } = useAuth()
   const { lang, t } = useI18n()
   const location = useLocation()
   const [expanded, setExpanded] = useState(false)
 
-  const mine = user ? reviews.find(r => r.email === user.email) : undefined
   const shown = expanded ? reviews : reviews.slice(0, COLLAPSED_COUNT)
 
   return (
@@ -57,15 +58,15 @@ export function CarReviews({ data }: { data: ReturnType<typeof useReviews> }) {
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ fontSize: 15, fontWeight: 600, color: '#1d1d1f' }}>
                   {r.name}
-                  {r === mine && <span style={{ fontSize: 12, fontWeight: 500, color: '#6e6e73', marginLeft: 8 }}>{t.reviews.you}</span>}
+                  {r.mine && <span style={{ fontSize: 12, fontWeight: 500, color: '#6e6e73', marginLeft: 8 }}>{t.reviews.you}</span>}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#6e6e73' }}>
                   <Stars rating={r.rating} size={13} />
                   {formatDate(r.date, lang)}
                 </div>
               </div>
-              {r === mine && (
-                <button onClick={() => remove(r.id)} style={{ fontSize: 13, color: '#d70015', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              {(r.mine || user?.role === 'ADMIN') && (
+                <button onClick={() => confirm(t.reviews.deleteConfirm) && remove(r.id).catch(() => alert(t.reviews.error))} style={{ fontSize: 13, color: '#d70015', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                   {t.reviews.delete}
                 </button>
               )}
@@ -89,26 +90,35 @@ export function CarReviews({ data }: { data: ReturnType<typeof useReviews> }) {
             </Link>
             {t.reviews.signInPrompt}
           </p>
-        ) : mine ? null : (
-          <ReviewForm onSubmit={(rating, text) => add({ name: user.name, email: user.email, rating, text })} />
+        ) : canReview ? (
+          <ReviewForm onSubmit={add} />
+        ) : reviews.some(r => r.mine) ? null : (
+          <p style={{ fontSize: 15, color: '#6e6e73', margin: 0 }}>{t.reviews.needTrip}</p>
         )}
       </div>
     </div>
   )
 }
 
-function ReviewForm({ onSubmit }: { onSubmit: (rating: number, text: string) => void }) {
+function ReviewForm({ onSubmit }: { onSubmit: (rating: number, text: string) => Promise<void> }) {
   const { t } = useI18n()
   const [rating, setRating] = useState(0)
   const [hover, setHover] = useState(0)
   const [text, setText] = useState('')
   const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!rating) return setError(t.reviews.chooseRating)
     if (text.trim().length < MIN_LENGTH) return setError(t.reviews.tooShort(MIN_LENGTH))
-    onSubmit(rating, text.trim())
+    setBusy(true)
+    try {
+      await onSubmit(rating, text.trim())
+    } catch (err) {
+      setError(err instanceof ApiError && err.code === 'review-needs-trip' ? t.reviews.needTrip : t.reviews.error)
+      setBusy(false)
+    }
   }
 
   return (
@@ -146,7 +156,7 @@ function ReviewForm({ onSubmit }: { onSubmit: (rating: number, text: string) => 
 
       {error && <p role="alert" style={{ fontSize: 13, color: '#d70015', margin: '4px 0 0' }}>{error}</p>}
 
-      <button type="submit" style={{ marginTop: 14, padding: '12px 26px', fontSize: 15, fontWeight: 500, background: '#1d1d1f', color: '#fff', border: 'none', borderRadius: 980, cursor: 'pointer' }}>
+      <button type="submit" disabled={busy} style={{ opacity: busy ? 0.6 : 1, marginTop: 14, padding: '12px 26px', fontSize: 15, fontWeight: 500, background: '#1d1d1f', color: '#fff', border: 'none', borderRadius: 980, cursor: 'pointer' }}>
         {t.reviews.submit}
       </button>
     </form>

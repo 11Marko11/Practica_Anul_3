@@ -1,26 +1,12 @@
 import type { Car } from '../data/cars'
 import type { Lang } from './I18nContext'
 
-// Translations of the free-text car fields in data/cars.ts, which stays in English.
-// `terms` translates locations, transmissions and features by their English text;
-// anything missing (brand names such as Apple CarPlay) is shown as is.
-type CarCopy = { descriptions: Record<string, string>; terms: Record<string, string> }
+// Car descriptions come from the database in each language (car.translations). These terms
+// translate locations, transmissions and features by their English text; anything missing
+// (brand names such as Apple CarPlay, or text typed in another language) is shown as is.
+type CarCopy = { terms: Record<string, string> }
 
 const RO: CarCopy = {
-  descriptions: {
-    'porsche-911-carrera-4s': 'Supercarul de fiecare zi. Tracțiunea integrală ține Carrera 4S lipit de drum pe orice vreme, iar motorul boxer twin-turbo trage puternic până la limita de turații. Destul de confortabil pentru un weekend lung, destul de precis pentru un drum de munte.',
-    'ferrari-roma-spider': 'La nuova dolce vita, cu plafonul coborât. Capota din pânză se pliază în 13 secunde la viteze de până la 60 km/h, iar motorul V8 montat în față oferă un ritm de grand tourer fără efort. Făcută pentru drumuri printre podgorii și prânzuri lungi.',
-    'bmw-m4-competition': 'Un coupé adevărat pentru pasionați. Motorul cu șase cilindri în linie cântă, șasiul cu tracțiune spate e jucăuș, dar precis, iar scaunele sport M din carbon te țin bine pe loc. Patru locuri reale îl fac surprinzător de practic.',
-    'tesla-model-s-plaid': 'Accelerație de hypercar într-un sedan de familie silențios. Trei motoare, peste 1.000 CP și o autonomie reală mare fac din Plaid o mașină la fel de bună pentru drumul la școală și pentru călătorii lungi pe autostradă. Accesul la Supercharger este inclus.',
-    'mercedes-amg-gt-63-s': 'Un AMG cu patru uși și un V8 twin-turbo asamblat manual. Luxos și spațios pentru patru adulți, dar capabil să pună în dificultate mașini sport pe circuit. Direcția pe puntea spate îl face să pară mult mai mic decât este.',
-    'lamborghini-huracan-evo': 'Un V10 atmosferic care turează peste 8.000 rpm, îmbrăcat în liniile inconfundabile Lamborghini. Direcția pe roțile spate și vectorizarea cuplului îl fac accesibil, iar sunetul transformă fiecare tunel într-un eveniment.',
-    'audi-rs-e-tron-gt': 'Grand touring electric cu tracțiunea quattro de la Audi. Încărcarea rapidă de până la 270 kW înseamnă că o pauză de cafea adaugă sute de kilometri, iar habitaclul e silențios, foarte bine finisat și confortabil pentru zile lungi.',
-    'ford-mustang-gt500': 'Cel mai puternic Mustang construit vreodată. Un V8 de 5,2 litri cu compresor, 760 CP și un sunet pe măsură. Cel mai bine savurat pe un drum deschis, cu modul de condus pe Sport și geamurile coborâte.',
-    'bmw-ix-m60': 'Un SUV electric spațios, cu performanțe de nivel M. Cinci locuri confortabile, un portbagaj uriaș și un habitaclu ca un lounge îl fac ideal pentru excursii în familie, iar autonomia mare înseamnă mai puține opriri la încărcat.',
-    'porsche-taycan-turbo-s': 'Vârful de gamă electric Porsche. Launch control oferă o accelerație implacabilă, iar datorită direcției pe puntea spate și suspensiei active se conduce tot ca un Porsche. Se încarcă de la 10 la 80% în mai puțin de 20 de minute.',
-    'mercedes-eqs-580': 'Clasa S electrică. Extrem de silențioasă, remarcabil de eficientă și plină de tehnologie, inclusiv Hyperscreen-ul pe toată lățimea bordului. Cu cea mai mare autonomie din flota noastră, este cel mai relaxat mod de a traversa o țară.',
-    'ferrari-sf90-stradale': 'Hypercarul plug-in hibrid de la Ferrari. Un V8 twin-turbo și trei motoare electrice însumează 1.000 CP, dar mașina poate rula silențios prin oraș doar pe energie electrică. Cea mai exclusivistă mașină din colecție.',
-  },
   terms: {
     '8-speed PDK automatic': 'Automată PDK, 8 trepte',
     '8-speed dual-clutch': 'Dublu ambreiaj, 8 trepte',
@@ -83,20 +69,6 @@ const RO: CarCopy = {
 }
 
 const RU: CarCopy = {
-  descriptions: {
-    'porsche-911-carrera-4s': 'Суперкар на каждый день. Полный привод уверенно держит Carrera 4S на дороге в любую погоду, а оппозитная «шестёрка» с двумя турбинами мощно тянет до самой отсечки. Достаточно комфортен для долгих выходных и достаточно точен для горного серпантина.',
-    'ferrari-roma-spider': 'La nuova dolce vita — с опущенной крышей. Мягкий верх складывается за 13 секунд на скорости до 60 км/ч, а V8 спереди обеспечивает лёгкий темп гран-туризмо. Создан для дорог среди виноградников и долгих обедов.',
-    'bmw-m4-competition': 'Настоящее купе для водителя. Рядная «шестёрка» поёт, заднеприводное шасси игривое, но точное, а карбоновые ковши M надёжно держат в повороте. Четыре полноценных места делают его на удивление практичным.',
-    'tesla-model-s-plaid': 'Разгон гиперкара в тихом семейном седане. Три мотора, более 1000 л. с. и большой реальный запас хода делают Plaid одинаково хорошим и для поездок в школу, и для дальних путешествий по трассе. Доступ к Supercharger включён.',
-    'mercedes-amg-gt-63-s': 'Четырёхдверный AMG с собранным вручную V8 битурбо. Роскошный и просторный для четырёх взрослых, но способный смутить спорткары на трек-дне. Подруливающая задняя ось делает его гораздо компактнее в ощущениях.',
-    'lamborghini-huracan-evo': 'Атмосферный V10, раскручивающийся выше 8000 об/мин, в узнаваемых линиях Lamborghini. Подруливающие задние колёса и векторизация тяги делают его послушным, а звук превращает каждый тоннель в событие.',
-    'audi-rs-e-tron-gt': 'Электрический гран-туризмо с полным приводом quattro от Audi. Быстрая зарядка до 270 кВт означает, что за кофе-паузу прибавляются сотни километров, а тихий, прекрасно отделанный салон комфортен даже в долгие дни.',
-    'ford-mustang-gt500': 'Самый мощный Mustang в истории. 5,2-литровый V8 с компрессором, 760 л. с. и соответствующий звук. Лучше всего — на открытой дороге, в режиме Sport и с опущенными стёклами.',
-    'bmw-ix-m60': 'Просторный электрический SUV с динамикой уровня M. Пять удобных мест, огромный багажник и салон-лаунж делают его идеальным для семейных путешествий, а большой запас хода — это меньше остановок на зарядку.',
-    'porsche-taycan-turbo-s': 'Электрический флагман Porsche. Launch control обеспечивает неумолимый разгон, а благодаря подруливающей задней оси и активной подвеске он управляется как настоящий Porsche. Заряжается с 10 до 80% меньше чем за 20 минут.',
-    'mercedes-eqs-580': 'Электрический S-класс. Очень тихий, удивительно эффективный и полный технологий, включая Hyperscreen во всю ширину панели. С самым большим запасом хода в нашем автопарке это самый спокойный способ пересечь страну.',
-    'ferrari-sf90-stradale': 'Гибридный гиперкар Ferrari с подзарядкой от розетки. V8 битурбо и три электромотора выдают вместе 1000 л. с., но по городу он может бесшумно ехать только на электричестве. Самый эксклюзивный автомобиль в коллекции.',
-  },
   terms: {
     'Chișinău, Moldova': 'Кишинёв, Молдова',
     'Bălți, Moldova': 'Бельцы, Молдова',
@@ -177,12 +149,12 @@ const COPY: Record<Exclude<Lang, 'en'>, CarCopy> = { ro: RO, ru: RU }
 
 export function carText(car: Car, lang: Lang) {
   if (lang === 'en') return { location: car.location, transmission: car.transmission, description: car.description, features: car.features }
-  const { descriptions, terms } = COPY[lang]
+  const { terms } = COPY[lang]
   const term = (s: string) => terms[s] ?? s
   return {
     location: term(car.location),
     transmission: term(car.transmission),
-    description: car.translations?.[lang]?.description || descriptions[car.slug] || car.description,
+    description: car.translations?.[lang]?.description || car.description,
     features: car.features.map(term),
   }
 }

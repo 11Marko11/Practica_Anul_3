@@ -1,6 +1,7 @@
 import { Link } from 'react-router'
 import { carImage } from '../../data/cars'
-import { deleteCar, resetCars, useCars } from '../../lib/carStore'
+import { deleteCar, useAllCars, useFreshCatalog } from '../../lib/carStore'
+import { ApiError } from '../../lib/api'
 import { fmt } from '../../lib/rental'
 import { useI18n } from '../../i18n/I18nContext'
 import { carText } from '../../i18n/cars'
@@ -15,8 +16,20 @@ export function AdminCars() {
 }
 
 function AdminCarsContent() {
-  const cars = useCars()
+  const cars = useAllCars()
+  const fresh = useFreshCatalog()
   const { lang, t } = useI18n()
+
+  async function remove(id: number, name: string) {
+    if (!confirm(t.admin.deleteConfirm(name))) return
+    try {
+      await deleteCar(id)
+    } catch (err) {
+      alert(err instanceof ApiError && err.code === 'car-has-bookings' ? t.admin.hasBookings : t.admin.deleteError)
+    }
+  }
+
+  if (!fresh) return <div style={{ minHeight: '80vh' }} />
 
   return (
     <div style={{ paddingTop: 52 }}>
@@ -34,8 +47,6 @@ function AdminCarsContent() {
       </div>
 
       <main style={{ maxWidth: 1000, margin: '0 auto', padding: '24px 24px 96px' }}>
-        <p style={{ fontSize: 13, color: '#6e6e73', background: '#f5f5f7', borderRadius: 12, padding: '12px 16px', margin: '0 0 16px' }}>{t.admin.localNote}</p>
-
         {cars.length === 0 && <p style={{ fontSize: 16, color: '#6e6e73', textAlign: 'center', padding: '48px 0' }}>{t.admin.empty}</p>}
 
         <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
@@ -47,7 +58,9 @@ function AdminCarsContent() {
                   {car.photos.length > 0 && <img src={carImage(car, 240, 150)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
                 </div>
                 <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f' }}>{name} <span style={{ fontWeight: 400, color: '#6e6e73' }}>· {car.year}</span></div>
+                  <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f' }}>{name} <span style={{ fontWeight: 400, color: '#6e6e73' }}>· {car.year}</span>
+                    {car.status === 'HIDDEN' && <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 500, color: '#6e6e73', background: '#f0f0f0', padding: '2px 8px', borderRadius: 980 }}>{t.admin.hidden}</span>}
+                  </div>
                   <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 2 }}>
                     {fmt(car.pricePerDay)}{t.common.perDay} · {carText(car, lang).location}
                   </div>
@@ -56,7 +69,7 @@ function AdminCarsContent() {
                   <Link to={`/cars/${car.slug}`} style={{ color: '#6e6e73', textDecoration: 'none' }}>{t.admin.view}</Link>
                   <Link to={`/admin/cars/${car.slug}`} style={{ color: '#0071e3', textDecoration: 'none', fontWeight: 500 }}>{t.admin.edit}</Link>
                   <button
-                    onClick={() => confirm(t.admin.deleteConfirm(name)) && deleteCar(car.id)}
+                    onClick={() => remove(car.id, name)}
                     style={{ fontSize: 14, color: '#d70015', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
                   >
                     {t.admin.delete}
@@ -67,12 +80,6 @@ function AdminCarsContent() {
           })}
         </ul>
 
-        <button
-          onClick={() => confirm(t.admin.resetConfirm) && resetCars()}
-          style={{ marginTop: 32, fontSize: 14, color: '#6e6e73', background: 'none', border: '1px solid #d2d2d7', borderRadius: 980, padding: '10px 18px', cursor: 'pointer' }}
-        >
-          {t.admin.reset}
-        </button>
       </main>
     </div>
   )

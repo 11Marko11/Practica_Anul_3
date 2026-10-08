@@ -1,85 +1,84 @@
-import { useSyncExternalStore } from 'react'
-import { SAMPLE_CARS, type Car } from '../data/cars'
+import { useEffect, useState, useSyncExternalStore } from 'react'
+import type { Car } from '../data/cars'
+import { api } from './api'
 
-// The car catalogue. Until the site has a backend, changes made in the admin pages are
-// saved in localStorage. This file is the only place that knows that: when a backend
-// exists, only these functions need to call it, and the pages stay the same.
-const CARS_KEY = 'rentmotors.cars'
+// The car catalogue, loaded from the API once and shared by every page.
+// Admins also receive hidden cars; public pages only show active ones.
+type State = { cars: Car[]; status: 'loading' | 'ready' | 'error' }
 
-let cars: Car[] = load()
+let state: State = { cars: [], status: 'loading' }
+let started = false
 const listeners = new Set<() => void>()
 
-function load(): Car[] {
-  try {
-    const raw = localStorage.getItem(CARS_KEY)
-    return raw ? (JSON.parse(raw) as Car[]) : SAMPLE_CARS
-  } catch {
-    return SAMPLE_CARS
-  }
+function set(next: State) {
+  state = next
+  listeners.forEach(l => l())
 }
 
-// `null` goes back to the sample catalogue.
-function commit(next: Car[] | null) {
-  cars = next ?? SAMPLE_CARS
+export async function reloadCars() {
+  started = true
+  if (state.status === 'error') set({ ...state, status: 'loading' })
   try {
-    if (next) localStorage.setItem(CARS_KEY, JSON.stringify(next))
-    else localStorage.removeItem(CARS_KEY)
+    const res = await api<{ cars: Car[] }>('/cars')
+    set({ cars: res.cars, status: 'ready' })
   } catch {
-    // Storage unavailable (private mode): changes last until the page is reloaded.
+    set({ ...state, status: state.status === 'ready' ? 'ready' : 'error' })
   }
-  listeners.forEach(l => l())
 }
 
 function subscribe(listener: () => void) {
   listeners.add(listener)
-  // Keep other open tabs in sync with changes made in the admin pages.
-  const onStorage = (e: StorageEvent) => {
-    if (e.key !== CARS_KEY) return
-    cars = load()
-    listener()
-  }
-  window.addEventListener('storage', onStorage)
-  return () => {
-    listeners.delete(listener)
-    window.removeEventListener('storage', onStorage)
-  }
+  if (!started) reloadCars()
+  return () => listeners.delete(listener)
 }
 
+function useStore() {
+  return useSyncExternalStore(subscribe, () => state)
+}
+
+const active = (cars: Car[]) => cars.filter(c => c.status !== 'HIDDEN')
+
+// Active cars, for the public pages.
 export function useCars() {
-  return useSyncExternalStore(subscribe, () => cars)
+  return active(useStore().cars)
 }
 
+export function useCatalogStatus() {
+  return useStore().status
+}
+
+// Hidden cars are only in the store for admins, who may open their pages.
 export function useCar(slug: string) {
-  return useCars().find(c => c.slug === slug)
+  return useStore().cars.find(c => c.slug === slug)
 }
 
-// Adds a new car, or replaces the car with the same id.
-export function saveCar(car: Car) {
-  commit(cars.some(c => c.id === car.id) ? cars.map(c => (c.id === car.id ? car : c)) : [...cars, car])
+// Every car including hidden ones (only filled for admins), for the admin pages.
+export function useAllCars() {
+  return useStore().cars
 }
 
-export function deleteCar(id: number) {
-  commit(cars.filter(c => c.id !== id))
+// Admin pages reload the catalogue on opening: it may have been loaded before signing in,
+// without the hidden cars. True once that reload has finished.
+export function useFreshCatalog() {
+  const [fresh, setFresh] = useState(false)
+  useEffect(() => {
+    reloadCars().finally(() => setFresh(true))
+  }, [])
+  return fresh
 }
 
-export function resetCars() {
-  commit(null)
+// What the admin form sends; the server fills in id, slug and the host's rating.
+export type CarInput = Omit<Car, 'id' | 'slug' | 'location' | 'host'> & { city: string; hostName: string; status: 'ACTIVE' | 'HIDDEN' }
+
+export async function saveCar(input: CarInput, id?: number) {
+  const res = id
+    ? await api<{ car: Car }>(`/admin/cars/${id}`, { method: 'PUT', body: input })
+    : await api<{ car: Car }>('/admin/cars', { body: input })
+  await reloadCars()
+  return res.car
 }
 
-export function nextCarId() {
-  return Math.max(0, ...cars.map(c => c.id)) + 1
-}
-
-// "BMW", "M4 Competition" → "bmw-m4-competition", with "-2", "-3"… if another car already uses it.
-export function uniqueSlug(brand: string, model: string, ownId?: number) {
-  const base = `${brand} ${model}`
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '') || 'car'
-  const taken = (slug: string) => cars.some(c => c.slug === slug && c.id !== ownId)
-  let slug = base
-  for (let n = 2; taken(slug); n++) slug = `${base}-${n}`
-  return slug
+export async function deleteCar(id: number) {
+  await api(`/admin/cars/${id}`, { method: 'DELETE' })
+  await reloadCars()
 }

@@ -15,11 +15,11 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
-// Accounts used to live in localStorage; remove what earlier versions of the site left there.
-function forgetLocalAccounts() {
+// Accounts, cars and reviews used to live in localStorage; remove what earlier versions
+// of the site left there now that they come from the server.
+function forgetLocalData() {
   try {
-    localStorage.removeItem('rentmotors.users')
-    localStorage.removeItem('rentmotors.session')
+    for (const key of ['rentmotors.users', 'rentmotors.session', 'rentmotors.cars', 'rentmotors.reviews']) localStorage.removeItem(key)
   } catch {
     // Storage unavailable: nothing to clean up.
   }
@@ -30,7 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    forgetLocalAccounts()
+    forgetLocalData()
     api<{ user: User | null }>('/auth/me')
       .then(res => setUser(res.user))
       .catch(() => setUser(null))

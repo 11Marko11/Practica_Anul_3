@@ -1,10 +1,10 @@
 import { useRef, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { CITIES, photoUrl, type Car } from '../../data/cars'
-import { nextCarId, saveCar, uniqueSlug, useCar } from '../../lib/carStore'
+import { saveCar, useAllCars, useFreshCatalog } from '../../lib/carStore'
+import { ApiError } from '../../lib/api'
 import { searchAddress, type Place } from '../../lib/delivery'
 import { useI18n } from '../../i18n/I18nContext'
-import { carText } from '../../i18n/cars'
 import { AdminGuard } from './AdminGuard'
 
 // /admin/cars/new adds a car; /admin/cars/:slug edits one.
@@ -12,9 +12,16 @@ export function AdminCarForm() {
   const { slug } = useParams()
   return (
     <AdminGuard>
-      <AdminCarFormContent key={slug ?? 'new'} slug={slug} />
+      <FreshCatalog>
+        <AdminCarFormContent key={slug ?? 'new'} slug={slug} />
+      </FreshCatalog>
     </AdminGuard>
   )
+}
+
+// The form takes its starting values from the catalogue, so wait for the admin's full list.
+function FreshCatalog({ children }: { children: ReactNode }) {
+  return useFreshCatalog() ? <>{children}</> : <div style={{ minHeight: '80vh' }} />
 }
 
 type Pickup = { address: string; lat: number; lng: number }
@@ -32,6 +39,7 @@ type FormState = {
   topSpeed: string
   transmission: string
   drive: Car['drive']
+  status: 'ACTIVE' | 'HIDDEN'
   range: string
   hostName: string
   city: string
@@ -46,22 +54,17 @@ type FormState = {
 
 const EMPTY: FormState = {
   brand: '', model: '', year: String(new Date().getFullYear()), price: '', fuel: 'Petrol', seats: '4',
-  horsepower: '', acceleration: '', topSpeed: '', transmission: '', drive: 'AWD', range: '', hostName: '',
+  horsepower: '', acceleration: '', topSpeed: '', transmission: '', drive: 'AWD', status: 'ACTIVE', range: '', hostName: '',
   city: CITIES[0], address: '', pickup: null, photos: '', descriptionEn: '', descriptionRo: '', descriptionRu: '', features: '',
 }
 
 function fromCar(car: Car): FormState {
-  // Sample cars get their translations from i18n/cars.ts; an untranslated description falls back to English.
-  const translated = (lang: 'ro' | 'ru') => {
-    const text = carText(car, lang).description
-    return text === car.description ? '' : text
-  }
   return {
     brand: car.brand, model: car.model, year: String(car.year), price: String(car.pricePerDay), fuel: car.fuel, seats: String(car.seats),
     horsepower: String(car.horsepower), acceleration: String(car.acceleration), topSpeed: String(car.topSpeed), transmission: car.transmission,
-    drive: car.drive, range: car.range ? String(car.range) : '', hostName: car.host.name,
+    drive: car.drive, status: car.status ?? 'ACTIVE', range: car.range ? String(car.range) : '', hostName: car.host.name,
     city: car.location.split(',')[0], address: car.pickup.address, pickup: car.pickup,
-    photos: car.photos.join('\n'), descriptionEn: car.description, descriptionRo: translated('ro'), descriptionRu: translated('ru'),
+    photos: car.photos.join('\n'), descriptionEn: car.description, descriptionRo: car.translations?.ro?.description ?? '', descriptionRu: car.translations?.ru?.description ?? '',
     features: car.features.join('\n'),
   }
 }
@@ -70,11 +73,12 @@ const lines = (text: string) => text.split('\n').map(l => l.trim()).filter(Boole
 const positive = (text: string) => Number(text.replace(',', '.')) > 0
 
 function AdminCarFormContent({ slug }: { slug?: string }) {
-  const existing = useCar(slug ?? '')
+  const existing = useAllCars().find(c => c.slug === slug)
   const navigate = useNavigate()
   const { t } = useI18n()
   const [form, setForm] = useState<FormState>(() => (existing ? fromCar(existing) : EMPTY))
   const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
 
   if (slug && !existing) {
     return (
@@ -90,7 +94,7 @@ function AdminCarFormContent({ slug }: { slug?: string }) {
     setError('')
   }
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault()
     const f = form
     const required = [f.brand, f.model, f.transmission, f.hostName, f.descriptionEn].every(v => v.trim())
@@ -104,10 +108,7 @@ function AdminCarFormContent({ slug }: { slug?: string }) {
     if (f.descriptionRo.trim()) translations.ro = { description: f.descriptionRo.trim() }
     if (f.descriptionRu.trim()) translations.ru = { description: f.descriptionRu.trim() }
 
-    saveCar({
-      id: existing?.id ?? nextCarId(),
-      // The slug is the car's web address, so it stays the same when the car is edited.
-      slug: existing?.slug ?? uniqueSlug(f.brand, f.model),
+    const input = {
       brand: f.brand.trim(),
       model: f.model.trim(),
       year: Math.round(num(f.year)),
@@ -121,14 +122,23 @@ function AdminCarFormContent({ slug }: { slug?: string }) {
       transmission: f.transmission.trim(),
       drive: f.drive,
       range: f.fuel !== 'Petrol' && positive(f.range) ? Math.round(num(f.range)) : undefined,
-      location: `${f.city}, Moldova`,
+      city: f.city,
       pickup: f.pickup,
-      host: existing ? { ...existing.host, name: f.hostName.trim() } : { name: f.hostName.trim(), rating: 5, trips: 0 },
+      hostName: f.hostName.trim(),
       description: f.descriptionEn.trim(),
       features: lines(f.features),
       translations,
-    })
-    navigate('/admin')
+      status: f.status,
+    }
+    setBusy(true)
+    try {
+      // The server creates the slug (the car's web address); it stays the same when the car is edited.
+      await saveCar(input, existing?.id)
+      navigate('/admin')
+    } catch (err) {
+      setError(err instanceof ApiError && err.code === 'validation' ? t.admin.errors.required : t.admin.saveError)
+      setBusy(false)
+    }
   }
 
   const cities = CITIES.includes(form.city) ? CITIES : [form.city, ...CITIES]
@@ -150,6 +160,12 @@ function AdminCarFormContent({ slug }: { slug?: string }) {
               <Field label={t.admin.fields.year} required><input inputMode="numeric" value={form.year} onChange={e => set('year', e.target.value)} style={inputStyle} /></Field>
               <Field label={t.admin.fields.price} required><input inputMode="numeric" value={form.price} onChange={e => set('price', e.target.value)} style={inputStyle} /></Field>
               <Field label={t.admin.fields.hostName} required><input value={form.hostName} onChange={e => set('hostName', e.target.value)} style={inputStyle} /></Field>
+              <Field label={t.admin.status}>
+                <select value={form.status} onChange={e => set('status', e.target.value as FormState['status'])} style={inputStyle}>
+                  <option value="ACTIVE">{t.admin.statusActive}</option>
+                  <option value="HIDDEN">{t.admin.statusHidden}</option>
+                </select>
+              </Field>
             </div>
           </FormSection>
 
@@ -213,8 +229,8 @@ function AdminCarFormContent({ slug }: { slug?: string }) {
           {error && <p role="alert" style={{ fontSize: 14, color: '#d70015', margin: '24px 0 0' }}>{error}</p>}
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginTop: 28 }}>
-            <button type="submit" style={{ padding: '14px 32px', fontSize: 15, fontWeight: 500, background: '#1d1d1f', color: '#fff', border: 'none', borderRadius: 980, cursor: 'pointer' }}>
-              {t.admin.save}
+            <button type="submit" disabled={busy} style={{ opacity: busy ? 0.6 : 1, padding: '14px 32px', fontSize: 15, fontWeight: 500, background: '#1d1d1f', color: '#fff', border: 'none', borderRadius: 980, cursor: 'pointer' }}>
+              {busy ? t.admin.saving : t.admin.save}
             </button>
             <Link to="/admin" style={{ fontSize: 15, color: '#6e6e73', textDecoration: 'none' }}>{t.admin.cancel}</Link>
           </div>

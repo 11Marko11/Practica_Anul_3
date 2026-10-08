@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import type { Car } from '../data/cars'
-import { useCar, useCars } from '../lib/carStore'
+import { useCar, useCars, useCatalogStatus } from '../lib/carStore'
 import { addDays, bookingMessage, fmt, today } from '../lib/rental'
 import { useRentalDates } from '../lib/useRentalDates'
 import { DateField } from '../components/DateField'
@@ -17,6 +17,8 @@ import { carText } from '../i18n/cars'
 export function CarDetails() {
   const { slug = '' } = useParams()
   const car = useCar(slug)
+  const status = useCatalogStatus()
+  if (!car && status === 'loading') return <div style={{ minHeight: '80vh' }} />
   if (!car) return <CarNotFound />
   return <CarDetailsContent key={car.slug} car={car} />
 }
