@@ -5,7 +5,10 @@ import { SESSION_COOKIE, userForToken, type PublicUser } from './auth/session.js
 import { env } from './env.js'
 import { registerErrorHandler } from './http/errors.js'
 import { authRoutes } from './routes/auth.js'
+import { carRoutes } from './routes/cars.js'
 import { healthRoutes } from './routes/health.js'
+import { reviewRoutes } from './routes/reviews.js'
+import { statsRoutes } from './routes/stats.js'
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -40,6 +43,9 @@ export function buildApp() {
 
       await api.register(healthRoutes)
       await api.register(authRoutes)
+      await api.register(carRoutes)
+      await api.register(reviewRoutes)
+      await api.register(statsRoutes)
     },
     { prefix: '/api' },
   )
