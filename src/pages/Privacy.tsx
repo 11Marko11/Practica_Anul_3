@@ -11,7 +11,7 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         body: (
           <ul>
             <li><strong>Account details</strong>: your name, email address and password when you sign up.</li>
-            <li><strong>Booking requests</strong>: the car, dates and message you send us through the contact form.</li>
+            <li><strong>Bookings</strong>: the car, dates, delivery address, phone number and note you give us when you book, and Stripe's reference for your payment.</li>
             <li><strong>Contact messages</strong>: your name, email and whatever you write to us.</li>
           </ul>
         ),
@@ -43,6 +43,7 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         title: 'Third-party content',
         body: (
           <>
+            <p>Payments are handled by Stripe. Your card details go directly to Stripe and are never seen or stored by us.</p>
             <p>Car and team photos are loaded from Unsplash, the font from Google Fonts and pick-up maps from OpenStreetMap. When your browser loads them, those services receive standard request information such as your IP address, under their own privacy policies.</p>
             <p>If you choose delivery, the address you type is sent to OpenStreetMap's Nominatim search to find it on the map. If you use "Use my current location", your browser asks for permission first; your position is sent to Nominatim only to check that it is in Moldova and is otherwise used only on this page to calculate the delivery distance.</p>
           </>
@@ -72,7 +73,7 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         body: (
           <ul>
             <li><strong>Datele contului</strong>: numele, adresa de email și parola, atunci când te înregistrezi.</li>
-            <li><strong>Cererile de rezervare</strong>: mașina, datele și mesajul pe care ni le trimiți prin formularul de contact.</li>
+            <li><strong>Rezervările</strong>: mașina, datele, adresa de livrare, numărul de telefon și mesajul pe care ni le dai la rezervare, plus referința Stripe a plății.</li>
             <li><strong>Mesajele de contact</strong>: numele, emailul și tot ce ne scrii.</li>
           </ul>
         ),
@@ -104,6 +105,7 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         title: 'Conținut de la terți',
         body: (
           <>
+            <p>Plățile sunt procesate de Stripe. Datele cardului tău ajung direct la Stripe; noi nu le vedem și nu le stocăm.</p>
             <p>Fotografiile mașinilor și ale echipei sunt încărcate de pe Unsplash, fontul de pe Google Fonts, iar hărțile de preluare de pe OpenStreetMap. Când browserul tău le încarcă, aceste servicii primesc informații standard despre cerere, cum ar fi adresa IP, conform propriilor politici de confidențialitate.</p>
             <p>Dacă alegi livrarea, adresa pe care o scrii este trimisă către serviciul de căutare Nominatim al OpenStreetMap pentru a o găsi pe hartă. Dacă folosești „Folosește locația mea curentă”, browserul îți cere mai întâi permisiunea; poziția ta este trimisă către Nominatim doar pentru a verifica dacă se află în Republica Moldova și, în rest, este folosită doar pe această pagină, pentru a calcula distanța de livrare.</p>
           </>
@@ -133,7 +135,7 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         body: (
           <ul>
             <li><strong>Данные аккаунта</strong>: ваше имя, адрес электронной почты и пароль при регистрации.</li>
-            <li><strong>Запросы на бронирование</strong>: автомобиль, даты и сообщение, которые вы отправляете через форму обратной связи.</li>
+            <li><strong>Бронирования</strong>: автомобиль, даты, адрес доставки, номер телефона и сообщение, которые вы указываете при бронировании, а также ссылка Stripe на ваш платёж.</li>
             <li><strong>Сообщения</strong>: ваше имя, email и всё, что вы нам пишете.</li>
           </ul>
         ),
@@ -165,6 +167,7 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         title: 'Сторонний контент',
         body: (
           <>
+            <p>Платежи обрабатывает Stripe. Данные вашей карты передаются напрямую в Stripe; мы их не видим и не храним.</p>
             <p>Фотографии автомобилей и команды загружаются с Unsplash, шрифт — с Google Fonts, а карты мест получения — с OpenStreetMap. Когда ваш браузер их загружает, эти сервисы получают стандартные данные запроса, например ваш IP-адрес, в соответствии со своими политиками конфиденциальности.</p>
             <p>Если вы выбираете доставку, введённый адрес отправляется в поиск Nominatim от OpenStreetMap, чтобы найти его на карте. Если вы нажимаете «Использовать моё местоположение», браузер сначала запрашивает разрешение; ваше местоположение отправляется в Nominatim только для проверки, что оно находится в Молдове, а в остальном используется только на этой странице для расчёта расстояния доставки.</p>
           </>

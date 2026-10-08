@@ -1,8 +1,11 @@
-import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { useEffect, useState } from 'react'
+import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import type { Car } from '../data/cars'
 import { useCar, useCars, useCatalogStatus } from '../lib/carStore'
-import { addDays, bookingMessage, fmt, today } from '../lib/rental'
+import { addDays, fmt, formatDate, today } from '../lib/rental'
+import { createBooking, takenDates } from '../lib/bookings'
+import { ApiError } from '../lib/api'
+import { useAuth } from '../auth/AuthContext'
 import { useRentalDates } from '../lib/useRentalDates'
 import { DateField } from '../components/DateField'
 import { CarGallery } from '../components/CarGallery'
@@ -25,6 +28,8 @@ export function CarDetails() {
 
 function CarDetailsContent({ car }: { car: Car }) {
   const navigate = useNavigate()
+  const location = useLocation()
+  const { user } = useAuth()
   const { lang, t } = useI18n()
   const text = carText(car, lang)
   const { pickup, dropoff, days, query, changePickup, changeDropoff } = useRentalDates()
@@ -36,8 +41,27 @@ function CarDetailsContent({ car }: { car: Car }) {
   const deliveryQuote = handover.mode === 'delivery' ? handover.quote : null
   const deliveryFee = deliveryQuote?.ok ? deliveryQuote.fee : 0
   const total = rental + deliveryFee
-  // Delivery needs an address within range before the car can be booked.
-  const canBook = handover.mode === 'pickup' || !!deliveryQuote?.ok
+  const [phone, setPhone] = useState('')
+  const [note, setNote] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<keyof typeof t.bookings.errors | null>(null)
+  const [taken, setTaken] = useState<{ from: string; to: string }[]>([])
+
+  useEffect(() => {
+    takenDates(car.slug).then(setTaken).catch(() => {})
+  }, [car.slug])
+
+  // Links like /cars/x#reviews: the layout scrolls to the top on navigation, so scroll afterwards.
+  useEffect(() => {
+    if (!location.hash) return
+    const timer = setTimeout(() => document.getElementById(location.hash.slice(1))?.scrollIntoView({ behavior: 'smooth' }), 400)
+    return () => clearTimeout(timer)
+  }, [location.hash])
+
+  // The return day is free for the next pick-up, as on the server.
+  const datesTaken = taken.some(r => r.from < dropoff && r.to > pickup)
+  // Delivery needs an address in Moldova before the car can be booked.
+  const canBook = (handover.mode === 'pickup' || !!deliveryQuote?.ok) && !datesTaken
 
   const specs = [
     { label: t.car.spec.power, value: `${car.horsepower} ${t.car.units.hp}` },
@@ -58,8 +82,31 @@ function CarDetailsContent({ car }: { car: Car }) {
     .slice(0, 8)
     .map(({ c }) => c)
 
-  function book() {
-    navigate('/contact', { state: { subject: 'booking', message: bookingMessage(car, pickup, dropoff, handover, t, lang) } })
+  async function book(e: React.FormEvent) {
+    e.preventDefault()
+    if (!user) return navigate('/login', { state: { from: location.pathname + location.search } })
+    setError(null)
+    setBusy(true)
+    try {
+      const { checkoutUrl } = await createBooking({
+        carSlug: car.slug,
+        pickupDate: pickup,
+        returnDate: dropoff,
+        handover: deliveryQuote?.ok
+          ? { mode: 'DELIVERY', address: deliveryQuote.place.label, lat: deliveryQuote.place.lat, lng: deliveryQuote.place.lng }
+          : { mode: 'PICKUP' },
+        phone,
+        note: note.trim() || undefined,
+        lang,
+      })
+      // Stripe Checkout: the customer authorises the payment there and comes back to /bookings/:id.
+      window.location.assign(checkoutUrl)
+    } catch (err) {
+      const code = err instanceof ApiError ? err.code : 'unknown'
+      setError(code in t.bookings.errors ? (code as keyof typeof t.bookings.errors) : 'unknown')
+      if (code === 'dates-unavailable') takenDates(car.slug).then(setTaken).catch(() => {})
+      setBusy(false)
+    }
   }
 
   return (
@@ -150,6 +197,13 @@ function CarDetailsContent({ car }: { car: Car }) {
               <DateField label={t.car.return} value={dropoff} min={addDays(pickup, 1)} onChange={changeDropoff} />
             </div>
 
+            {taken.length > 0 && (
+              <p style={{ fontSize: 12, color: datesTaken ? '#ff6961' : '#a1a1a6', margin: '10px 0 0', lineHeight: 1.5 }}>
+                {datesTaken ? t.bookings.datesTaken : t.bookings.taken}{' '}
+                {!datesTaken && taken.map(r => `${formatDate(r.from, lang)} – ${formatDate(r.to, lang)}`).join(', ')}
+              </p>
+            )}
+
             <DeliveryPicker car={car} value={handover} onChange={setHandover} />
 
             <div style={{ borderTop: '1px solid #3a3a3d', marginTop: 20, paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14 }}>
@@ -161,18 +215,34 @@ function CarDetailsContent({ car }: { car: Car }) {
               </div>
             </div>
 
-            <button
-              onClick={book}
-              disabled={!canBook}
-              style={{ width: '100%', marginTop: 20, padding: '14px 0', fontSize: 15, fontWeight: 500, background: '#f5f5f7', color: '#1c1c1e', border: 'none', borderRadius: 980, cursor: canBook ? 'pointer' : 'not-allowed', opacity: canBook ? 1 : 0.4, transition: 'opacity 0.15s' }}
-            >
-              {t.car.book}
-            </button>
-            {!canBook && (
+            <form onSubmit={book} style={{ marginTop: 20 }}>
+              {user && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 14 }}>
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, color: '#a1a1a6' }}>
+                    {t.bookings.phone}
+                    <input required type="tel" autoComplete="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder={t.bookings.phonePlaceholder} style={darkInput} />
+                  </label>
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, color: '#a1a1a6' }}>
+                    {t.bookings.note}
+                    <textarea rows={2} maxLength={1000} value={note} onChange={e => setNote(e.target.value)} style={{ ...darkInput, resize: 'vertical' }} />
+                  </label>
+                </div>
+              )}
+              <button
+                type="submit"
+                disabled={!canBook || busy}
+                style={{ width: '100%', padding: '14px 0', fontSize: 15, fontWeight: 500, background: '#f5f5f7', color: '#1c1c1e', border: 'none', borderRadius: 980, cursor: canBook && !busy ? 'pointer' : 'not-allowed', opacity: canBook && !busy ? 1 : 0.4, transition: 'opacity 0.15s' }}
+              >
+                {busy ? t.bookings.redirecting : user ? t.bookings.book : t.bookings.signInToBook}
+              </button>
+            </form>
+            {error && <p role="alert" style={{ fontSize: 13, color: '#ff6961', margin: '10px 0 0', lineHeight: 1.5 }}>{t.bookings.errors[error]}</p>}
+            {!canBook && !datesTaken && (
               <p style={{ fontSize: 12, color: '#a1a1a6', textAlign: 'center', margin: '8px 0 0' }}>
                 {deliveryQuote ? t.car.chooseInCountry : t.car.chooseAddress}
               </p>
             )}
+            {user && <p style={{ fontSize: 12, color: '#a1a1a6', margin: '12px 0 0', lineHeight: 1.5 }}>{t.bookings.holdInfo}</p>}
             <p style={{ fontSize: 12, color: '#86868b', textAlign: 'center', margin: '12px 0 0' }}>
               {t.car.freeCancel} <Link to="/terms" style={{ color: '#a1a1a6' }}>{t.car.terms}</Link>
             </p>
@@ -247,4 +317,9 @@ function CarNotFound() {
       </div>
     </div>
   )
+}
+
+const darkInput: React.CSSProperties = {
+  fontSize: 15, padding: '10px 14px', border: '1px solid #3a3a3d', borderRadius: 12, color: '#f5f5f7',
+  background: '#2a2a2d', fontFamily: 'inherit', outline: 'none',
 }

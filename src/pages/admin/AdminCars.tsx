@@ -6,6 +6,7 @@ import { fmt } from '../../lib/rental'
 import { useI18n } from '../../i18n/I18nContext'
 import { carText } from '../../i18n/cars'
 import { AdminGuard } from './AdminGuard'
+import { AdminTabs } from './AdminTabs'
 
 export function AdminCars() {
   return (
@@ -33,10 +34,12 @@ function AdminCarsContent() {
 
   return (
     <div style={{ paddingTop: 52 }}>
-      <div style={{ padding: '56px 24px 36px', background: '#1c1c1e' }}>
+      <div style={{ padding: '40px 24px 36px', background: '#1c1c1e' }}>
+        <div style={{ maxWidth: 1000, margin: '0 auto' }}>
+          <AdminTabs />
+        </div>
         <div style={{ maxWidth: 1000, margin: '0 auto', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
           <div>
-            <p style={{ fontSize: 13, color: '#a1a1a6', margin: '0 0 8px' }}>{t.admin.eyebrow}</p>
             <h1 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#f5f5f7', margin: 0, lineHeight: 1.05 }}>{t.admin.title}</h1>
             <p style={{ fontSize: 14, color: '#a1a1a6', margin: '10px 0 0' }}>{t.admin.count(cars.length)}</p>
           </div>

@@ -4,6 +4,8 @@ import { useAuth } from '../auth/AuthContext'
 import { isAdmin } from '../auth/admin'
 import { useI18n } from '../i18n/I18nContext'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
+import { CountBadge } from '../components/CountBadge'
+import { useAwaitingCount } from '../lib/adminNotifications'
 
 const NAV_LINKS = [['marketplace', 'rent'], ['about', 'about'], ['contact', 'contact']] as const
 
@@ -36,6 +38,8 @@ export function Root() {
   const [menuOpen, setMenuOpen] = useState(false)
   const { scrolled, hidden } = useNavScroll()
   const { t } = useI18n()
+  const { user } = useAuth()
+  const awaiting = useAwaitingCount(isAdmin(user))
   const location = useLocation()
   const isHome = location.pathname === '/'
 
@@ -97,8 +101,9 @@ export function Root() {
             onClick={() => setMenuOpen(o => !o)}
             aria-label={menuOpen ? t.nav.closeMenu : t.nav.openMenu}
             aria-expanded={menuOpen}
-            style={{ width: 40, height: 40, marginRight: -8, alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: '#fff' }}
+            style={{ position: 'relative', width: 40, height: 40, marginRight: -8, alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: '#fff' }}
           >
+            {awaiting > 0 && !menuOpen && <span aria-hidden style={{ position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: '50%', background: '#ff3b30' }} />}
             <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden>
               {menuOpen
                 ? <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
@@ -134,6 +139,7 @@ function AccountButton({ btnStyle }: { btnStyle: React.CSSProperties }) {
   const { user, loading, signOut } = useAuth()
   const { t } = useI18n()
   const location = useLocation()
+  const awaiting = useAwaitingCount(isAdmin(user))
   const [open, setOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -173,6 +179,7 @@ function AccountButton({ btnStyle }: { btnStyle: React.CSSProperties }) {
           {user.name.charAt(0).toUpperCase()}
         </span>
         {user.name.split(' ')[0]}
+        <CountBadge n={awaiting} />
       </button>
       {open && (
         <div role="menu" style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', minWidth: 220, background: '#2a2a2d', borderRadius: 14, boxShadow: '0 12px 40px rgba(0,0,0,0.35)', border: '1px solid #3a3a3d', padding: 8 }}>
@@ -180,16 +187,11 @@ function AccountButton({ btnStyle }: { btnStyle: React.CSSProperties }) {
             <div style={{ fontSize: 14, fontWeight: 600, color: '#f5f5f7' }}>{user.name}</div>
             <div style={{ fontSize: 13, color: '#a1a1a6', marginTop: 2 }}>{user.email}</div>
           </div>
+          <MenuLink to="/bookings">{t.bookings.menu}</MenuLink>
           {isAdmin(user) && (
-            <NavLink
-              role="menuitem"
-              to="/admin"
-              style={{ display: 'block', fontSize: 14, color: '#f5f5f7', textDecoration: 'none', borderRadius: 8, padding: '8px 10px' }}
-              onMouseEnter={e => (e.currentTarget.style.background = '#3a3a3d')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'none')}
-            >
-              {t.admin.link}
-            </NavLink>
+            <MenuLink to={awaiting > 0 ? '/admin/bookings' : '/admin'}>
+              {t.admin.link} <CountBadge n={awaiting} />
+            </MenuLink>
           )}
           <button
             role="menuitem"
@@ -206,10 +208,26 @@ function AccountButton({ btnStyle }: { btnStyle: React.CSSProperties }) {
   )
 }
 
+function MenuLink({ to, children }: { to: string; children: React.ReactNode }) {
+  return (
+    <NavLink
+      role="menuitem"
+      to={to}
+      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, fontSize: 14, color: '#f5f5f7', textDecoration: 'none', borderRadius: 8, padding: '8px 10px' }}
+      onMouseEnter={e => (e.currentTarget.style.background = '#3a3a3d')}
+      onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+    >
+      {children}
+    </NavLink>
+  )
+}
+
 function MobileMenu() {
   const { user, loading, signOut } = useAuth()
   const { t } = useI18n()
   const location = useLocation()
+  const awaiting = useAwaitingCount(isAdmin(user))
+  const item = ({ isActive }: { isActive: boolean }) => ({ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 0', fontSize: 20, fontWeight: 500, letterSpacing: '-0.02em', color: isActive ? '#fff' : 'rgba(255,255,255,0.7)', textDecoration: 'none', borderBottom: '1px solid #2c2c2e' })
   return (
     <div className="mobile-menu" style={{ background: '#1c1c1e', borderTop: '1px solid #2c2c2e', padding: '8px 24px 24px' }}>
       {NAV_LINKS.map(([path, key]) => (
@@ -221,12 +239,10 @@ function MobileMenu() {
           {t.nav[key]}
         </NavLink>
       ))}
+      {user && <NavLink to="/bookings" end style={item}>{t.bookings.menu}</NavLink>}
       {isAdmin(user) && (
-        <NavLink
-          to="/admin"
-          style={({ isActive }) => ({ display: 'block', padding: '14px 0', fontSize: 20, fontWeight: 500, letterSpacing: '-0.02em', color: isActive ? '#fff' : 'rgba(255,255,255,0.7)', textDecoration: 'none', borderBottom: '1px solid #2c2c2e' })}
-        >
-          {t.admin.link}
+        <NavLink to={awaiting > 0 ? '/admin/bookings' : '/admin'} style={item}>
+          {t.admin.link} <CountBadge n={awaiting} />
         </NavLink>
       )}
       {loading ? null : user ? (

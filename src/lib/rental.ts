@@ -1,6 +1,3 @@
-import type { Car } from '../data/cars'
-import type { Handover } from './delivery'
-import type { Dict } from '../i18n/en'
 import type { Lang } from '../i18n/I18nContext'
 
 // Prices are in Moldovan lei: 6800 → "6 800 MDL".
@@ -28,17 +25,4 @@ export function daysBetween(from: string, to: string) {
 // "5 October 2026" / "5 octombrie 2026" / "5 октября 2026 г.", for a 'YYYY-MM-DD' date.
 export function formatDate(date: string, lang: Lang) {
   return new Date(date + 'T00:00:00Z').toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
-}
-
-// The prefilled message sent to the Contact page when someone books a car, in the site's language.
-export function bookingMessage(car: Car, pickup: string, dropoff: string, handover: Handover, t: Dict, lang: Lang) {
-  const days = daysBetween(pickup, dropoff)
-  const rental = car.pricePerDay * days
-  const quote = handover.mode === 'delivery' && handover.quote?.ok ? handover.quote : null
-  const lines = [
-    t.booking.rent(`${car.brand} ${car.model}`, formatDate(pickup, lang), formatDate(dropoff, lang), days, fmt(rental)),
-    quote ? t.booking.deliver(quote.place.label, quote.km, fmt(quote.fee)) : t.booking.pickup(car.pickup.address),
-    t.booking.total(fmt(rental + (quote?.fee ?? 0))),
-  ]
-  return lines.join(' ')
 }

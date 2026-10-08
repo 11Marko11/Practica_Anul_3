@@ -30,7 +30,8 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
           <>
             <p>Prices are shown per day in Moldovan lei (MDL). The trip total shown on a listing is the daily price multiplied by the number of rental days between your pick-up and return dates.</p>
             <p>The daily price includes basic insurance and roadside assistance. Fuel or charging, tolls, parking, traffic fines and optional extras are not included.</p>
-            <p>A booking is confirmed only when the host accepts it and we send you a confirmation. Until then, a request can be declined.</p>
+            <p>You pay by card when you book, through our payment provider Stripe. The amount is only held on your card at first, not charged. We charge it when we confirm the booking; if we decline it, or do not confirm it within 7 days, the hold is released and you pay nothing.</p>
+            <p>The site currently runs Stripe in test mode: no real money is charged, and only Stripe's test cards work.</p>
           </>
         ),
       },
@@ -38,7 +39,8 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         title: 'Cancellations',
         body: (
           <ul>
-            <li>Free cancellation up to 24 hours before the pick-up time.</li>
+            <li>Before we confirm a booking you can cancel it at any time, and nothing is charged.</li>
+            <li>Free cancellation up to 24 hours before the pick-up time (pick-ups start at 10:00, Moldova time).</li>
             <li>Cancellations within 24 hours of pick-up are charged one rental day.</li>
             <li>If you do not show up, the full booking is charged.</li>
             <li>If a host cancels, you receive a full refund and we will help you find a similar car.</li>
@@ -96,7 +98,8 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
           <>
             <p>Prețurile sunt afișate pe zi, în lei moldovenești (MDL). Totalul afișat pentru o mașină este prețul pe zi înmulțit cu numărul de zile dintre data preluării și data returnării.</p>
             <p>Prețul pe zi include asigurarea de bază și asistența rutieră. Combustibilul sau încărcarea, taxele de drum, parcarea, amenzile și opțiunile suplimentare nu sunt incluse.</p>
-            <p>O rezervare este confirmată doar după ce gazda o acceptă și îți trimitem o confirmare. Până atunci, cererea poate fi refuzată.</p>
+            <p>Plătești cu cardul în momentul rezervării, prin procesatorul nostru de plăți Stripe. La început suma este doar blocată pe card, nu încasată. O încasăm când confirmăm rezervarea; dacă o refuzăm sau nu o confirmăm în 7 zile, blocarea se anulează și nu plătești nimic.</p>
+            <p>Momentan site-ul folosește Stripe în modul de test: nu se încasează bani reali și funcționează doar cardurile de test Stripe.</p>
           </>
         ),
       },
@@ -104,7 +107,8 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         title: 'Anulări',
         body: (
           <ul>
-            <li>Anulare gratuită cu până la 24 de ore înainte de ora preluării.</li>
+            <li>Până confirmăm rezervarea, o poți anula oricând, fără să plătești nimic.</li>
+            <li>Anulare gratuită cu până la 24 de ore înainte de ora preluării (preluările încep de la ora 10:00, ora Moldovei).</li>
             <li>Pentru anulările făcute cu mai puțin de 24 de ore înainte de preluare se percepe o zi de închiriere.</li>
             <li>Dacă nu te prezinți, se percepe întreaga rezervare.</li>
             <li>Dacă gazda anulează, primești banii înapoi integral și te ajutăm să găsești o mașină similară.</li>
@@ -162,7 +166,8 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
           <>
             <p>Цены указаны за сутки в молдавских леях (MDL). Итоговая сумма поездки — это суточная цена, умноженная на количество дней между датами получения и возврата.</p>
             <p>Суточная цена включает базовую страховку и помощь на дороге. Топливо или зарядка, платные дороги, парковка, штрафы и дополнительные опции не включены.</p>
-            <p>Бронирование подтверждается только после того, как владелец его примет и мы отправим вам подтверждение. До этого запрос может быть отклонён.</p>
+            <p>Вы оплачиваете бронирование картой через нашего платёжного провайдера Stripe. Сначала сумма только блокируется на карте, но не списывается. Мы списываем её, когда подтверждаем бронирование; если мы его отклоняем или не подтверждаем в течение 7 дней, блокировка снимается и вы ничего не платите.</p>
+            <p>Сейчас сайт использует Stripe в тестовом режиме: реальные деньги не списываются, работают только тестовые карты Stripe.</p>
           </>
         ),
       },
@@ -170,7 +175,8 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         title: 'Отмена',
         body: (
           <ul>
-            <li>Бесплатная отмена не позднее чем за 24 часа до времени получения.</li>
+            <li>До нашего подтверждения бронирование можно отменить в любой момент, ничего не платя.</li>
+            <li>Бесплатная отмена не позднее чем за 24 часа до времени получения (получение — с 10:00 по времени Молдовы).</li>
             <li>При отмене менее чем за 24 часа до получения взимается стоимость одних суток аренды.</li>
             <li>Если вы не приедете, взимается полная стоимость бронирования.</li>
             <li>Если отменяет владелец, вы получаете полный возврат, а мы поможем найти похожий автомобиль.</li>
