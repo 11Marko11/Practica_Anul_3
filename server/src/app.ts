@@ -1,6 +1,17 @@
+import cookie from '@fastify/cookie'
+import rateLimit from '@fastify/rate-limit'
 import Fastify from 'fastify'
+import { SESSION_COOKIE, userForToken, type PublicUser } from './auth/session.js'
 import { env } from './env.js'
+import { registerErrorHandler } from './http/errors.js'
+import { authRoutes } from './routes/auth.js'
 import { healthRoutes } from './routes/health.js'
+
+declare module 'fastify' {
+  interface FastifyRequest {
+    user: PublicUser | null // set from the session cookie on every /api request
+  }
+}
 
 export function buildApp() {
   const app = Fastify({
@@ -9,10 +20,26 @@ export function buildApp() {
     trustProxy: true,
   })
 
+  app.register(cookie)
+  // Off by default; individual routes opt in with `config.rateLimit`.
+  app.register(rateLimit, { global: false })
+  registerErrorHandler(app)
+
   // Every route lives under /api, which Vercel forwards to this server.
   app.register(
     async api => {
+      api.decorateRequest('user', null)
+      api.addHook('onRequest', async request => {
+        const token = request.cookies[SESSION_COOKIE]
+        request.user = token ? await userForToken(token) : null
+      })
+      // Answers depend on who is signed in, so neither browsers nor Vercel may cache them.
+      api.addHook('onSend', async (_request, reply) => {
+        reply.header('Cache-Control', 'no-store')
+      })
+
       await api.register(healthRoutes)
+      await api.register(authRoutes)
     },
     { prefix: '/api' },
   )
