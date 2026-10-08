@@ -195,3 +195,12 @@ model ContactMessage {
 
   @@index([createdAt])
 }
+
+// Texts of editable pages ('about', 'contact'), edited in the admin pages.
+// `data` holds shared fields plus one block per language (ro, en, ru); empty fields fall
+// back to the website's built-in texts.
+model SiteContent {
+  key       String   @id
+  data      Json
+  updatedAt DateTime @updatedAt
+}
