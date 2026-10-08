@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
 import { useI18n } from '../i18n/I18nContext'
+import { useSiteContent } from '../lib/siteContent'
 
 type Prefill = { subject?: string; message?: string } | null
 
@@ -9,7 +10,9 @@ export function Contact() {
   const location = useLocation()
   const prefill = location.state as Prefill
   const { user } = useAuth()
-  const { t } = useI18n()
+  const { lang, t } = useI18n()
+  const { content, ready } = useSiteContent('contact')
+  const c = content[lang]
   const empty = { name: user?.name ?? '', email: user?.email ?? '', subject: 'booking', message: '' }
   const [form, setForm] = useState({ ...empty, ...prefill })
   const [sent, setSent] = useState(false)
@@ -41,13 +44,13 @@ export function Contact() {
   }
 
   return (
-    <div style={{ paddingTop: 52 }}>
+    <div style={{ paddingTop: 52, opacity: ready ? 1 : 0, transition: 'opacity 0.25s' }}>
       {/* Header */}
       <section style={{ padding: '80px 24px 56px', borderBottom: '1px solid #f0f0f0' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <p style={{ fontSize: 13, color: '#6e6e73', margin: '0 0 12px' }}>{t.contact.eyebrow}</p>
+          <p style={{ fontSize: 13, color: '#6e6e73', margin: '0 0 12px' }}>{c.eyebrow}</p>
           <h1 style={{ fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 600, letterSpacing: '-0.035em', color: '#1d1d1f', margin: 0, lineHeight: 1.05 }}>
-            {t.contact.title}
+            {c.title}
           </h1>
         </div>
       </section>
@@ -58,21 +61,25 @@ export function Contact() {
 
           {/* Left info */}
           <div style={{ background: '#1c1c1e', borderRadius: 24, padding: '40px 32px' }}>
-            <h2 style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em', color: '#f5f5f7', margin: '0 0 16px' }}>{t.contact.helpTitle}</h2>
-            <p style={{ fontSize: 15, color: '#a1a1a6', lineHeight: 1.7, fontWeight: 300, margin: '0 0 40px' }}>
-              {t.contact.helpText}
+            <h2 style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em', color: '#f5f5f7', margin: '0 0 16px' }}>{c.helpTitle}</h2>
+            <p style={{ fontSize: 15, color: '#a1a1a6', lineHeight: 1.7, fontWeight: 300, margin: '0 0 40px', whiteSpace: 'pre-line' }}>
+              {c.helpText}
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
               {[
-                { label: t.contact.info.email, value: 'hello@rentmotors.com' },
-                { label: t.contact.info.phone, value: '+1 (415) 555 0192' },
-                { label: t.contact.info.hours, value: t.contact.hours },
-                { label: t.contact.info.address, value: t.contact.address },
+                { label: t.contact.info.email, value: content.email, href: `mailto:${content.email}` },
+                { label: t.contact.info.phone, value: content.phone, href: `tel:${content.phone.replace(/[^+\d]/g, '')}` },
+                { label: t.contact.info.hours, value: c.hours },
+                { label: t.contact.info.address, value: c.address, href: `https://www.openstreetmap.org/search?query=${encodeURIComponent(c.address)}` },
               ].map(item => (
                 <div key={item.label}>
                   <div style={{ fontSize: 12, color: '#86868b', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4, fontWeight: 500 }}>{item.label}</div>
-                  <div style={{ fontSize: 15, color: '#f5f5f7', fontWeight: 400 }}>{item.value}</div>
+                  {item.href ? (
+                    <a href={item.href} target={item.href.startsWith('http') ? '_blank' : undefined} rel="noreferrer" style={{ fontSize: 15, color: '#f5f5f7', fontWeight: 400, textDecoration: 'none' }}>{item.value}</a>
+                  ) : (
+                    <div style={{ fontSize: 15, color: '#f5f5f7', fontWeight: 400, whiteSpace: 'pre-line' }}>{item.value}</div>
+                  )}
                 </div>
               ))}
             </div>

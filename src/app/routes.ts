@@ -11,6 +11,7 @@ import { Privacy } from '../pages/Privacy'
 import { AdminCars } from '../pages/admin/AdminCars'
 import { AdminCarForm } from '../pages/admin/AdminCarForm'
 import { AdminBookings } from '../pages/admin/AdminBookings'
+import { AdminPages } from '../pages/admin/AdminPages'
 import { MyBookings } from '../pages/MyBookings'
 import { BookingDetails } from '../pages/BookingDetails'
 
@@ -31,6 +32,7 @@ export const router = createBrowserRouter([
       { path: 'bookings/:id', Component: BookingDetails },
       { path: 'admin', Component: AdminCars },
       { path: 'admin/bookings', Component: AdminBookings },
+      { path: 'admin/pages', Component: AdminPages },
       { path: 'admin/cars/new', Component: AdminCarForm },
       { path: 'admin/cars/:slug', Component: AdminCarForm },
     ],
