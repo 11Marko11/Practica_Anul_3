@@ -131,7 +131,7 @@ export function Root() {
 }
 
 function AccountButton({ btnStyle }: { btnStyle: React.CSSProperties }) {
-  const { user, signOut } = useAuth()
+  const { user, loading, signOut } = useAuth()
   const { t } = useI18n()
   const location = useLocation()
   const [open, setOpen] = useState(false)
@@ -149,6 +149,9 @@ function AccountButton({ btnStyle }: { btnStyle: React.CSSProperties }) {
   }, [open])
 
   const pill = { fontSize: 13, fontWeight: 500, borderRadius: 980, padding: '8px 18px', cursor: 'pointer', transition: 'all 0.3s', ...btnStyle }
+
+  // Until the server says who is signed in, keep the space empty instead of flashing "Sign In".
+  if (loading) return <span style={{ display: 'inline-block', width: 86 }} />
 
   if (!user) {
     return (
@@ -204,7 +207,7 @@ function AccountButton({ btnStyle }: { btnStyle: React.CSSProperties }) {
 }
 
 function MobileMenu() {
-  const { user, signOut } = useAuth()
+  const { user, loading, signOut } = useAuth()
   const { t } = useI18n()
   const location = useLocation()
   return (
@@ -226,7 +229,7 @@ function MobileMenu() {
           {t.admin.link}
         </NavLink>
       )}
-      {user ? (
+      {loading ? null : user ? (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 20 }}>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 15, fontWeight: 600, color: '#f5f5f7' }}>{user.name}</div>

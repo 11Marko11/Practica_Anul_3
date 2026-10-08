@@ -20,8 +20,8 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         title: 'Where your data is stored',
         body: (
           <>
-            <p>Your account and sign-in session are stored locally in your own browser (local storage). Passwords are never stored as plain text: only a one-way SHA-256 hash of your password is kept.</p>
-            <p>Because the data lives in your browser, an account created on one device or browser is not available on another, and clearing your browser's site data deletes it.</p>
+            <p>Your account is stored in our database, hosted by Supabase in the European Union (Frankfurt). Passwords are never stored as plain text: only a one-way Argon2 hash of your password is kept.</p>
+            <p>When you sign in, your browser receives a cookie holding a random session code, which it cannot read from scripts. It keeps you signed in for up to 30 days and stops working as soon as you sign out. The site and its server are hosted by Vercel and Render.</p>
           </>
         ),
       },
@@ -81,8 +81,8 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         title: 'Unde sunt stocate datele tale',
         body: (
           <>
-            <p>Contul și sesiunea ta de autentificare sunt stocate local, în propriul tău browser (local storage). Parolele nu sunt niciodată stocate în clar: păstrăm doar un hash SHA-256 unidirecțional al parolei.</p>
-            <p>Pentru că datele se află în browserul tău, un cont creat pe un dispozitiv sau browser nu este disponibil pe altul, iar ștergerea datelor site-ului din browser îl șterge.</p>
+            <p>Contul tău este stocat în baza noastră de date, găzduită de Supabase în Uniunea Europeană (Frankfurt). Parolele nu sunt niciodată stocate în clar: păstrăm doar un hash Argon2 unidirecțional al parolei.</p>
+            <p>Când te autentifici, browserul primește un cookie cu un cod de sesiune aleatoriu, care nu poate fi citit de scripturi. Te păstrează autentificat timp de până la 30 de zile și nu mai funcționează din momentul în care te deconectezi. Site-ul și serverul sunt găzduite de Vercel și Render.</p>
           </>
         ),
       },
@@ -142,8 +142,8 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         title: 'Где хранятся ваши данные',
         body: (
           <>
-            <p>Ваш аккаунт и сессия входа хранятся локально в вашем браузере (local storage). Пароли никогда не хранятся в открытом виде: сохраняется только односторонний хеш SHA-256 вашего пароля.</p>
-            <p>Поскольку данные хранятся в браузере, аккаунт, созданный на одном устройстве или в одном браузере, недоступен на другом, а очистка данных сайта в браузере удаляет его.</p>
+            <p>Ваш аккаунт хранится в нашей базе данных, размещённой в Supabase в Европейском союзе (Франкфурт). Пароли никогда не хранятся в открытом виде: сохраняется только односторонний хеш Argon2 вашего пароля.</p>
+            <p>При входе браузер получает cookie со случайным кодом сессии, который недоступен скриптам. Он сохраняет вход до 30 дней и перестаёт действовать сразу после выхода из аккаунта. Сайт и сервер размещены в Vercel и Render.</p>
           </>
         ),
       },

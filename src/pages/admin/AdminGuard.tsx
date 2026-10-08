@@ -6,10 +6,11 @@ import { useI18n } from '../../i18n/I18nContext'
 
 // Sends signed-out visitors to the login page and shows "No access" to non-admins.
 export function AdminGuard({ children }: { children: ReactNode }) {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
   const { t } = useI18n()
   const location = useLocation()
 
+  if (loading) return <div style={{ minHeight: '70vh' }} />
   if (!user) return <Navigate to="/login" state={{ from: location.pathname }} replace />
   if (isAdmin(user)) return <>{children}</>
 

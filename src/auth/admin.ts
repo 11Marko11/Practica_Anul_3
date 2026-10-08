@@ -1,9 +1,6 @@
 import type { User } from './AuthContext'
 
-// Accounts that can open the admin pages. Without a backend this check runs in the
-// browser, so it only hides the pages; a server must enforce it once data is shared.
-const ADMIN_EMAILS = ['marcel.mindru323@gmail.com']
-
+// Only hides admin links and pages; the server checks the role on every admin request.
 export function isAdmin(user: User | null) {
-  return !!user && ADMIN_EMAILS.includes(user.email)
+  return user?.role === 'ADMIN'
 }

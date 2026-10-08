@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
+import { ApiError } from '../lib/api'
 import { useI18n } from '../i18n/I18nContext'
 
 export function Login() {
@@ -15,6 +16,14 @@ export function Login() {
   const [form, setForm] = useState({ name: '', email: '', password: '' })
   const [error, setError] = useState<keyof typeof t.login.errors | null>(null)
   const [busy, setBusy] = useState(false)
+  const [slow, setSlow] = useState(false)
+
+  // The free server sleeps when idle and can take up to a minute to answer the first request.
+  useEffect(() => {
+    if (!busy) return setSlow(false)
+    const timer = setTimeout(() => setSlow(true), 4000)
+    return () => clearTimeout(timer)
+  }, [busy])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -25,7 +34,7 @@ export function Login() {
       else await signUp(form.name, form.email, form.password)
       navigate(from, { replace: true })
     } catch (err) {
-      const code = err instanceof Error ? err.message : ''
+      const code = err instanceof ApiError ? err.code : ''
       setError(code in t.login.errors ? (code as keyof typeof t.login.errors) : 'unknown')
     } finally {
       setBusy(false)
@@ -82,7 +91,7 @@ export function Login() {
           {mode === 'signup' && (
             <div>
               <label htmlFor="name" style={labelStyle}>{t.login.fullName}</label>
-              <input id="name" required autoComplete="name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Elena Rossi" style={inputStyle} {...focus} />
+              <input id="name" required minLength={2} autoComplete="name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Elena Rossi" style={inputStyle} {...focus} />
             </div>
           )}
           <div>
@@ -95,7 +104,7 @@ export function Login() {
               id="password"
               required
               type="password"
-              minLength={mode === 'signup' ? 6 : undefined}
+              minLength={mode === 'signup' ? 8 : undefined}
               autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
               value={form.password}
               onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
@@ -106,6 +115,7 @@ export function Login() {
           </div>
 
           {error && <p role="alert" style={{ fontSize: 14, color: '#d70015', margin: 0 }}>{t.login.errors[error]}</p>}
+          {slow && <p style={{ fontSize: 13, color: '#6e6e73', margin: 0 }}>{t.login.slow}</p>}
 
           <button
             type="submit"
