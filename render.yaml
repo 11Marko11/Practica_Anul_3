@@ -19,3 +19,9 @@ services:
         value: "22"
       - key: DATABASE_URL
         sync: false # entered in the Render dashboard, never committed
+      - key: SITE_URL
+        value: https://practica-anul-3-seven.vercel.app
+      - key: STRIPE_SECRET_KEY
+        sync: false # Stripe → Developers → API keys → Secret key (sk_test_…)
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false # Stripe → Developers → Webhooks → your endpoint → Signing secret (whsec_…)

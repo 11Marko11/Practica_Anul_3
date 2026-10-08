@@ -148,6 +148,7 @@ model Booking {
   stripeCheckoutSessionId String?   @unique
   stripePaymentIntentId   String?   @unique
   paymentExpiresAt        DateTime? // unpaid bookings stop blocking the dates after this
+  authorizedAt            DateTime? // when the card hold was placed; Stripe releases it after 7 days
   refundedAmount          Int       @default(0)
 
   createdAt DateTime @default(now())
