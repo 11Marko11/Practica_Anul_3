@@ -22,6 +22,8 @@ export function AdminTabs() {
         {t.adminBookings.tabBookings} <CountBadge n={awaiting} />
       </NavLink>
       <NavLink to="/admin/transactions" style={tab}>{t.transactions.tab}</NavLink>
+      <NavLink to="/admin/customers" style={tab}>{t.customers.tab}</NavLink>
+      <NavLink to="/admin/reviews" style={tab}>{t.reviewsAdmin.tab}</NavLink>
       <NavLink to="/admin/pages" style={tab}>{t.adminPages.tab}</NavLink>
     </nav>
   )

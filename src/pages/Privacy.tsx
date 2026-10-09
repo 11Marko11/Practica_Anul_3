@@ -54,6 +54,7 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         body: (
           <ul>
             <li>Sign out at any time from the account menu.</li>
+            <li>Delete your account from My bookings (with your password). You can then no longer sign in; your past bookings and payments stay in our records, as accounting requires.</li>
             <li>Delete everything we store in your browser by clearing site data for this website.</li>
             <li>Ask us what we hold about you or request its deletion by contacting us.</li>
           </ul>
@@ -116,6 +117,7 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         body: (
           <ul>
             <li>Te poți deconecta oricând din meniul contului.</li>
+            <li>Îți poți șterge contul din „Rezervările mele” (cu parola). Apoi nu te mai poți autentifica; rezervările și plățile anterioare rămân în evidența noastră, așa cum cere contabilitatea.</li>
             <li>Poți șterge tot ce stocăm în browserul tău ștergând datele site-ului pentru acest website.</li>
             <li>Ne poți întreba ce date deținem despre tine sau poți cere ștergerea lor contactându-ne.</li>
           </ul>
@@ -178,6 +180,7 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         body: (
           <ul>
             <li>Выйти из аккаунта можно в любой момент через меню аккаунта.</li>
+            <li>Удалить аккаунт можно в разделе «Мои бронирования» (с паролем). После этого вход невозможен; прошлые бронирования и платежи остаются в наших записях, как того требует бухгалтерия.</li>
             <li>Удалить всё, что мы храним в вашем браузере, можно, очистив данные этого сайта.</li>
             <li>Узнать, какие данные о вас у нас есть, или запросить их удаление можно, связавшись с нами.</li>
           </ul>

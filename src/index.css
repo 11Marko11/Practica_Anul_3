@@ -85,6 +85,11 @@ body {
 /* Shrinks with its tile (the tile is a size container), so large amounts never overflow. */
 .tile-value { font-size: min(30px, 14cqi); }
 
+/* Admin customers list: avatar | name and email | money and counts. */
+.customer-row { display: grid; grid-template-columns: 40px 1fr auto; gap: 14px; align-items: center; padding: 14px 8px; border-bottom: 1px solid #f0f0f0; border-radius: 10px; }
+.customer-row:hover { background: #f8f8fa; }
+.customer-avatar { width: 40px; height: 40px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; }
+
 /* Transactions: type | booking | date | amount; stacked on phones. */
 .transaction-row { display: grid; grid-template-columns: 1.1fr 1.6fr 1fr 150px; gap: 16px; align-items: center; padding: 14px 0; border-bottom: 1px solid #f0f0f0; }
 .transaction-amount { font-size: 16px; font-weight: 600; text-align: right; white-space: nowrap; }

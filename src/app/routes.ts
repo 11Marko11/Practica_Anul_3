@@ -14,6 +14,8 @@ import { AdminBookings } from '../pages/admin/AdminBookings'
 import { AdminPages } from '../pages/admin/AdminPages'
 import { AdminDashboard } from '../pages/admin/AdminDashboard'
 import { AdminTransactions } from '../pages/admin/AdminTransactions'
+import { AdminCustomers } from '../pages/admin/AdminCustomers'
+import { AdminReviews } from '../pages/admin/AdminReviews'
 import { MyBookings } from '../pages/MyBookings'
 import { BookingDetails } from '../pages/BookingDetails'
 
@@ -37,6 +39,9 @@ export const router = createBrowserRouter([
       { path: 'admin/bookings', Component: AdminBookings },
       { path: 'admin/pages', Component: AdminPages },
       { path: 'admin/transactions', Component: AdminTransactions },
+      { path: 'admin/customers', Component: AdminCustomers },
+      { path: 'admin/customers/:id', Component: AdminCustomers },
+      { path: 'admin/reviews', Component: AdminReviews },
       { path: 'admin/cars/new', Component: AdminCarForm },
       { path: 'admin/cars/:slug', Component: AdminCarForm },
     ],

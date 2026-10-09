@@ -5,6 +5,7 @@ import { BookingCard } from '../components/BookingCard'
 import { useI18n } from '../i18n/I18nContext'
 import { myBookings, type Booking } from '../lib/bookings'
 import { SimilarCars } from '../components/SimilarCars'
+import { DeleteAccount } from '../components/DeleteAccount'
 import { useCars } from '../lib/carStore'
 import { recommendCars, useUnavailableCars } from '../lib/carFilters'
 import { useRentalDates } from '../lib/useRentalDates'
@@ -66,6 +67,7 @@ export function MyBookings() {
             subtitle={history.length ? t.bookings.recommendedText : t.bookings.recommendedNew}
           />
         )}
+        {user.role !== 'ADMIN' && <DeleteAccount />}
       </main>
     </div>
   )
