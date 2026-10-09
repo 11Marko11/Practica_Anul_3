@@ -7,6 +7,7 @@ import { refreshAwaitingCount } from '../../lib/adminNotifications'
 import { fmt } from '../../lib/rental'
 import { AdminGuard } from './AdminGuard'
 import { AdminTabs } from './AdminTabs'
+import { CancelBookingDialog } from './CancelBookingDialog'
 
 const FILTERS: (BookingStatus | 'ALL')[] = ['AWAITING_CONFIRMATION', 'CONFIRMED', 'PENDING_PAYMENT', 'COMPLETED', 'ALL']
 
@@ -23,6 +24,7 @@ function AdminBookingsContent() {
   const [filter, setFilter] = useState<BookingStatus | 'ALL'>('AWAITING_CONFIRMATION')
   const [bookings, setBookings] = useState<Booking[] | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [cancelling, setCancelling] = useState<Booking | null>(null)
 
   async function load() {
     setBookings(await adminBookings(filter === 'ALL' ? undefined : filter).catch(() => []))
@@ -87,6 +89,12 @@ function AdminBookingsContent() {
                 <a href={`tel:${b.phone.replace(/[^+\d]/g, '')}`} style={{ color: '#0071e3', textDecoration: 'none' }}>{b.phone}</a>
                 {b.note && <div style={{ color: '#424245', whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>“{b.note}”</div>}
                 <div style={{ fontSize: 12, color: '#86868b' }}>{t.bookings.bookedOn(time(b.createdAt))}</div>
+                {b.cancelled && (
+                  <div style={{ fontSize: 13, color: '#6e6e73' }}>
+                    {t.adminBookings.cancelledInfo(b.cancelled.by === 'ADMIN' ? t.adminBookings.byAdmin : t.adminBookings.byCustomer, b.cancelled.reason ? t.cancelReasons[b.cancelled.reason] : '')}
+                    {b.cancelled.note && <> · “{b.cancelled.note}”</>}
+                  </div>
+                )}
                 {b.status === 'AWAITING_CONFIRMATION' && b.holdExpiresAt && (
                   <div style={{ fontSize: 12, color: '#9a5b00' }}>{t.adminBookings.holdUntil(time(b.holdExpiresAt))}</div>
                 )}
@@ -99,13 +107,17 @@ function AdminBookingsContent() {
                   </>
                 )}
                 {b.status === 'CONFIRMED' && (
-                  <ActionButton disabled={busyId === b.id} onClick={() => act(b, 'complete')}>{t.adminBookings.complete}</ActionButton>
+                  <>
+                    <ActionButton disabled={busyId === b.id} onClick={() => act(b, 'complete')}>{t.adminBookings.complete}</ActionButton>
+                    <ActionButton danger disabled={busyId === b.id} onClick={() => setCancelling(b)}>{t.adminBookings.cancel}</ActionButton>
+                  </>
                 )}
               </div>
             </BookingCard>
           ))}
         </div>
       </main>
+      {cancelling && <CancelBookingDialog booking={cancelling} onClose={() => setCancelling(null)} onDone={() => { setCancelling(null); load() }} />}
     </div>
   )
 }

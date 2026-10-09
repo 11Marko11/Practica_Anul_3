@@ -4,8 +4,8 @@ import { useAuth } from '../auth/AuthContext'
 import { BookingCard } from '../components/BookingCard'
 import { useI18n } from '../i18n/I18nContext'
 import { ApiError } from '../lib/api'
-import { cancelBooking, getBooking, payBooking, type Booking } from '../lib/bookings'
-import { fmt } from '../lib/rental'
+import { cancelBooking, completeBooking, getBooking, payBooking, type Booking } from '../lib/bookings'
+import { fmt, formatDate } from '../lib/rental'
 
 // One of the customer's bookings. Stripe sends the customer back here after paying
 // (?payment=success) or giving up (?payment=cancelled).
@@ -61,16 +61,17 @@ export function BookingDetails() {
     }
   }
 
-  async function cancel(b: Booking) {
-    const question = !b.cancellation.charged ? t.bookings.cancelFree : b.cancellation.refund > 0 ? t.bookings.cancelRefund(fmt(b.cancellation.refund)) : t.bookings.cancelNoRefund
+  // Cancel (only before confirmation, nothing is charged) or end the booking (car returned).
+  async function run(question: string, action: () => Promise<Booking>) {
     if (!confirm(question)) return
     setBusy(true)
     setError(null)
     try {
-      setBooking(await cancelBooking(id))
+      setBooking(await action())
       setBusy(false)
     } catch (err) {
       fail(err)
+      getBooking(id).then(setBooking).catch(() => {})
     }
   }
 
@@ -119,6 +120,23 @@ export function BookingDetails() {
               </p>
             </BookingCard>
 
+            {booking.cancelled && (
+              <div style={{ marginTop: 16, padding: '14px 18px', borderRadius: 14, background: '#f5f5f7', fontSize: 14, lineHeight: 1.6, color: '#1d1d1f' }}>
+                <strong style={{ fontWeight: 600 }}>{booking.cancelled.by === 'ADMIN' ? t.bookings.cancelledByUs : t.bookings.cancelledByYou}</strong>
+                {booking.cancelled.at && <span style={{ color: '#6e6e73' }}> · {time(booking.cancelled.at)}</span>}
+                {booking.cancelled.reason && <div>{t.bookings.reason}: {t.cancelReasons[booking.cancelled.reason]}</div>}
+                {booking.cancelled.note && <div style={{ color: '#424245', whiteSpace: 'pre-line' }}>{booking.cancelled.note}</div>}
+                {booking.refundedAmount > 0 && <div>{t.bookings.refunded}: {fmt(booking.refundedAmount)}</div>}
+              </div>
+            )}
+
+            {booking.status === 'CONFIRMED' && (
+              <p style={{ fontSize: 14, color: '#424245', lineHeight: 1.6, margin: '16px 0 0' }}>
+                {booking.canComplete ? null : <>{t.bookings.completeFrom(formatDate(booking.pickupDate, lang))} </>}
+                {t.bookings.confirmedNote} <Link to="/contact" style={{ color: '#0071e3', textDecoration: 'none' }}>{t.bookings.contactUs}</Link>
+              </p>
+            )}
+
             {error && <p role="alert" style={{ fontSize: 14, color: '#d70015', margin: '16px 0 0' }}>{t.bookings.errors[error]}</p>}
 
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 20 }}>
@@ -127,8 +145,13 @@ export function BookingDetails() {
                   {busy ? t.bookings.redirecting : t.bookings.pay}
                 </button>
               )}
-              {booking.cancellation.allowed && (
-                <button onClick={() => cancel(booking)} disabled={busy} style={{ ...button, background: 'none', color: '#d70015', border: '1px solid #f0c4c4', opacity: busy ? 0.6 : 1 }}>
+              {booking.canComplete && (
+                <button onClick={() => run(t.bookings.completeAsk, () => completeBooking(id))} disabled={busy} style={{ ...button, background: '#1d1d1f', color: '#fff', opacity: busy ? 0.6 : 1 }}>
+                  {t.bookings.complete}
+                </button>
+              )}
+              {booking.canCancel && (
+                <button onClick={() => run(t.bookings.cancelFree, () => cancelBooking(id))} disabled={busy} style={{ ...button, background: 'none', color: '#d70015', border: '1px solid #f0c4c4', opacity: busy ? 0.6 : 1 }}>
                   {t.bookings.cancel}
                 </button>
               )}

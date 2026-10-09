@@ -9,6 +9,7 @@ import { adminBookingAction, type Booking } from '../../lib/bookings'
 import { fmt, formatDate } from '../../lib/rental'
 import { AdminGuard } from './AdminGuard'
 import { AdminTabs } from './AdminTabs'
+import { CancelBookingDialog } from './CancelBookingDialog'
 
 type Dashboard = {
   revenueThisMonth: number
@@ -36,6 +37,7 @@ function DashboardContent() {
   const [data, setData] = useState<Dashboard | null>(null)
   const [failed, setFailed] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [cancelling, setCancelling] = useState<Booking | null>(null)
   // Reload when a new paid booking arrives (the notification count changes).
   const awaitingCount = useAwaitingCount(true)
 
@@ -125,6 +127,7 @@ function DashboardContent() {
                     <RowText>{b.customer?.name} · <a href={`tel:${b.phone.replace(/[^+\d]/g, '')}`} style={linkStyle}>{b.phone}</a></RowText>
                     <RowText>{b.handover === 'DELIVERY' ? `${d.delivery}: ${b.deliveryAddress}` : d.pickup}</RowText>
                   </div>
+                  <SmallAction onClick={() => setCancelling(b)}>{t.adminBookings.cancel}</SmallAction>
                 </Row>
               ))}
             </Panel>
@@ -154,6 +157,7 @@ function DashboardContent() {
           </div>
         </div>
       </main>
+      {cancelling && <CancelBookingDialog booking={cancelling} onClose={() => setCancelling(null)} onDone={() => { setCancelling(null); load() }} />}
     </div>
   )
 }

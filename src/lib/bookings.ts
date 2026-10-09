@@ -1,5 +1,8 @@
 import { api } from './api'
 
+export const CANCEL_REASONS = ['car-unavailable', 'customer-request', 'no-show', 'documents', 'other'] as const
+export type CancelReason = (typeof CANCEL_REASONS)[number]
+
 export type BookingStatus = 'PENDING_PAYMENT' | 'AWAITING_CONFIRMATION' | 'CONFIRMED' | 'COMPLETED' | 'EXPIRED' | 'REJECTED' | 'CANCELLED'
 
 export type Booking = {
@@ -21,7 +24,9 @@ export type Booking = {
   createdAt: string
   paymentExpiresAt: string | null
   holdExpiresAt: string | null // when Stripe releases the card hold if the admin hasn't confirmed
-  cancellation: { allowed: boolean; refund: number; charged: boolean }
+  canCancel: boolean // the customer can cancel only until the admin confirms
+  canComplete: boolean // confirmed, from the pick-up day on: the customer can end it
+  cancelled: { by: 'CUSTOMER' | 'ADMIN' | null; reason: CancelReason | null; note: string | null; at: string | null } | null
   customer?: { name: string; email: string } // admin pages only
 }
 
@@ -41,9 +46,12 @@ export const myBookings = () => api<{ bookings: Booking[] }>('/bookings').then(r
 export const getBooking = (id: string) => api<{ booking: Booking }>(`/bookings/${id}`).then(r => r.booking)
 export const payBooking = (id: string) => api<{ checkoutUrl: string }>(`/bookings/${id}/pay`, { method: 'POST' })
 export const cancelBooking = (id: string) => api<{ booking: Booking }>(`/bookings/${id}/cancel`, { method: 'POST' }).then(r => r.booking)
+export const completeBooking = (id: string) => api<{ booking: Booking }>(`/bookings/${id}/complete`, { method: 'POST' }).then(r => r.booking)
 export const takenDates = (slug: string) => api<{ taken: { from: string; to: string }[] }>(`/cars/${encodeURIComponent(slug)}/availability`).then(r => r.taken)
 
 export const adminBookings = (status?: BookingStatus) =>
   api<{ bookings: Booking[] }>(`/admin/bookings${status ? `?status=${status}` : ''}`).then(r => r.bookings)
+export const adminCancelBooking = (id: string, input: { reason: CancelReason; note?: string; refund: number }) =>
+  api<{ booking: Booking }>(`/admin/bookings/${id}/cancel`, { body: input }).then(r => r.booking)
 export const adminBookingAction = (id: string, action: 'confirm' | 'reject' | 'complete') =>
   api<{ booking: Booking }>(`/admin/bookings/${id}/${action}`, { method: 'POST' }).then(r => r.booking)

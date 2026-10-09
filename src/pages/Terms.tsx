@@ -39,9 +39,9 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         title: 'Cancellations',
         body: (
           <ul>
-            <li>Before we confirm a booking you can cancel it at any time, and nothing is charged.</li>
-            <li>Free cancellation up to 24 hours before the pick-up time (pick-ups start at 10:00, Moldova time).</li>
-            <li>Cancellations within 24 hours of pick-up are charged one rental day.</li>
+            <li>Until we confirm a booking you can cancel it yourself at any time from My bookings, and nothing is charged.</li>
+            <li>Once we confirm a booking it can no longer be cancelled online. If your plans change, contact us; whether and how much is refunded depends on the situation and is decided by us.</li>
+            <li>If we have to cancel a confirmed booking (for example because the car is not available), we tell you why and refund the amount that applies, in full when the cancellation is our fault.</li>
             <li>If you do not show up, the full booking is charged.</li>
             <li>If a host cancels, you receive a full refund and we will help you find a similar car.</li>
           </ul>
@@ -107,9 +107,9 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         title: 'Anulări',
         body: (
           <ul>
-            <li>Până confirmăm rezervarea, o poți anula oricând, fără să plătești nimic.</li>
-            <li>Anulare gratuită cu până la 24 de ore înainte de ora preluării (preluările încep de la ora 10:00, ora Moldovei).</li>
-            <li>Pentru anulările făcute cu mai puțin de 24 de ore înainte de preluare se percepe o zi de închiriere.</li>
+            <li>Până confirmăm rezervarea, o poți anula singur oricând din „Rezervările mele”, fără să plătești nimic.</li>
+            <li>După ce confirmăm rezervarea, ea nu mai poate fi anulată online. Dacă planurile tale se schimbă, contactează-ne; dacă și cât se rambursează depinde de situație și decidem noi.</li>
+            <li>Dacă noi trebuie să anulăm o rezervare confirmată (de exemplu, pentru că mașina nu este disponibilă), îți spunem motivul și returnăm suma cuvenită, integral atunci când anularea este din vina noastră.</li>
             <li>Dacă nu te prezinți, se percepe întreaga rezervare.</li>
             <li>Dacă gazda anulează, primești banii înapoi integral și te ajutăm să găsești o mașină similară.</li>
           </ul>
@@ -175,9 +175,9 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         title: 'Отмена',
         body: (
           <ul>
-            <li>До нашего подтверждения бронирование можно отменить в любой момент, ничего не платя.</li>
-            <li>Бесплатная отмена не позднее чем за 24 часа до времени получения (получение — с 10:00 по времени Молдовы).</li>
-            <li>При отмене менее чем за 24 часа до получения взимается стоимость одних суток аренды.</li>
+            <li>До нашего подтверждения вы можете отменить бронирование сами в любой момент в разделе «Мои бронирования», ничего не платя.</li>
+            <li>После подтверждения бронирование нельзя отменить онлайн. Если ваши планы изменились, свяжитесь с нами; будет ли возврат и в каком размере, зависит от ситуации и решается нами.</li>
+            <li>Если нам придётся отменить подтверждённое бронирование (например, если автомобиль недоступен), мы сообщим причину и вернём причитающуюся сумму — полностью, если отмена произошла по нашей вине.</li>
             <li>Если вы не приедете, взимается полная стоимость бронирования.</li>
             <li>Если отменяет владелец, вы получаете полный возврат, а мы поможем найти похожий автомобиль.</li>
           </ul>
