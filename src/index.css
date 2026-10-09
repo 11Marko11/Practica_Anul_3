@@ -85,6 +85,11 @@ body {
 .tile-value { font-size: 30px; }
 .dashboard-columns { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 40px; margin-top: 36px; align-items: start; }
 
+/* Car list filters: a row of fields on wide screens; on phones they fold under a "Filters" button. */
+.filters-toggle-row { display: none; }
+.filters-panel { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px 16px; }
+.filter-wide { grid-column: span 2; }
+
 .review-summary { display: grid; grid-template-columns: 120px 1fr; gap: 24px; align-items: center; }
 
 /* Layouts that change on phones. Inline styles can't use media queries, so they live here. */
@@ -136,6 +141,9 @@ body {
   .spec-grid { grid-template-columns: repeat(2, 1fr); }
   .feature-list { grid-template-columns: 1fr; }
   .dashboard-columns { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .filters-toggle-row { display: block; }
+  .filters-panel { display: none; grid-template-columns: 1fr 1fr; margin-top: 16px; }
+  .filters-panel--open { display: grid; }
   .dashboard-tiles { grid-template-columns: 1fr 1fr; gap: 10px; }
   .dashboard-tiles .tile-wide { grid-column: span 2; order: -1; }
   .tile-value { font-size: 26px; }

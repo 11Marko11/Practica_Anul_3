@@ -143,7 +143,7 @@ export function Home() {
                 key={brand.name}
                 brand={brand}
                 size={brandSize(brand.count, maxBrandCount)}
-                onClick={() => navigate('/marketplace', { state: { brand: brand.name } })}
+                onClick={() => navigate(`/marketplace?brand=${encodeURIComponent(brand.name)}`)}
               />
             ))}
           </div>
