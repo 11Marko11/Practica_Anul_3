@@ -1,10 +1,11 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { requireAdmin } from '../auth/guards.js'
-import { bookingInclude, toBookingDto } from '../bookings/dto.js'
+import { bookingInclude, CANCEL_REASONS, toBookingDto } from '../bookings/dto.js'
+import { completeBooking } from '../bookings/payment.js'
 import { prisma } from '../db.js'
 import { HttpError } from '../http/errors.js'
-import { stripe } from '../payments/stripe.js'
+import { stripe, toStripeAmount } from '../payments/stripe.js'
 
 const idParam = z.object({ id: z.uuid() })
 const listQuery = z.object({
@@ -51,8 +52,9 @@ export async function adminBookingRoutes(app: FastifyInstance) {
       request.log.warn(err, 'Capture failed')
       const intent = await stripe().paymentIntents.retrieve(booking.stripePaymentIntentId)
       if (intent.status === 'canceled') {
-        await prisma.booking.update({ where: { id }, data: { status: 'EXPIRED' } })
-        throw new HttpError(409, 'payment-hold-expired')
+        // Released by Stripe after 7 days, or the customer cancelled at the same moment.
+        await prisma.booking.updateMany({ where: { id, status: 'AWAITING_CONFIRMATION' }, data: { status: 'EXPIRED' } })
+        throw new HttpError(409, (await findBooking(id)).status === 'CANCELLED' ? 'not-awaiting-confirmation' : 'payment-hold-expired')
       }
       if (intent.status !== 'succeeded') throw new HttpError(502, 'payment-provider-error')
     }
@@ -76,10 +78,36 @@ export async function adminBookingRoutes(app: FastifyInstance) {
     const { id } = idParam.parse(request.params)
     const booking = await findBooking(id)
     if (booking.status !== 'CONFIRMED') throw new HttpError(409, 'not-confirmed')
-    await prisma.$transaction([
-      prisma.booking.update({ where: { id }, data: { status: 'COMPLETED' } }),
-      prisma.car.update({ where: { id: booking.carId }, data: { hostTrips: { increment: 1 } } }),
-    ])
+    await completeBooking(id, booking.carId)
+    return reply(id)
+  })
+
+  // Cancel a confirmed booking: the admin picks a reason and how much of the charged money
+  // goes back to the customer (all, part or nothing).
+  app.post('/admin/bookings/:id/cancel', async request => {
+    const { id } = idParam.parse(request.params)
+    const body = z
+      .object({ reason: z.enum(CANCEL_REASONS), note: z.string().trim().max(1000).optional(), refund: z.int().min(0) })
+      .refine(b => b.reason !== 'other' || !!b.note, { path: ['note'], message: 'Explain the reason' })
+      .parse(request.body)
+    const booking = await findBooking(id)
+    if (booking.status !== 'CONFIRMED' || !booking.stripePaymentIntentId) throw new HttpError(409, 'not-confirmed')
+    const refundable = booking.total - booking.refundedAmount
+    if (body.refund > refundable) throw new HttpError(422, 'refund-too-large')
+
+    if (body.refund > 0) {
+      await stripe().refunds.create(
+        { payment_intent: booking.stripePaymentIntentId, amount: toStripeAmount(body.refund), metadata: { bookingId: id, reason: body.reason } },
+        { idempotencyKey: `cancel-${id}` },
+      )
+    }
+    await prisma.booking.update({
+      where: { id },
+      data: {
+        status: 'CANCELLED', cancelledBy: 'ADMIN', cancelledAt: new Date(), cancelReason: body.reason,
+        cancelNote: body.note || null, refundedAmount: { increment: body.refund },
+      },
+    })
     return reply(id)
   })
 }

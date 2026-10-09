@@ -32,3 +32,12 @@ export function markHoldReleased(paymentIntentId: string) {
     data: { status: 'EXPIRED' },
   })
 }
+
+// Marks a confirmed booking as completed (car returned) and counts the trip for the host.
+// Only one caller wins if the customer and the admin do it at the same time.
+export async function completeBooking(bookingId: string, carId: number) {
+  await prisma.$transaction(async tx => {
+    const done = await tx.booking.updateMany({ where: { id: bookingId, status: 'CONFIRMED' }, data: { status: 'COMPLETED' } })
+    if (done.count) await tx.car.update({ where: { id: carId }, data: { hostTrips: { increment: 1 } } })
+  })
+}

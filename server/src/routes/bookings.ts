@@ -3,7 +3,8 @@ import { z } from 'zod'
 import { requireUser } from '../auth/guards.js'
 import { blockingBookings, overlapping } from '../bookings/availability.js'
 import { addDays, daysBetween, fromIsoDate, isoDate, todayInMoldova } from '../bookings/dates.js'
-import { bookingInclude, cancellation, toBookingDto } from '../bookings/dto.js'
+import { bookingInclude, customerCanCancel, customerCanComplete, toBookingDto } from '../bookings/dto.js'
+import { completeBooking } from '../bookings/payment.js'
 import { syncCheckout } from '../bookings/payment.js'
 import { assertInMoldova, deliveryQuote } from '../bookings/pricing.js'
 import { prisma } from '../db.js'
@@ -168,36 +169,42 @@ export async function bookingRoutes(app: FastifyInstance) {
     return { checkoutUrl: session.url }
   })
 
-  // Unpaid or unconfirmed: nothing was charged, so the session or card hold is simply cancelled.
-  // Confirmed: refunded according to the cancellation rules.
+  // Customers can cancel only until the admin confirms. Nothing has been charged by then:
+  // the unpaid Checkout page is closed, or the hold on the card is released.
   app.post('/bookings/:id/cancel', { preHandler: requireUser }, async request => {
     const { id } = idParam.parse(request.params)
     const booking = await findOwnBooking(id, request.user!.id)
-    const rule = cancellation(booking)
-    if (!rule.allowed) throw new HttpError(409, 'cannot-cancel')
+    if (!customerCanCancel(booking)) throw new HttpError(409, 'cannot-cancel')
     const payments = stripe()
 
-    if (booking.status === 'PENDING_PAYMENT') {
-      if (booking.stripeCheckoutSessionId) {
-        await payments.checkout.sessions.expire(booking.stripeCheckoutSessionId).catch(() => {})
-        await syncCheckout(id) // it may have been paid in the meantime
-      }
-      const fresh = await prisma.booking.findUniqueOrThrow({ where: { id } })
-      if (fresh.status === 'AWAITING_CONFIRMATION' && fresh.stripePaymentIntentId) {
-        await payments.paymentIntents.cancel(fresh.stripePaymentIntentId)
-      }
-      if (fresh.status === 'PENDING_PAYMENT' || fresh.status === 'AWAITING_CONFIRMATION' || fresh.status === 'EXPIRED') {
-        await prisma.booking.update({ where: { id }, data: { status: 'CANCELLED' } })
-      }
-    } else if (booking.status === 'AWAITING_CONFIRMATION') {
-      await payments.paymentIntents.cancel(booking.stripePaymentIntentId!)
-      await prisma.booking.update({ where: { id }, data: { status: 'CANCELLED' } })
-    } else {
-      if (rule.refund > 0) {
-        await payments.refunds.create({ payment_intent: booking.stripePaymentIntentId!, amount: toStripeAmount(rule.refund) })
-      }
-      await prisma.booking.update({ where: { id }, data: { status: 'CANCELLED', refundedAmount: rule.refund } })
+    if (booking.status === 'PENDING_PAYMENT' && booking.stripeCheckoutSessionId) {
+      await payments.checkout.sessions.expire(booking.stripeCheckoutSessionId).catch(() => {})
+      await syncCheckout(id) // it may have been paid in the meantime
     }
+    const fresh = await prisma.booking.findUniqueOrThrow({ where: { id } })
+    if (fresh.status === 'AWAITING_CONFIRMATION' && fresh.stripePaymentIntentId) {
+      try {
+        await payments.paymentIntents.cancel(fresh.stripePaymentIntentId)
+      } catch {
+        // The admin confirmed (and charged) at the same moment: too late to cancel.
+        throw new HttpError(409, 'cannot-cancel')
+      }
+    }
+    const done = await prisma.booking.updateMany({
+      where: { id, status: { in: ['PENDING_PAYMENT', 'AWAITING_CONFIRMATION', 'EXPIRED'] } },
+      data: { status: 'CANCELLED', cancelledBy: 'CUSTOMER', cancelledAt: new Date() },
+    })
+    if (done.count === 0) throw new HttpError(409, 'cannot-cancel')
+    return { booking: toBookingDto(await findOwnBooking(id, request.user!.id)) }
+  })
+
+  // After confirmation the customer ends the booking once the car is returned (from the
+  // pick-up day on). The trip then counts for the host and the customer can review the car.
+  app.post('/bookings/:id/complete', { preHandler: requireUser }, async request => {
+    const { id } = idParam.parse(request.params)
+    const booking = await findOwnBooking(id, request.user!.id)
+    if (!customerCanComplete(booking)) throw new HttpError(409, booking.status === 'CONFIRMED' ? 'too-early-to-complete' : 'not-confirmed')
+    await completeBooking(id, booking.carId)
     return { booking: toBookingDto(await findOwnBooking(id, request.user!.id)) }
   })
 }

@@ -32,6 +32,12 @@ enum CarStatus {
   HIDDEN // kept for past bookings, not bookable
 }
 
+// Who cancelled a booking: customers can cancel until the admin confirms; afterwards only the admin can.
+enum CancelledBy {
+  CUSTOMER
+  ADMIN
+}
+
 enum Handover {
   PICKUP
   DELIVERY
@@ -145,12 +151,16 @@ model Booking {
   note            String?
 
   // Stripe Checkout. The card is authorised at checkout and charged when the admin confirms.
-  stripeCheckoutSessionId String?   @unique
-  stripePaymentIntentId   String?   @unique
+  stripeCheckoutSessionId String?      @unique
+  stripePaymentIntentId   String?      @unique
   paymentExpiresAt        DateTime? // unpaid bookings stop blocking the dates after this
   authorizedAt            DateTime? // when the card hold was placed; Stripe releases it after 7 days
   confirmedAt             DateTime? // when the admin confirmed and the money was charged
-  refundedAmount          Int       @default(0)
+  cancelledAt             DateTime?
+  cancelledBy             CancelledBy?
+  cancelReason            String? // a code such as 'car-unavailable' (labels live in the website's translations)
+  cancelNote              String? // the admin's explanation, shown to the customer
+  refundedAmount          Int          @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
