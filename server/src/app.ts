@@ -9,6 +9,7 @@ import { authRoutes } from './routes/auth.js'
 import { bookingRoutes } from './routes/bookings.js'
 import { carRoutes } from './routes/cars.js'
 import { contentRoutes } from './routes/content.js'
+import { dashboardRoutes } from './routes/dashboard.js'
 import { healthRoutes } from './routes/health.js'
 import { reviewRoutes } from './routes/reviews.js'
 import { statsRoutes } from './routes/stats.js'
@@ -53,6 +54,7 @@ export function buildApp() {
       await api.register(bookingRoutes)
       await api.register(adminBookingRoutes)
       await api.register(contentRoutes)
+      await api.register(dashboardRoutes)
       await api.register(stripeWebhookRoutes)
     },
     { prefix: '/api' },

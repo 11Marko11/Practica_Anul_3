@@ -56,7 +56,7 @@ export async function adminBookingRoutes(app: FastifyInstance) {
       }
       if (intent.status !== 'succeeded') throw new HttpError(502, 'payment-provider-error')
     }
-    await prisma.booking.update({ where: { id }, data: { status: 'CONFIRMED' } })
+    await prisma.booking.update({ where: { id }, data: { status: 'CONFIRMED', confirmedAt: new Date() } })
     return reply(id)
   })
 

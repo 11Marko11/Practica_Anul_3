@@ -149,6 +149,7 @@ model Booking {
   stripePaymentIntentId   String?   @unique
   paymentExpiresAt        DateTime? // unpaid bookings stop blocking the dates after this
   authorizedAt            DateTime? // when the card hold was placed; Stripe releases it after 7 days
+  confirmedAt             DateTime? // when the admin confirmed and the money was charged
   refundedAmount          Int       @default(0)
 
   createdAt DateTime @default(now())
@@ -161,6 +162,7 @@ model Booking {
   @@index([carId, pickupDate, returnDate])
   @@index([userId])
   @@index([status])
+  @@index([confirmedAt])
 }
 
 // Only a customer with a completed booking for the car can review it, once per booking.
