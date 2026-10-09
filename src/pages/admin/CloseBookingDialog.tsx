@@ -1,16 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import { useI18n } from '../../i18n/I18nContext'
 import { ApiError } from '../../lib/api'
-import { adminCancelBooking, CANCEL_REASONS, type Booking, type CancelReason } from '../../lib/bookings'
+import { adminCancelBooking, adminRejectBooking, CANCEL_REASONS, REJECT_REASONS, type Booking, type CancelReason } from '../../lib/bookings'
 import { fmt } from '../../lib/rental'
 
-// The admin cancels a confirmed booking: picks a reason, explains it to the customer and
-// chooses how much of the charged money goes back (all, part or nothing).
-export function CancelBookingDialog({ booking, onClose, onDone }: { booking: Booking; onClose: () => void; onDone: () => void }) {
+// The admin closes a booking with a reason the customer will see:
+// - 'reject' a paid booking waiting for confirmation: the card hold is released, nothing to refund;
+// - 'cancel' a confirmed booking: also choose how much of the charged money goes back (all, part or nothing).
+export function CloseBookingDialog({ booking, mode, onClose, onDone }: { booking: Booking; mode: 'cancel' | 'reject'; onClose: () => void; onDone: () => void }) {
   const { t } = useI18n()
   const a = t.adminBookings
   const dialog = useRef<HTMLDialogElement>(null)
   const refundable = booking.total - booking.refundedAmount
+  const rejecting = mode === 'reject'
+  const reasons = rejecting ? REJECT_REASONS : CANCEL_REASONS
   const [reason, setReason] = useState<CancelReason>('car-unavailable')
   const [note, setNote] = useState('')
   const [refundMode, setRefundMode] = useState<'full' | 'partial' | 'none'>('full')
@@ -30,7 +33,8 @@ export function CancelBookingDialog({ booking, onClose, onDone }: { booking: Boo
     setBusy(true)
     setError('')
     try {
-      await adminCancelBooking(booking.id, { reason, note: note.trim() || undefined, refund })
+      if (rejecting) await adminRejectBooking(booking.id, { reason, note: note.trim() || undefined })
+      else await adminCancelBooking(booking.id, { reason, note: note.trim() || undefined, refund })
       onDone()
     } catch (err) {
       const code = err instanceof ApiError ? err.code : 'unknown'
@@ -49,18 +53,18 @@ export function CancelBookingDialog({ booking, onClose, onDone }: { booking: Boo
     >
       <form onSubmit={submit} style={{ padding: '24px 24px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div>
-          <h2 style={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.02em', color: '#1d1d1f', margin: '0 0 6px' }}>{a.cancelTitle}</h2>
+          <h2 style={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.02em', color: '#1d1d1f', margin: '0 0 6px' }}>{rejecting ? a.rejectTitle : a.cancelTitle}</h2>
           <p style={{ fontSize: 14, color: '#424245', margin: 0, lineHeight: 1.5 }}>
             {booking.car.brand} {booking.car.model} · {booking.customer?.name}
             <br />
-            {a.cancelIntro(fmt(booking.total))}
+            {rejecting ? a.rejectIntro(fmt(booking.total)) : a.cancelIntro(fmt(booking.total))}
           </p>
         </div>
 
         <label style={label}>
           {a.reasonLabel}
           <select value={reason} onChange={e => setReason(e.target.value as CancelReason)} style={input}>
-            {CANCEL_REASONS.map(r => <option key={r} value={r}>{t.cancelReasons[r]}</option>)}
+            {reasons.map(r => <option key={r} value={r}>{t.cancelReasons[r]}</option>)}
           </select>
         </label>
 
@@ -69,7 +73,7 @@ export function CancelBookingDialog({ booking, onClose, onDone }: { booking: Boo
           <textarea rows={3} maxLength={1000} value={note} onChange={e => { setNote(e.target.value); setError('') }} required={reason === 'other'} style={{ ...input, resize: 'vertical' }} />
         </label>
 
-        <fieldset style={{ border: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {!rejecting && <fieldset style={{ border: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
           <legend style={{ ...label, padding: 0, marginBottom: 8 }}>{a.refundLabel}</legend>
           {([['full', a.refundFull(fmt(refundable))], ['partial', a.refundPartial], ['none', a.refundNone]] as const).map(([mode, text]) => (
             <label key={mode} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: '#1d1d1f', cursor: 'pointer' }}>
@@ -83,14 +87,14 @@ export function CancelBookingDialog({ booking, onClose, onDone }: { booking: Boo
               <input inputMode="numeric" value={partial} onChange={e => { setPartial(e.target.value.replace(/[^\d]/g, '')); setError('') }} placeholder={`0 – ${refundable}`} style={{ ...input, maxWidth: 200 }} autoFocus />
             </label>
           )}
-        </fieldset>
+        </fieldset>}
 
         {error && <p role="alert" style={{ fontSize: 13, color: '#d70015', margin: 0 }}>{error}</p>}
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, flexWrap: 'wrap', marginTop: 4 }}>
           <button type="button" onClick={() => dialog.current?.close()} style={{ ...button, background: '#f5f5f7', color: '#1d1d1f' }}>{a.keep}</button>
           <button type="submit" disabled={busy} style={{ ...button, background: '#d70015', color: '#fff', opacity: busy ? 0.6 : 1 }}>
-            {busy ? a.cancelSubmitting : a.cancelSubmit}
+            {busy ? (rejecting ? a.rejecting : a.cancelSubmitting) : rejecting ? a.rejectSubmit : a.cancelSubmit}
           </button>
         </div>
       </form>

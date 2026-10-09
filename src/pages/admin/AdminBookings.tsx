@@ -7,7 +7,7 @@ import { refreshAwaitingCount } from '../../lib/adminNotifications'
 import { fmt } from '../../lib/rental'
 import { AdminGuard } from './AdminGuard'
 import { AdminTabs } from './AdminTabs'
-import { CancelBookingDialog } from './CancelBookingDialog'
+import { CloseBookingDialog } from './CloseBookingDialog'
 
 const FILTERS: (BookingStatus | 'ALL')[] = ['AWAITING_CONFIRMATION', 'CONFIRMED', 'PENDING_PAYMENT', 'COMPLETED', 'ALL']
 
@@ -24,7 +24,8 @@ function AdminBookingsContent() {
   const [filter, setFilter] = useState<BookingStatus | 'ALL'>('AWAITING_CONFIRMATION')
   const [bookings, setBookings] = useState<Booking[] | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
-  const [cancelling, setCancelling] = useState<Booking | null>(null)
+  // The booking being cancelled or rejected in the reason dialog.
+  const [closing, setClosing] = useState<{ booking: Booking; mode: 'cancel' | 'reject' } | null>(null)
 
   async function load() {
     setBookings(await adminBookings(filter === 'ALL' ? undefined : filter).catch(() => []))
@@ -35,8 +36,8 @@ function AdminBookingsContent() {
     load()
   }, [filter])
 
-  async function act(b: Booking, action: 'confirm' | 'reject' | 'complete') {
-    const question = action === 'confirm' ? t.adminBookings.confirmAsk(fmt(b.total)) : action === 'reject' ? t.adminBookings.rejectAsk : t.adminBookings.completeAsk
+  async function act(b: Booking, action: 'confirm' | 'complete') {
+    const question = action === 'confirm' ? t.adminBookings.confirmAsk(fmt(b.total)) : t.adminBookings.completeAsk
     if (!confirm(question)) return
     setBusyId(b.id)
     try {
@@ -91,7 +92,10 @@ function AdminBookingsContent() {
                 <div style={{ fontSize: 12, color: '#86868b' }}>{t.bookings.bookedOn(time(b.createdAt))}</div>
                 {b.cancelled && (
                   <div style={{ fontSize: 13, color: '#6e6e73' }}>
-                    {t.adminBookings.cancelledInfo(b.cancelled.by === 'ADMIN' ? t.adminBookings.byAdmin : t.adminBookings.byCustomer, b.cancelled.reason ? t.cancelReasons[b.cancelled.reason] : '')}
+                    {t.adminBookings.cancelledInfo(
+                      b.status === 'REJECTED' ? t.adminBookings.rejectedByAdmin : b.cancelled.by === 'ADMIN' ? t.adminBookings.byAdmin : t.adminBookings.byCustomer,
+                      b.cancelled.reason ? t.cancelReasons[b.cancelled.reason] : '',
+                    )}
                     {b.cancelled.note && <> · “{b.cancelled.note}”</>}
                   </div>
                 )}
@@ -103,13 +107,13 @@ function AdminBookingsContent() {
                 {b.status === 'AWAITING_CONFIRMATION' && (
                   <>
                     <ActionButton primary disabled={busyId === b.id} onClick={() => act(b, 'confirm')}>{t.adminBookings.confirm}</ActionButton>
-                    <ActionButton danger disabled={busyId === b.id} onClick={() => act(b, 'reject')}>{t.adminBookings.reject}</ActionButton>
+                    <ActionButton danger disabled={busyId === b.id} onClick={() => setClosing({ booking: b, mode: 'reject' })}>{t.adminBookings.reject}</ActionButton>
                   </>
                 )}
                 {b.status === 'CONFIRMED' && (
                   <>
                     <ActionButton disabled={busyId === b.id} onClick={() => act(b, 'complete')}>{t.adminBookings.complete}</ActionButton>
-                    <ActionButton danger disabled={busyId === b.id} onClick={() => setCancelling(b)}>{t.adminBookings.cancel}</ActionButton>
+                    <ActionButton danger disabled={busyId === b.id} onClick={() => setClosing({ booking: b, mode: 'cancel' })}>{t.adminBookings.cancel}</ActionButton>
                   </>
                 )}
               </div>
@@ -117,7 +121,7 @@ function AdminBookingsContent() {
           ))}
         </div>
       </main>
-      {cancelling && <CancelBookingDialog booking={cancelling} onClose={() => setCancelling(null)} onDone={() => { setCancelling(null); load() }} />}
+      {closing && <CloseBookingDialog booking={closing.booking} mode={closing.mode} onClose={() => setClosing(null)} onDone={() => { setClosing(null); load(); refreshAwaitingCount() }} />}
     </div>
   )
 }

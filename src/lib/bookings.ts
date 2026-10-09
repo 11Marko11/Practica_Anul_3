@@ -1,7 +1,9 @@
 import { api } from './api'
 
+// Why the admin cancelled (after confirming) or rejected (instead of confirming) a booking.
 export const CANCEL_REASONS = ['car-unavailable', 'customer-request', 'no-show', 'documents', 'other'] as const
-export type CancelReason = (typeof CANCEL_REASONS)[number]
+export const REJECT_REASONS = ['car-unavailable', 'cannot-deliver', 'documents', 'customer-request', 'other'] as const
+export type CancelReason = (typeof CANCEL_REASONS)[number] | (typeof REJECT_REASONS)[number]
 
 export type BookingStatus = 'PENDING_PAYMENT' | 'AWAITING_CONFIRMATION' | 'CONFIRMED' | 'COMPLETED' | 'EXPIRED' | 'REJECTED' | 'CANCELLED'
 
@@ -53,5 +55,7 @@ export const adminBookings = (status?: BookingStatus) =>
   api<{ bookings: Booking[] }>(`/admin/bookings${status ? `?status=${status}` : ''}`).then(r => r.bookings)
 export const adminCancelBooking = (id: string, input: { reason: CancelReason; note?: string; refund: number }) =>
   api<{ booking: Booking }>(`/admin/bookings/${id}/cancel`, { body: input }).then(r => r.booking)
-export const adminBookingAction = (id: string, action: 'confirm' | 'reject' | 'complete') =>
+export const adminRejectBooking = (id: string, input: { reason: CancelReason; note?: string }) =>
+  api<{ booking: Booking }>(`/admin/bookings/${id}/reject`, { body: input }).then(r => r.booking)
+export const adminBookingAction = (id: string, action: 'confirm' | 'complete') =>
   api<{ booking: Booking }>(`/admin/bookings/${id}/${action}`, { method: 'POST' }).then(r => r.booking)

@@ -9,7 +9,7 @@ import { adminBookingAction, type Booking } from '../../lib/bookings'
 import { fmt, formatDate } from '../../lib/rental'
 import { AdminGuard } from './AdminGuard'
 import { AdminTabs } from './AdminTabs'
-import { CancelBookingDialog } from './CancelBookingDialog'
+import { CloseBookingDialog } from './CloseBookingDialog'
 
 type Dashboard = {
   revenueThisMonth: number
@@ -37,7 +37,8 @@ function DashboardContent() {
   const [data, setData] = useState<Dashboard | null>(null)
   const [failed, setFailed] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
-  const [cancelling, setCancelling] = useState<Booking | null>(null)
+  // The booking being cancelled or rejected in the reason dialog.
+  const [closing, setClosing] = useState<{ booking: Booking; mode: 'cancel' | 'reject' } | null>(null)
   // Reload when a new paid booking arrives (the notification count changes).
   const awaitingCount = useAwaitingCount(true)
 
@@ -54,8 +55,8 @@ function DashboardContent() {
     load()
   }, [awaitingCount])
 
-  async function act(b: Booking, action: 'confirm' | 'reject') {
-    const question = action === 'confirm' ? t.adminBookings.confirmAsk(fmt(b.total)) : t.adminBookings.rejectAsk
+  async function act(b: Booking, action: 'confirm') {
+    const question = t.adminBookings.confirmAsk(fmt(b.total))
     if (!confirm(question)) return
     setBusyId(b.id)
     try {
@@ -111,7 +112,7 @@ function DashboardContent() {
                   </div>
                   <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
                     <SmallAction primary disabled={busyId === b.id} onClick={() => act(b, 'confirm')}>{t.adminBookings.confirm}</SmallAction>
-                    <SmallAction disabled={busyId === b.id} onClick={() => act(b, 'reject')}>{t.adminBookings.reject}</SmallAction>
+                    <SmallAction disabled={busyId === b.id} onClick={() => setClosing({ booking: b, mode: 'reject' })}>{t.adminBookings.reject}</SmallAction>
                   </div>
                 </Row>
               ))}
@@ -127,7 +128,7 @@ function DashboardContent() {
                     <RowText>{b.customer?.name} · <a href={`tel:${b.phone.replace(/[^+\d]/g, '')}`} style={linkStyle}>{b.phone}</a></RowText>
                     <RowText>{b.handover === 'DELIVERY' ? `${d.delivery}: ${b.deliveryAddress}` : d.pickup}</RowText>
                   </div>
-                  <SmallAction onClick={() => setCancelling(b)}>{t.adminBookings.cancel}</SmallAction>
+                  <SmallAction onClick={() => setClosing({ booking: b, mode: 'cancel' })}>{t.adminBookings.cancel}</SmallAction>
                 </Row>
               ))}
             </Panel>
@@ -157,7 +158,7 @@ function DashboardContent() {
           </div>
         </div>
       </main>
-      {cancelling && <CancelBookingDialog booking={cancelling} onClose={() => setCancelling(null)} onDone={() => { setCancelling(null); load() }} />}
+      {closing && <CloseBookingDialog booking={closing.booking} mode={closing.mode} onClose={() => setClosing(null)} onDone={() => { setClosing(null); load(); refreshAwaitingCount() }} />}
     </div>
   )
 }

@@ -122,7 +122,9 @@ export function BookingDetails() {
 
             {booking.cancelled && (
               <div style={{ marginTop: 16, padding: '14px 18px', borderRadius: 14, background: '#f5f5f7', fontSize: 14, lineHeight: 1.6, color: '#1d1d1f' }}>
-                <strong style={{ fontWeight: 600 }}>{booking.cancelled.by === 'ADMIN' ? t.bookings.cancelledByUs : t.bookings.cancelledByYou}</strong>
+                <strong style={{ fontWeight: 600 }}>
+                  {booking.status === 'REJECTED' ? t.bookings.rejectedByUs : booking.cancelled.by === 'ADMIN' ? t.bookings.cancelledByUs : t.bookings.cancelledByYou}
+                </strong>
                 {booking.cancelled.at && <span style={{ color: '#6e6e73' }}> · {time(booking.cancelled.at)}</span>}
                 {booking.cancelled.reason && <div>{t.bookings.reason}: {t.cancelReasons[booking.cancelled.reason]}</div>}
                 {booking.cancelled.note && <div style={{ color: '#424245', whiteSpace: 'pre-line' }}>{booking.cancelled.note}</div>}
