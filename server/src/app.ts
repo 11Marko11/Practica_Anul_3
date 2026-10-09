@@ -4,7 +4,9 @@ import Fastify from 'fastify'
 import { SESSION_COOKIE, userForToken, type PublicUser } from './auth/session.js'
 import { env } from './env.js'
 import { registerErrorHandler } from './http/errors.js'
+import { accountRoutes } from './routes/account.js'
 import { adminBookingRoutes } from './routes/adminBookings.js'
+import { adminPeopleRoutes } from './routes/adminPeople.js'
 import { authRoutes } from './routes/auth.js'
 import { bookingRoutes } from './routes/bookings.js'
 import { carRoutes } from './routes/cars.js'
@@ -57,6 +59,8 @@ export function buildApp() {
       await api.register(contentRoutes)
       await api.register(dashboardRoutes)
       await api.register(transactionRoutes)
+      await api.register(accountRoutes)
+      await api.register(adminPeopleRoutes)
       await api.register(stripeWebhookRoutes)
     },
     { prefix: '/api' },

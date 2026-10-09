@@ -25,7 +25,7 @@ export async function dashboardRoutes(app: FastifyInstance) {
       ledger().then(entries => netBetween(entries, monthStart)),
       prisma.car.count({ where: { status: 'ACTIVE' } }),
       prisma.car.count({ where: { status: 'HIDDEN' } }),
-      prisma.user.count({ where: { role: 'CUSTOMER' } }),
+      prisma.user.count({ where: { role: 'CUSTOMER', deletedAt: null } }),
       prisma.review.aggregate({ _avg: { rating: true }, _count: { _all: true } }),
     ])
 
