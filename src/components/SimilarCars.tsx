@@ -7,7 +7,8 @@ import { useI18n } from '../i18n/I18nContext'
 
 // "You may also like" row on the car details page: a sideways-scrolling list of
 // recommended cars, ending with a card that links to the full listing.
-export function SimilarCars({ cars, query }: { cars: Car[]; query: string }) {
+// `title` and `subtitle` replace the default "You may also like" heading (used on My bookings).
+export function SimilarCars({ cars, query, title, subtitle }: { cars: Car[]; query: string; title?: string; subtitle?: string }) {
   const { t } = useI18n()
   const total = useCars().length
   const row = useRef<HTMLDivElement>(null)
@@ -34,9 +35,12 @@ export function SimilarCars({ cars, query }: { cars: Car[]; query: string }) {
   return (
     <section style={{ marginTop: 72 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, margin: '0 0 24px' }}>
-        <h2 style={{ fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#1d1d1f', margin: 0 }}>
-          {t.car.similar}
-        </h2>
+        <div>
+          <h2 style={{ fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#1d1d1f', margin: 0 }}>
+            {title ?? t.car.similar}
+          </h2>
+          {subtitle && <p style={{ fontSize: 14, color: '#6e6e73', margin: '6px 0 0' }}>{subtitle}</p>}
+        </div>
         <div className="similar-arrows" style={{ gap: 8 }}>
           <ScrollButton label={t.car.scrollPrev} disabled={edges.start} onClick={() => scroll(-1)} path="M10 3L5 8l5 5" />
           <ScrollButton label={t.car.scrollNext} disabled={edges.end} onClick={() => scroll(1)} path="M6 3l5 5-5 5" />

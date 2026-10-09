@@ -240,6 +240,9 @@ export const en = {
     rejectedByUs: 'Rejected by Rent Motors',
     cancelledByYou: 'You cancelled this booking',
     reason: 'Reason',
+    recommended: 'Recommended for you',
+    recommendedText: 'Cars free right now, picked from what you have booked before.',
+    recommendedNew: 'Cars free right now that you can book today.',
     reviewCar: 'Review this car',
   },
   adminBookings: {

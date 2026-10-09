@@ -240,6 +240,9 @@ export const ro: Dict = {
     rejectedByUs: 'Respinsă de Rent Motors',
     cancelledByYou: 'Ai anulat această rezervare',
     reason: 'Motiv',
+    recommended: 'Recomandate pentru tine',
+    recommendedText: 'Mașini libere chiar acum, alese după rezervările tale de până acum.',
+    recommendedNew: 'Mașini libere chiar acum, pe care le poți rezerva de azi.',
     reviewCar: 'Scrie o recenzie',
   },
   adminBookings: {

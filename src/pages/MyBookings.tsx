@@ -4,6 +4,10 @@ import { useAuth } from '../auth/AuthContext'
 import { BookingCard } from '../components/BookingCard'
 import { useI18n } from '../i18n/I18nContext'
 import { myBookings, type Booking } from '../lib/bookings'
+import { SimilarCars } from '../components/SimilarCars'
+import { useCars } from '../lib/carStore'
+import { recommendCars, useUnavailableCars } from '../lib/carFilters'
+import { useRentalDates } from '../lib/useRentalDates'
 
 export function MyBookings() {
   const { user, loading } = useAuth()
@@ -11,10 +15,19 @@ export function MyBookings() {
   const location = useLocation()
   const [bookings, setBookings] = useState<Booking[] | null>(null)
   const [failed, setFailed] = useState(false)
+  const cars = useCars()
+  // "Free right now" uses the same default period as the car list (today, 3 days), so the
+  // links open the car with those dates already filled in.
+  const { pickup, dropoff, query } = useRentalDates()
+  const unavailable = useUnavailableCars(pickup, dropoff)
 
   useEffect(() => {
     if (user) myBookings().then(setBookings).catch(() => setFailed(true))
   }, [user])
+
+  // Recommendations wait for both the bookings and today's availability, so a booked car never flashes in.
+  const history = (bookings ?? []).map(b => cars.find(c => c.slug === b.car.slug)).filter(c => !!c)
+  const recommended = bookings && unavailable ? recommendCars(cars.filter(c => !unavailable.includes(c.id)), history) : []
 
   if (loading) return <div style={{ minHeight: '80vh' }} />
   if (!user) return <Navigate to="/login" state={{ from: location.pathname }} replace />
@@ -45,6 +58,14 @@ export function MyBookings() {
             </Link>
           </BookingCard>
         ))}
+        {recommended.length > 0 && (
+          <SimilarCars
+            cars={recommended}
+            query={query}
+            title={t.bookings.recommended}
+            subtitle={history.length ? t.bookings.recommendedText : t.bookings.recommendedNew}
+          />
+        )}
       </main>
     </div>
   )

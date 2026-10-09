@@ -14,7 +14,7 @@ export function Marketplace() {
   const status = useCatalogStatus()
   const { pickup, dropoff, days, query, changePickup, changeDropoff } = useRentalDates()
   const { filters, update, active, reset } = useCarFilters()
-  const unavailable = useUnavailableCars(pickup, dropoff)
+  const unavailable = useUnavailableCars(pickup, dropoff) ?? []
   const [showFilters, setShowFilters] = useState(false)
 
   // Cars already booked for the chosen dates are not offered.

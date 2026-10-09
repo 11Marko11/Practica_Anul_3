@@ -240,6 +240,9 @@ export const ru: Dict = {
     rejectedByUs: 'Отклонено Rent Motors',
     cancelledByYou: 'Вы отменили это бронирование',
     reason: 'Причина',
+    recommended: 'Рекомендуем вам',
+    recommendedText: 'Автомобили, свободные прямо сейчас, подобранные по вашим прошлым бронированиям.',
+    recommendedNew: 'Автомобили, свободные прямо сейчас, которые можно забронировать уже сегодня.',
     reviewCar: 'Оставить отзыв',
   },
   adminBookings: {

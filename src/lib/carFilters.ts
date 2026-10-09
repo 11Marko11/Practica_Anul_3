@@ -88,9 +88,22 @@ export function applyFilters(cars: Car[], f: Filters) {
     })
 }
 
-// Ids of cars already booked for [pickup, dropoff); empty until the server answers.
+// Cars to suggest on My bookings: free ones, most like what the customer booked before
+// (same brand, same fuel, similar price). Without a history, the newest cars come first.
+export function recommendCars(free: Car[], history: Car[], limit = 8) {
+  const brands = new Set(history.map(c => c.brand))
+  const fuels = new Set(history.map(c => c.fuel))
+  const avgPrice = history.length ? history.reduce((s, c) => s + c.pricePerDay, 0) / history.length : 0
+  const score = (c: Car) =>
+    (brands.has(c.brand) ? 3 : 0) + (fuels.has(c.fuel) ? 2 : 0) + (avgPrice ? Math.max(0, 1 - Math.abs(c.pricePerDay - avgPrice) / avgPrice) : 0)
+  return [...free]
+    .sort((a, b) => (history.length ? score(b) - score(a) : 0) || b.year - a.year || a.pricePerDay - b.pricePerDay)
+    .slice(0, limit)
+}
+
+// Ids of cars already booked for [pickup, dropoff); null until the server answers.
 export function useUnavailableCars(pickup: string, dropoff: string) {
-  const [ids, setIds] = useState<number[]>([])
+  const [ids, setIds] = useState<number[] | null>(null)
   useEffect(() => {
     let cancelled = false
     api<{ carIds: number[] }>(`/cars/unavailable?from=${pickup}&to=${dropoff}`)
