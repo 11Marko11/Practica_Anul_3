@@ -51,6 +51,19 @@ export async function bookingRoutes(app: FastifyInstance) {
     return { taken: taken.map(b => ({ from: isoDate(b.pickupDate), to: isoDate(b.returnDate) })) }
   })
 
+  // Cars that can't be rented for [from, to): already booked, or held by an unpaid booking.
+  // The car list hides them so customers only see cars they can actually book.
+  app.get('/cars/unavailable', async request => {
+    const { from, to } = z.object({ from: date, to: date }).parse(request.query)
+    if (to <= from) throw new HttpError(422, 'invalid-dates')
+    const taken = await prisma.booking.findMany({
+      where: { pickupDate: { lt: fromIsoDate(to) }, returnDate: { gt: fromIsoDate(from) }, ...blockingBookings() },
+      select: { carId: true },
+      distinct: ['carId'],
+    })
+    return { carIds: taken.map(b => b.carId) }
+  })
+
   // Creates the booking and a Stripe Checkout page where the card is authorised, not charged.
   app.post('/bookings', { preHandler: requireUser, config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (request, reply) => {
     const body = createBody.parse(request.body)
