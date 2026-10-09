@@ -14,6 +14,7 @@ import { healthRoutes } from './routes/health.js'
 import { reviewRoutes } from './routes/reviews.js'
 import { statsRoutes } from './routes/stats.js'
 import { stripeWebhookRoutes } from './routes/stripeWebhook.js'
+import { transactionRoutes } from './routes/transactions.js'
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -55,6 +56,7 @@ export function buildApp() {
       await api.register(adminBookingRoutes)
       await api.register(contentRoutes)
       await api.register(dashboardRoutes)
+      await api.register(transactionRoutes)
       await api.register(stripeWebhookRoutes)
     },
     { prefix: '/api' },

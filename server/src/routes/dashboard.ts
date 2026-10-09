@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { requireAdmin } from '../auth/guards.js'
 import { addDays, fromIsoDate, moldovaTime, todayInMoldova } from '../bookings/dates.js'
 import { bookingInclude, toBookingDto } from '../bookings/dto.js'
+import { ledger, netBetween } from '../bookings/ledger.js'
 import { prisma } from '../db.js'
 
 // Everything the admin dashboard shows, in one request.
@@ -20,8 +21,8 @@ export async function dashboardRoutes(app: FastifyInstance) {
         orderBy: { pickupDate: 'asc' },
       }),
       prisma.booking.findMany({ where: { status: { not: 'PENDING_PAYMENT' } }, include: bookingInclude, orderBy: { createdAt: 'desc' }, take: 6 }),
-      // Money kept from bookings confirmed this month (refunds already subtracted).
-      prisma.booking.findMany({ where: { confirmedAt: { gte: monthStart } }, select: { total: true, refundedAmount: true } }),
+      // Charged this month minus refunded this month, the same numbers as the Transactions page.
+      ledger().then(entries => netBetween(entries, monthStart)),
       prisma.car.count({ where: { status: 'ACTIVE' } }),
       prisma.car.count({ where: { status: 'HIDDEN' } }),
       prisma.user.count({ where: { role: 'CUSTOMER' } }),
@@ -29,8 +30,8 @@ export async function dashboardRoutes(app: FastifyInstance) {
     ])
 
     return {
-      revenueThisMonth: charged.reduce((sum, b) => sum + b.total - b.refundedAmount, 0),
-      bookingsThisMonth: charged.length,
+      revenueThisMonth: charged.net,
+      bookingsThisMonth: charged.charges,
       cars: { active: activeCars, hidden: hiddenCars },
       customers,
       reviews: { count: reviews._count._all, average: reviews._avg.rating === null ? null : Math.round(reviews._avg.rating * 10) / 10 },
