@@ -187,11 +187,12 @@ function AccountButton({ btnStyle }: { btnStyle: React.CSSProperties }) {
             <div style={{ fontSize: 14, fontWeight: 600, color: '#f5f5f7' }}>{user.name}</div>
             <div style={{ fontSize: 13, color: '#a1a1a6', marginTop: 2 }}>{user.email}</div>
           </div>
-          <MenuLink to="/bookings">{t.bookings.menu}</MenuLink>
-          {isAdmin(user) && (
-            <MenuLink to={awaiting > 0 ? '/admin/bookings' : '/admin'}>
-              {t.admin.link} <CountBadge n={awaiting} />
+          {isAdmin(user) ? (
+            <MenuLink to="/admin">
+              {t.dashboard.menu} <CountBadge n={awaiting} />
             </MenuLink>
+          ) : (
+            <MenuLink to="/bookings">{t.bookings.menu}</MenuLink>
           )}
           <button
             role="menuitem"
@@ -239,11 +240,12 @@ function MobileMenu() {
           {t.nav[key]}
         </NavLink>
       ))}
-      {user && <NavLink to="/bookings" end style={item}>{t.bookings.menu}</NavLink>}
-      {isAdmin(user) && (
-        <NavLink to={awaiting > 0 ? '/admin/bookings' : '/admin'} style={item}>
-          {t.admin.link} <CountBadge n={awaiting} />
+      {isAdmin(user) ? (
+        <NavLink to="/admin" style={item}>
+          {t.dashboard.menu} <CountBadge n={awaiting} />
         </NavLink>
+      ) : (
+        user && <NavLink to="/bookings" end style={item}>{t.bookings.menu}</NavLink>
       )}
       {loading ? null : user ? (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 20 }}>

@@ -81,6 +81,11 @@ body {
 .admin-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
 .admin-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 
+/* Admin dashboard: number tiles, then two columns (bookings | quick actions and latest). */
+.dashboard-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.tile-value { font-size: 30px; }
+.dashboard-columns { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 40px; margin-top: 36px; align-items: start; }
+
 .review-summary { display: grid; grid-template-columns: 120px 1fr; gap: 24px; align-items: center; }
 
 /* Layouts that change on phones. Inline styles can't use media queries, so they live here. */
@@ -132,6 +137,10 @@ body {
   .booking-card { position: static; }
   .spec-grid { grid-template-columns: repeat(2, 1fr); }
   .feature-list { grid-template-columns: 1fr; }
+  .dashboard-columns { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .dashboard-tiles { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .dashboard-tiles .tile-wide { grid-column: span 2; order: -1; }
+  .tile-value { font-size: 26px; }
   .similar-row { gap: 14px; }
   .similar-card { flex-basis: 72%; }
   .similar-arrows { display: none; }

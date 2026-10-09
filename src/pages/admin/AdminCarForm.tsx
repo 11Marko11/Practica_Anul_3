@@ -84,7 +84,7 @@ function AdminCarFormContent({ slug }: { slug?: string }) {
     return (
       <div style={{ paddingTop: 52, textAlign: 'center', padding: '140px 24px' }}>
         <h1 style={{ fontSize: 28, fontWeight: 600, color: '#1d1d1f', margin: '0 0 20px' }}>{t.car.notFound}</h1>
-        <Link to="/admin" style={{ color: '#0071e3', textDecoration: 'none' }}>{t.admin.back}</Link>
+        <Link to="/admin/cars" style={{ color: '#0071e3', textDecoration: 'none' }}>{t.admin.back}</Link>
       </div>
     )
   }
@@ -134,7 +134,7 @@ function AdminCarFormContent({ slug }: { slug?: string }) {
     try {
       // The server creates the slug (the car's web address); it stays the same when the car is edited.
       await saveCar(input, existing?.id)
-      navigate('/admin')
+      navigate('/admin/cars')
     } catch (err) {
       setError(err instanceof ApiError && err.code === 'validation' ? t.admin.errors.required : t.admin.saveError)
       setBusy(false)
@@ -146,7 +146,7 @@ function AdminCarFormContent({ slug }: { slug?: string }) {
   return (
     <div style={{ paddingTop: 52 }}>
       <main style={{ maxWidth: 820, margin: '0 auto', padding: '32px 24px 96px' }}>
-        <Link to="/admin" style={{ fontSize: 14, color: '#0071e3', textDecoration: 'none' }}>{t.admin.back}</Link>
+        <Link to="/admin/cars" style={{ fontSize: 14, color: '#0071e3', textDecoration: 'none' }}>{t.admin.back}</Link>
         <h1 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#1d1d1f', margin: '16px 0 8px' }}>
           {existing ? t.admin.editTitle : t.admin.newTitle}
         </h1>
@@ -232,7 +232,7 @@ function AdminCarFormContent({ slug }: { slug?: string }) {
             <button type="submit" disabled={busy} style={{ opacity: busy ? 0.6 : 1, padding: '14px 32px', fontSize: 15, fontWeight: 500, background: '#1d1d1f', color: '#fff', border: 'none', borderRadius: 980, cursor: 'pointer' }}>
               {busy ? t.admin.saving : t.admin.save}
             </button>
-            <Link to="/admin" style={{ fontSize: 15, color: '#6e6e73', textDecoration: 'none' }}>{t.admin.cancel}</Link>
+            <Link to="/admin/cars" style={{ fontSize: 15, color: '#6e6e73', textDecoration: 'none' }}>{t.admin.cancel}</Link>
           </div>
         </form>
       </main>

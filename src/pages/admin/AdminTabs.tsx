@@ -5,7 +5,7 @@ import { CountBadge } from '../../components/CountBadge'
 import { useI18n } from '../../i18n/I18nContext'
 import { useAwaitingCount } from '../../lib/adminNotifications'
 
-// "Cars | Bookings | Pages" switch at the top of the admin pages; Bookings shows how many wait for confirmation.
+// "Dashboard | Cars | Bookings | Pages" switch at the top of the admin pages; Bookings shows how many wait for confirmation.
 export function AdminTabs() {
   const { t } = useI18n()
   const { user } = useAuth()
@@ -15,8 +15,9 @@ export function AdminTabs() {
     textDecoration: 'none', background: isActive ? '#f5f5f7' : 'transparent', color: isActive ? '#1c1c1e' : '#a1a1a6',
   })
   return (
-    <nav style={{ display: 'flex', gap: 4, marginBottom: 20 }}>
-      <NavLink to="/admin" end style={tab}>{t.adminBookings.tabCars}</NavLink>
+    <nav style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 20 }}>
+      <NavLink to="/admin" end style={tab}>{t.dashboard.tab}</NavLink>
+      <NavLink to="/admin/cars" style={tab}>{t.adminBookings.tabCars}</NavLink>
       <NavLink to="/admin/bookings" style={tab}>
         {t.adminBookings.tabBookings} <CountBadge n={awaiting} />
       </NavLink>
