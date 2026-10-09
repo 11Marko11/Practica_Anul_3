@@ -62,7 +62,6 @@ body {
 .detail-image { grid-area: image; }
 .detail-info { grid-area: info; min-width: 0; }
 .booking-card { grid-area: booking; min-width: 0; }
-.booking-card { position: sticky; top: 72px; }
 .spec-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .feature-list { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 24px; margin: 0; padding: 0; list-style: none; }
 /* Recommended cars: a sideways-scrolling row that snaps to each card. */
@@ -134,7 +133,6 @@ body {
 
   .detail-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'image' 'booking' 'info'; gap: 32px; }
   .date-pair--inline { width: 100%; grid-template-columns: 1fr 1fr; }
-  .booking-card { position: static; }
   .spec-grid { grid-template-columns: repeat(2, 1fr); }
   .feature-list { grid-template-columns: 1fr; }
   .dashboard-columns { grid-template-columns: minmax(0, 1fr); gap: 32px; }
