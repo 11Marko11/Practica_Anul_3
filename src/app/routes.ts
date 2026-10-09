@@ -13,6 +13,7 @@ import { AdminCarForm } from '../pages/admin/AdminCarForm'
 import { AdminBookings } from '../pages/admin/AdminBookings'
 import { AdminPages } from '../pages/admin/AdminPages'
 import { AdminDashboard } from '../pages/admin/AdminDashboard'
+import { AdminTransactions } from '../pages/admin/AdminTransactions'
 import { MyBookings } from '../pages/MyBookings'
 import { BookingDetails } from '../pages/BookingDetails'
 
@@ -35,6 +36,7 @@ export const router = createBrowserRouter([
       { path: 'admin/cars', Component: AdminCars },
       { path: 'admin/bookings', Component: AdminBookings },
       { path: 'admin/pages', Component: AdminPages },
+      { path: 'admin/transactions', Component: AdminTransactions },
       { path: 'admin/cars/new', Component: AdminCarForm },
       { path: 'admin/cars/:slug', Component: AdminCarForm },
     ],

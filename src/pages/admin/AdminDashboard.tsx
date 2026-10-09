@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useAuth } from '../../auth/AuthContext'
 import { StatusBadge } from '../../components/BookingCard'
+import { Money } from '../../components/Money'
 import { useI18n } from '../../i18n/I18nContext'
 import { api, ApiError } from '../../lib/api'
 import { refreshAwaitingCount, useAwaitingCount } from '../../lib/adminNotifications'
@@ -88,7 +89,7 @@ function DashboardContent() {
 
         <div className="dashboard-tiles">
           <Tile to="/admin/bookings" label={d.tiles.awaiting} value={data ? String(data.awaiting.length) : '—'} highlight={!!data?.awaiting.length} />
-          <Tile wide label={d.tiles.revenue} value={data ? fmt(data.revenueThisMonth) : '—'} sub={data ? d.tiles.revenueSub(data.bookingsThisMonth) : undefined} />
+          <Tile wide to="/admin/transactions" label={d.tiles.revenue} value={data ? <Money value={data.revenueThisMonth} /> : '—'} sub={data ? `${d.tiles.revenueSub(data.bookingsThisMonth)} · ${t.transactions.seeAll}` : undefined} />
           <Tile to="/admin/cars" label={d.tiles.cars} value={data ? String(data.cars.active) : '—'} sub={data ? d.tiles.carsSub(data.cars.hidden) : undefined} />
           <Tile label={d.tiles.customers} value={data ? String(data.customers) : '—'} />
           <Tile
@@ -163,7 +164,7 @@ function DashboardContent() {
   )
 }
 
-function Tile({ label, value, sub, to, highlight, wide }: { label: string; value: string; sub?: string; to?: string; highlight?: boolean; wide?: boolean }) {
+function Tile({ label, value, sub, to, highlight, wide }: { label: string; value: ReactNode; sub?: string; to?: string; highlight?: boolean; wide?: boolean }) {
   const body = (
     <>
       <div style={{ fontSize: 13, color: highlight ? '#0058b8' : '#6e6e73' }}>{label}</div>
@@ -171,7 +172,8 @@ function Tile({ label, value, sub, to, highlight, wide }: { label: string; value
       {sub && <div style={{ fontSize: 12, color: '#86868b' }}>{sub}</div>}
     </>
   )
-  const style: React.CSSProperties = { display: 'block', padding: '18px 20px', borderRadius: 18, background: highlight ? '#e6f0ff' : '#f5f5f7', textDecoration: 'none', minWidth: 0 }
+  // containerType lets the amount shrink with the tile's width (see .tile-value in index.css).
+  const style: React.CSSProperties = { display: 'block', padding: '18px 20px', borderRadius: 18, background: highlight ? '#e6f0ff' : '#f5f5f7', textDecoration: 'none', minWidth: 0, containerType: 'inline-size' }
   const className = wide ? 'tile-wide' : undefined
   return to ? <Link to={to} className={className} style={style}>{body}</Link> : <div className={className} style={style}>{body}</div>
 }
