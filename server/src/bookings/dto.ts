@@ -11,8 +11,9 @@ export type BookingRow = Prisma.BookingGetPayload<{ include: typeof bookingInclu
 const HOLD_DAYS = 7 // Stripe releases an uncaptured card hold after 7 days
 const DAY_MS = 86_400_000
 
-// Admin cancellation reasons; the website shows a translated label for each code.
+// Why the admin cancelled or rejected a booking; the website shows a translated label for each code.
 export const CANCEL_REASONS = ['car-unavailable', 'customer-request', 'no-show', 'documents', 'other'] as const
+export const REJECT_REASONS = ['car-unavailable', 'cannot-deliver', 'documents', 'customer-request', 'other'] as const
 
 // Customers can cancel only until the admin confirms (nothing has been charged yet).
 export const customerCanCancel = (b: { status: string }) => b.status === 'PENDING_PAYMENT' || b.status === 'AWAITING_CONFIRMATION'
@@ -43,7 +44,8 @@ export function toBookingDto(b: BookingRow, options: { forAdmin?: boolean } = {}
     holdExpiresAt: b.authorizedAt ? new Date(b.authorizedAt.getTime() + HOLD_DAYS * DAY_MS).toISOString() : null,
     canCancel: customerCanCancel(b),
     canComplete: customerCanComplete(b),
-    cancelled: b.status === 'CANCELLED'
+    // Who cancelled or rejected the booking, when and why.
+    cancelled: b.status === 'CANCELLED' || b.status === 'REJECTED'
       ? { by: b.cancelledBy, reason: b.cancelReason, note: b.cancelNote, at: b.cancelledAt?.toISOString() ?? null }
       : null,
     ...(options.forAdmin ? { customer: { name: b.user.name, email: b.user.email } } : {}),

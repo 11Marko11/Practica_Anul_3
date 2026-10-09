@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { requireAdmin } from '../auth/guards.js'
-import { bookingInclude, CANCEL_REASONS, toBookingDto } from '../bookings/dto.js'
+import { bookingInclude, CANCEL_REASONS, REJECT_REASONS, toBookingDto } from '../bookings/dto.js'
 import { completeBooking } from '../bookings/payment.js'
 import { prisma } from '../db.js'
 import { HttpError } from '../http/errors.js'
@@ -62,14 +62,21 @@ export async function adminBookingRoutes(app: FastifyInstance) {
     return reply(id)
   })
 
-  // Reject: the hold is released and the customer pays nothing.
+  // Reject: the hold is released and the customer pays nothing. The admin says why.
   app.post('/admin/bookings/:id/reject', async request => {
     const { id } = idParam.parse(request.params)
+    const body = z
+      .object({ reason: z.enum(REJECT_REASONS), note: z.string().trim().max(1000).optional() })
+      .refine(b => b.reason !== 'other' || !!b.note, { path: ['note'], message: 'Explain the reason' })
+      .parse(request.body)
     const booking = await findBooking(id)
     if (booking.status !== 'AWAITING_CONFIRMATION' || !booking.stripePaymentIntentId) throw new HttpError(409, 'not-awaiting-confirmation')
     const intent = await stripe().paymentIntents.retrieve(booking.stripePaymentIntentId)
     if (intent.status === 'requires_capture') await stripe().paymentIntents.cancel(intent.id)
-    await prisma.booking.update({ where: { id }, data: { status: 'REJECTED' } })
+    await prisma.booking.update({
+      where: { id },
+      data: { status: 'REJECTED', cancelledBy: 'ADMIN', cancelledAt: new Date(), cancelReason: body.reason, cancelNote: body.note || null },
+    })
     return reply(id)
   })
 
