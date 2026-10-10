@@ -65,7 +65,7 @@ model User {
   // (replaced by a placeholder) and kept in deletedEmail for the admin's history.
   deletedAt    DateTime?
   deletedEmail String?
-  phone        String?
+  phone        String? // normalised "+37369123456"; unique among active accounts (partial index in the migrations)
   birthDate    DateTime? @db.Date
 
   // Identity check by the admin, from the documents the customer uploads.

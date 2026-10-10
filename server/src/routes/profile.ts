@@ -2,7 +2,9 @@ import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { requireUser } from '../auth/guards.js'
 import { hashPassword, verifyPassword } from '../auth/password.js'
+import { normalizePhone } from '../auth/phone.js'
 import { prisma } from '../db.js'
+import { phoneInUse, uniqueViolation } from './auth.js'
 import { HttpError } from '../http/errors.js'
 
 export const MAX_DOCUMENT_BYTES = 8 * 1024 * 1024
@@ -54,15 +56,22 @@ export async function profileRoutes(app: FastifyInstance) {
     const body = z
       .object({
         name: z.string().trim().min(2).max(100),
-        phone: z.string().trim().regex(/^\+?[0-9 ()-]{6,20}$/).or(z.literal('')),
+        phone: z.string().trim().max(40),
         birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).or(z.literal('')),
       })
       .parse(request.body)
     if (body.birthDate && (body.birthDate > new Date().toISOString().slice(0, 10) || body.birthDate < '1900-01-01')) throw new HttpError(422, 'invalid-birth-date')
-    await prisma.user.update({
-      where: { id: request.user!.id },
-      data: { name: body.name, phone: body.phone || null, birthDate: body.birthDate ? new Date(`${body.birthDate}T00:00:00Z`) : null },
-    })
+    const phone = body.phone ? normalizePhone(body.phone) : null
+    if (body.phone && !phone) throw new HttpError(422, 'invalid-phone')
+    if (phone && (await phoneInUse(phone, request.user!.id))) throw new HttpError(409, 'phone-taken')
+    await prisma.user
+      .update({
+        where: { id: request.user!.id },
+        data: { name: body.name, phone, birthDate: body.birthDate ? new Date(`${body.birthDate}T00:00:00Z`) : null },
+      })
+      .catch(err => {
+        throw uniqueViolation(err) ?? err
+      })
     return profileOf(request.user!.id)
   })
 
