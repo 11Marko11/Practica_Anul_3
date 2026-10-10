@@ -21,6 +21,7 @@ export type Car = {
   features: string[]
   translations?: Partial<Record<'ro' | 'ru', { description: string }>>
   status?: 'ACTIVE' | 'HIDDEN' // hidden cars are only sent to admins
+  createdAt?: string // when the car was added
 }
 
 // Cities a car can be collected in (offered in the admin form).

@@ -549,6 +549,16 @@ export const ro: Dict = {
     attention: (n: number) => n === 1 ? '1 cont așteaptă verificarea' : `${countOf('ro', n, { few: 'conturi', other: 'de conturi' })} așteaptă verificarea`,
     error: 'Nu s-a putut salva. Încearcă din nou.',
   },
+  adminCarsList: {
+    search: 'Caută după marcă, model sau oraș',
+    allBrands: 'Toate mărcile',
+    sortBy: 'Sortează',
+    sort: { recent: 'Adăugate recent', oldest: 'Adăugate primele', name: 'Nume A–Z', 'price-asc': 'Preț crescător', 'price-desc': 'Preț descrescător', year: 'An: cele mai noi', power: 'Cele mai puternice' },
+    status: { all: 'Toate', ACTIVE: 'Afișate pe site', HIDDEN: 'Ascunse' },
+    reset: 'Resetează filtrele',
+    noMatch: 'Nicio mașină nu corespunde filtrelor.',
+    added: (date: string) => `adăugată pe ${date}`,
+  },
   footer: {
     rights: '© 2026 Rent Motors, Inc. Toate drepturile rezervate.',
     privacy: 'Confidențialitate',

@@ -85,6 +85,9 @@ body {
 /* Shrinks with its tile (the tile is a size container), so large amounts never overflow. */
 .tile-value { font-size: min(30px, 14cqi); }
 
+/* Admin car list: search, brand and sort on one line, wrapping on phones. */
+.admin-car-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
 /* Identity documents: thumbnails in a responsive grid (profile and admin). */
 .document-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
 

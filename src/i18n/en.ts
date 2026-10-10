@@ -549,6 +549,16 @@ export const en = {
     attention: (n: number) => `${countOf('en', n, { one: 'account is', other: 'accounts are' })} waiting for verification`,
     error: "Couldn't save. Please try again.",
   },
+  adminCarsList: {
+    search: 'Search by brand, model or city',
+    allBrands: 'All brands',
+    sortBy: 'Sort by',
+    sort: { recent: 'Recently added', oldest: 'Added first', name: 'Name A–Z', 'price-asc': 'Price: low to high', 'price-desc': 'Price: high to low', year: 'Year: newest first', power: 'Most powerful' },
+    status: { all: 'All', ACTIVE: 'Shown on the site', HIDDEN: 'Hidden' },
+    reset: 'Reset filters',
+    noMatch: 'No cars match these filters.',
+    added: (date: string) => `added ${date}`,
+  },
   footer: {
     rights: '© 2026 Rent Motors, Inc. All rights reserved.',
     privacy: 'Privacy',

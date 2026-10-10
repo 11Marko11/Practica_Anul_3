@@ -32,6 +32,7 @@ export function toCarDto(car: CarRow) {
       ...(car.descriptionRu ? { ru: { description: car.descriptionRu } } : {}),
     },
     status: car.status,
+    createdAt: car.createdAt.toISOString(), // for the admin list's "recently added" order
   }
 }
 

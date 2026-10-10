@@ -549,6 +549,16 @@ export const ru: Dict = {
     attention: (n: number) => `Ожидают проверки: ${n}`,
     error: 'Не удалось сохранить. Попробуйте ещё раз.',
   },
+  adminCarsList: {
+    search: 'Поиск по марке, модели или городу',
+    allBrands: 'Все марки',
+    sortBy: 'Сортировка',
+    sort: { recent: 'Недавно добавленные', oldest: 'Добавленные первыми', name: 'Название А–Я', 'price-asc': 'Цена по возрастанию', 'price-desc': 'Цена по убыванию', year: 'Год: сначала новые', power: 'Самые мощные' },
+    status: { all: 'Все', ACTIVE: 'Показаны на сайте', HIDDEN: 'Скрытые' },
+    reset: 'Сбросить фильтры',
+    noMatch: 'Нет автомобилей по этим фильтрам.',
+    added: (date: string) => `добавлен ${date}`,
+  },
   footer: {
     rights: '© 2026 Rent Motors, Inc. Все права защищены.',
     privacy: 'Конфиденциальность',
