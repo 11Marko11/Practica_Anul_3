@@ -10,7 +10,7 @@ type AuthContextValue = {
   user: User | null
   loading: boolean // true until the first /auth/me answer, so pages don't flash the signed-out state
   signIn: (email: string, password: string) => Promise<void>
-  signUp: (name: string, email: string, password: string) => Promise<void>
+  signUp: (name: string, email: string, phone: string, password: string) => Promise<void>
   signOut: () => Promise<void>
   refreshUser: () => Promise<void> // after the profile or verification status changes
 }
@@ -44,8 +44,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(res.user)
   }
 
-  async function signUp(name: string, email: string, password: string) {
-    const res = await api<{ user: User }>('/auth/register', { body: { name, email, password } })
+  async function signUp(name: string, email: string, phone: string, password: string) {
+    const res = await api<{ user: User }>('/auth/register', { body: { name, email, phone, password } })
     setUser(res.user)
   }
 

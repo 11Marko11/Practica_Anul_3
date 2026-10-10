@@ -3,6 +3,7 @@ import type { VerificationStatus } from '../../auth/AuthContext'
 import { VerificationBadge } from '../Profile'
 import { refreshAwaitingCount } from '../../lib/adminNotifications'
 import { documentUrl, type IdentityDocument } from '../../lib/profile'
+import { formatPhone } from '../../lib/phone'
 import { Link, useParams } from 'react-router'
 import { BookingCard } from '../../components/BookingCard'
 import { Money } from '../../components/Money'
@@ -261,7 +262,7 @@ function VerificationPanel({ data, onChange }: { data: Detail; onChange: () => v
       </div>
       {c.verificationStatus === 'REJECTED' && c.verificationNote && <p style={{ fontSize: 14, color: '#b3261e', margin: '8px 0 0' }}>{c.verificationNote}</p>}
       <p style={{ fontSize: 14, color: '#424245', margin: '10px 0 0' }}>
-        {v.phone}: {c.phone ?? '—'} · {v.birthDate}: {c.birthDate ? `${formatDate(c.birthDate, lang)} (${v.age(age!)})` : '—'}
+        {v.phone}: {c.phone ? <a href={`tel:${c.phone}`} style={{ color: '#0071e3', textDecoration: 'none' }}>{formatPhone(c.phone)}</a> : '—'} · {v.birthDate}: {c.birthDate ? `${formatDate(c.birthDate, lang)} (${v.age(age!)})` : '—'}
       </p>
 
       {data.documents.length === 0 ? (

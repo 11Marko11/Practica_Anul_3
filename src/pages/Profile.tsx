@@ -4,6 +4,7 @@ import { useAuth, type VerificationStatus } from '../auth/AuthContext'
 import { DeleteAccount } from '../components/DeleteAccount'
 import { useI18n } from '../i18n/I18nContext'
 import { ApiError } from '../lib/api'
+import { formatPhone } from '../lib/phone'
 import {
   changePassword,
   documentUrl,
@@ -237,7 +238,7 @@ function Verification({ profile, documents, onChange, onDocuments, errorText, la
 function PersonalDetails({ profile, onSaved, errorText }: { profile: ProfileData; onSaved: (res: { profile: ProfileData; documents: IdentityDocument[] }) => void; errorText: (err: unknown) => string }) {
   const { t } = useI18n()
   const p = t.profile
-  const [form, setForm] = useState({ name: profile.name, phone: profile.phone ?? '', birthDate: profile.birthDate ?? '' })
+  const [form, setForm] = useState({ name: profile.name, phone: formatPhone(profile.phone), birthDate: profile.birthDate ?? '' })
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
   const [error, setError] = useState('')
 
@@ -246,7 +247,9 @@ function PersonalDetails({ profile, onSaved, errorText }: { profile: ProfileData
     setStatus('saving')
     setError('')
     try {
-      onSaved(await updateProfile(form))
+      const res = await updateProfile(form)
+      onSaved(res)
+      setForm(f => ({ ...f, phone: formatPhone(res.profile.phone) }))
       setStatus('saved')
     } catch (err) {
       setError(errorText(err))

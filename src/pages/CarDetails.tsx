@@ -7,6 +7,7 @@ import { createBooking, takenDates } from '../lib/bookings'
 import { ApiError } from '../lib/api'
 import { useAuth } from '../auth/AuthContext'
 import { getProfile } from '../lib/profile'
+import { formatPhone } from '../lib/phone'
 import { useRentalDates } from '../lib/useRentalDates'
 import { DateField } from '../components/DateField'
 import { CarGallery } from '../components/CarGallery'
@@ -56,7 +57,7 @@ function CarDetailsContent({ car }: { car: Car }) {
 
   // Start the phone field from the customer's profile.
   useEffect(() => {
-    if (user && verified) getProfile().then(r => setPhone(p => p || r.profile.phone || '')).catch(() => {})
+    if (user && verified) getProfile().then(r => setPhone(p => p || formatPhone(r.profile.phone))).catch(() => {})
   }, [user?.id, verified])
 
   // Links like /cars/x#reviews: the layout scrolls to the top on navigation, so scroll afterwards.

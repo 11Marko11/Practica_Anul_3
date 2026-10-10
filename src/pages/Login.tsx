@@ -13,7 +13,7 @@ export function Login() {
   const from = requested && requested !== '/login' ? requested : '/'
 
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
-  const [form, setForm] = useState({ name: '', email: '', password: '' })
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' })
   const [error, setError] = useState<keyof typeof t.login.errors | null>(null)
   const [busy, setBusy] = useState(false)
   const [slow, setSlow] = useState(false)
@@ -31,7 +31,7 @@ export function Login() {
     setBusy(true)
     try {
       if (mode === 'signin') await signIn(form.email, form.password)
-      else await signUp(form.name, form.email, form.password)
+      else await signUp(form.name, form.email, form.phone, form.password)
       navigate(from, { replace: true })
     } catch (err) {
       const code = err instanceof ApiError ? err.code : ''
@@ -98,6 +98,13 @@ export function Login() {
             <label htmlFor="email" style={labelStyle}>{t.login.email}</label>
             <input id="email" required type="email" autoComplete="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="ion@example.com" style={inputStyle} {...focus} />
           </div>
+          {mode === 'signup' && (
+            <div>
+              <label htmlFor="phone" style={labelStyle}>{t.login.phone}</label>
+              <input id="phone" required type="tel" autoComplete="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="+373 69 123 456" style={inputStyle} {...focus} />
+              <p style={{ fontSize: 12, color: '#86868b', margin: '6px 0 0' }}>{t.login.phoneHint}</p>
+            </div>
+          )}
           <div>
             <label htmlFor="password" style={labelStyle}>{t.login.password}</label>
             <input
