@@ -1,4 +1,8 @@
 import { useEffect, useState } from 'react'
+import type { VerificationStatus } from '../../auth/AuthContext'
+import { VerificationBadge } from '../Profile'
+import { refreshAwaitingCount } from '../../lib/adminNotifications'
+import { documentUrl, type IdentityDocument } from '../../lib/profile'
 import { Link, useParams } from 'react-router'
 import { BookingCard } from '../../components/BookingCard'
 import { Money } from '../../components/Money'
@@ -14,6 +18,8 @@ type Customer = {
   name: string
   email: string
   active: boolean
+  verificationStatus: VerificationStatus
+  verificationSubmittedAt: string | null
   createdAt: string
   deletedAt: string | null
   bookings: number
@@ -23,12 +29,19 @@ type Customer = {
   reviews: number
 }
 type Detail = {
-  customer: Pick<Customer, 'id' | 'name' | 'email' | 'active' | 'createdAt' | 'deletedAt' | 'spent'> & { refunded: number }
+  customer: Pick<Customer, 'id' | 'name' | 'email' | 'active' | 'createdAt' | 'deletedAt' | 'spent' | 'verificationStatus' | 'verificationSubmittedAt'> & {
+    refunded: number
+    phone: string | null
+    birthDate: string | null
+    verificationNote: string | null
+    verifiedAt: string | null
+  }
+  documents: IdentityDocument[]
   bookings: Booking[]
   reviews: { id: string; rating: number; text: string; date: string; car: { slug: string; brand: string; model: string } }[]
 }
 
-const FILTERS = ['all', 'active', 'deleted'] as const
+const FILTERS = ['all', 'pending', 'active', 'deleted'] as const
 
 // /admin/customers lists every customer; /admin/customers/:id shows one customer's history.
 export function AdminCustomers() {
@@ -68,10 +81,10 @@ function CustomerList() {
   }, [])
 
   const q = query.trim().toLowerCase()
-  const list = (customers ?? []).filter(
-    x => (filter === 'all' || (filter === 'active') === x.active) && (!q || x.name.toLowerCase().includes(q) || x.email.toLowerCase().includes(q)),
-  )
-  const count = (f: (typeof FILTERS)[number]) => (customers ?? []).filter(x => f === 'all' || (f === 'active') === x.active).length
+  const matches = (f: (typeof FILTERS)[number], x: Customer) =>
+    f === 'all' || (f === 'pending' ? x.active && x.verificationStatus === 'PENDING' : (f === 'active') === x.active)
+  const list = (customers ?? []).filter(x => matches(filter, x) && (!q || x.name.toLowerCase().includes(q) || x.email.toLowerCase().includes(q)))
+  const count = (f: (typeof FILTERS)[number]) => (customers ?? []).filter(x => matches(f, x)).length
 
   return (
     <div style={{ paddingTop: 52 }}>
@@ -94,7 +107,7 @@ function CustomerList() {
                 aria-pressed={filter === f}
                 style={{ fontSize: 13, padding: '8px 14px', borderRadius: 980, border: '1px solid', borderColor: filter === f ? '#1d1d1f' : '#d2d2d7', background: filter === f ? '#1d1d1f' : 'transparent', color: filter === f ? '#fff' : '#6e6e73', cursor: 'pointer' }}
               >
-                {c.filters[f]} {customers && <span style={{ opacity: 0.7 }}>({count(f)})</span>}
+                {f === 'pending' ? t.verificationAdmin.filter : c.filters[f]} {customers && <span style={{ opacity: 0.7 }}>({count(f)})</span>}
               </button>
             ))}
           </div>
@@ -112,6 +125,7 @@ function CustomerList() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                     <strong style={{ fontSize: 15, fontWeight: 600, color: '#1d1d1f' }}>{x.name}</strong>
                     <StatusPill active={x.active} />
+                    {x.active && <VerificationBadge status={x.verificationStatus} />}
                   </div>
                   <div style={{ fontSize: 13, color: '#6e6e73', overflowWrap: 'anywhere' }}>{x.email}</div>
                   <div style={{ fontSize: 12, color: '#86868b', marginTop: 2 }}>
@@ -170,6 +184,8 @@ function CustomerDetail({ id }: { id: string }) {
               <Stat label={c.theirReviews} value={String(data.reviews.length)} />
             </div>
 
+            <VerificationPanel data={data} onChange={() => api<Detail>(`/admin/customers/${id}`).then(setData)} />
+
             <h2 style={sectionTitle}>{c.history}</h2>
             {data.bookings.length === 0 && <p style={{ fontSize: 14, color: '#6e6e73' }}>{c.noBookings}</p>}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -208,3 +224,99 @@ function Stat({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 const sectionTitle: React.CSSProperties = { fontSize: 20, fontWeight: 600, letterSpacing: '-0.02em', color: '#1d1d1f', margin: '36px 0 14px' }
+
+// The customer's documents and the admin's decision: verify, or reject with a reason.
+function VerificationPanel({ data, onChange }: { data: Detail; onChange: () => void }) {
+  const { lang, t } = useI18n()
+  const v = t.verificationAdmin
+  const c = data.customer
+  const [rejecting, setRejecting] = useState(false)
+  const [note, setNote] = useState('')
+  const [busy, setBusy] = useState(false)
+  const time = (iso: string) => new Date(iso).toLocaleString(lang, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })
+  const age = c.birthDate ? Math.floor((Date.now() - new Date(`${c.birthDate}T00:00:00Z`).getTime()) / (365.25 * 86_400_000)) : null
+
+  async function decide(action: 'verify' | 'reject') {
+    if (action === 'verify' && !confirm(v.verifyAsk)) return
+    setBusy(true)
+    try {
+      await api(`/admin/customers/${c.id}/${action}`, action === 'reject' ? { body: { note: note.trim() } } : { method: 'POST' })
+      setRejecting(false)
+      setNote('')
+      onChange()
+      refreshAwaitingCount()
+    } catch {
+      alert(v.error)
+    }
+    setBusy(false)
+  }
+
+  return (
+    <>
+      <h2 style={sectionTitle}>{v.section}</h2>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <VerificationBadge status={c.verificationStatus} />
+        {c.verificationStatus === 'PENDING' && c.verificationSubmittedAt && <span style={{ fontSize: 13, color: '#6e6e73' }}>{v.submitted(time(c.verificationSubmittedAt))}</span>}
+        {c.verificationStatus === 'VERIFIED' && c.verifiedAt && <span style={{ fontSize: 13, color: '#6e6e73' }}>{v.verifiedAt(time(c.verifiedAt))}</span>}
+      </div>
+      {c.verificationStatus === 'REJECTED' && c.verificationNote && <p style={{ fontSize: 14, color: '#b3261e', margin: '8px 0 0' }}>{c.verificationNote}</p>}
+      <p style={{ fontSize: 14, color: '#424245', margin: '10px 0 0' }}>
+        {v.phone}: {c.phone ?? '—'} · {v.birthDate}: {c.birthDate ? `${formatDate(c.birthDate, lang)} (${v.age(age!)})` : '—'}
+      </p>
+
+      {data.documents.length === 0 ? (
+        <p style={{ fontSize: 14, color: '#6e6e73' }}>{v.noDocuments}</p>
+      ) : (
+        <div className="document-grid" style={{ marginTop: 14 }}>
+          {data.documents.map(d => (
+            <a key={d.id} href={documentUrl(d.id)} target="_blank" rel="noreferrer" style={{ display: 'block', border: '1px solid #e5e5ea', borderRadius: 14, overflow: 'hidden', textDecoration: 'none' }}>
+              <div style={{ aspectRatio: '4/3', background: '#f5f5f7' }}>
+                {d.mimeType.startsWith('image/') ? (
+                  <img src={documentUrl(d.id)} alt={t.profile.docTypes[d.type]} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                ) : (
+                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 15, fontWeight: 600, color: '#b3261e' }}>PDF</span>
+                )}
+              </div>
+              <div style={{ padding: '8px 12px', fontSize: 14, fontWeight: 600, color: '#1d1d1f' }}>
+                {t.profile.docTypes[d.type]}
+                <div style={{ fontSize: 12, fontWeight: 400, color: '#86868b' }}>{new Date(d.createdAt).toLocaleDateString(lang)}</div>
+              </div>
+            </a>
+          ))}
+        </div>
+      )}
+
+      {c.active && (
+        <div style={{ marginTop: 16 }}>
+          {rejecting ? (
+            <form onSubmit={e => { e.preventDefault(); decide('reject') }} style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 560 }}>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, color: '#6e6e73' }}>
+                {v.rejectNote}
+                <textarea required minLength={3} rows={3} value={note} onChange={e => setNote(e.target.value)} autoFocus style={{ fontSize: 15, padding: '10px 12px', border: '1px solid #d2d2d7', borderRadius: 12, fontFamily: 'inherit', resize: 'vertical' }} />
+              </label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button type="submit" disabled={busy} style={{ ...actionButton, background: '#d70015', color: '#fff' }}>{v.rejectSubmit}</button>
+                <button type="button" onClick={() => setRejecting(false)} style={{ ...actionButton, background: '#f5f5f7', color: '#1d1d1f' }}>{v.cancel}</button>
+              </div>
+            </form>
+          ) : (
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {c.verificationStatus !== 'VERIFIED' && (
+                <button onClick={() => decide('verify')} disabled={busy || data.documents.length === 0} style={{ ...actionButton, background: '#1b7a35', color: '#fff', opacity: data.documents.length ? 1 : 0.4 }}>
+                  ✓ {v.verify}
+                </button>
+              )}
+              {c.verificationStatus !== 'REJECTED' && c.verificationStatus !== 'UNVERIFIED' && (
+                <button onClick={() => setRejecting(true)} style={{ ...actionButton, background: '#fff', color: '#d70015', border: '1px solid #f0c4c4' }}>
+                  {c.verificationStatus === 'VERIFIED' ? v.revoke : v.reject}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </>
+  )
+}
+
+const actionButton: React.CSSProperties = { fontSize: 14, fontWeight: 500, padding: '10px 18px', borderRadius: 980, border: 'none', cursor: 'pointer' }

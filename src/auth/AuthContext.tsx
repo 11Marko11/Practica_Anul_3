@@ -3,7 +3,8 @@ import { api } from '../lib/api'
 
 // The signed-in user comes from the server, which keeps the session in an httpOnly cookie.
 // Failed calls throw an ApiError whose `code` the login page translates.
-export type User = { id: string; name: string; email: string; role: 'CUSTOMER' | 'ADMIN' }
+export type VerificationStatus = 'UNVERIFIED' | 'PENDING' | 'VERIFIED' | 'REJECTED'
+export type User = { id: string; name: string; email: string; role: 'CUSTOMER' | 'ADMIN'; verificationStatus: VerificationStatus }
 
 type AuthContextValue = {
   user: User | null
@@ -11,6 +12,7 @@ type AuthContextValue = {
   signIn: (email: string, password: string) => Promise<void>
   signUp: (name: string, email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
+  refreshUser: () => Promise<void> // after the profile or verification status changes
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -47,12 +49,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(res.user)
   }
 
+  async function refreshUser() {
+    const res = await api<{ user: User | null }>('/auth/me').catch(() => null)
+    if (res) setUser(res.user)
+  }
+
   async function signOut() {
     setUser(null)
     await api('/auth/logout', { method: 'POST' }).catch(() => {})
   }
 
-  return <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut }}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut, refreshUser }}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

@@ -18,6 +18,7 @@ import { AdminCustomers } from '../pages/admin/AdminCustomers'
 import { AdminReviews } from '../pages/admin/AdminReviews'
 import { MyBookings } from '../pages/MyBookings'
 import { BookingDetails } from '../pages/BookingDetails'
+import { Profile } from '../pages/Profile'
 
 export const router = createBrowserRouter([
   {
@@ -32,6 +33,7 @@ export const router = createBrowserRouter([
       { path: 'login', Component: Login },
       { path: 'terms', Component: Terms },
       { path: 'privacy', Component: Privacy },
+      { path: 'profile', Component: Profile },
       { path: 'bookings', Component: MyBookings },
       { path: 'bookings/:id', Component: BookingDetails },
       { path: 'admin', Component: AdminDashboard },

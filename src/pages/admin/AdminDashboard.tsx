@@ -19,6 +19,7 @@ type Dashboard = {
   customers: number
   reviews: { count: number; average: number | null }
   awaiting: Booking[]
+  verifications: { id: string; name: string; email: string; verificationSubmittedAt: string | null }[]
   upcoming: Booking[]
   recent: Booking[]
 }
@@ -103,7 +104,19 @@ function DashboardContent() {
         <div className="dashboard-columns">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 28, minWidth: 0 }}>
             <Panel title={d.attention} link="/admin/bookings">
-              {data?.awaiting.length === 0 && <Empty>✓ {d.allClear}</Empty>}
+              {data?.awaiting.length === 0 && data.verifications.length === 0 && <Empty>✓ {d.allClear}</Empty>}
+              {data?.verifications.map(u => (
+                <Row key={u.id}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <RowTitle>{u.name}</RowTitle>
+                    <RowText>{u.email}</RowText>
+                    {u.verificationSubmittedAt && <RowText color="#9a5b00">{t.verificationAdmin.submitted(time(u.verificationSubmittedAt))}</RowText>}
+                  </div>
+                  <Link to={`/admin/customers/${u.id}`} style={{ fontSize: 13, fontWeight: 500, padding: '8px 14px', borderRadius: 980, background: '#1d1d1f', color: '#fff', textDecoration: 'none' }}>
+                    {t.verificationAdmin.section} →
+                  </Link>
+                </Row>
+              ))}
               {data?.awaiting.map(b => (
                 <Row key={b.id}>
                   <div style={{ minWidth: 0, flex: 1 }}>

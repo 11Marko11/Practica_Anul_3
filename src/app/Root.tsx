@@ -183,10 +183,14 @@ function AccountButton({ btnStyle }: { btnStyle: React.CSSProperties }) {
       </button>
       {open && (
         <div role="menu" style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', minWidth: 220, background: '#2a2a2d', borderRadius: 14, boxShadow: '0 12px 40px rgba(0,0,0,0.35)', border: '1px solid #3a3a3d', padding: 8 }}>
-          <div style={{ padding: '8px 10px 12px', borderBottom: '1px solid #3a3a3d', marginBottom: 6 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#f5f5f7' }}>{user.name}</div>
+          <NavLink to="/profile" role="menuitem" style={{ display: 'block', padding: '8px 10px 12px', borderBottom: '1px solid #3a3a3d', marginBottom: 6, textDecoration: 'none' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600, color: '#f5f5f7' }}>
+              {user.name}
+              {user.verificationStatus === 'VERIFIED' && <span title={t.profile.status.VERIFIED} style={{ color: '#30d158', fontSize: 13 }}>✓</span>}
+            </div>
             <div style={{ fontSize: 13, color: '#a1a1a6', marginTop: 2 }}>{user.email}</div>
-          </div>
+          </NavLink>
+          <MenuLink to="/profile">{t.profile.menu}</MenuLink>
           {isAdmin(user) ? (
             <MenuLink to="/admin">
               {t.dashboard.menu} <CountBadge n={awaiting} />
@@ -240,6 +244,7 @@ function MobileMenu() {
           {t.nav[key]}
         </NavLink>
       ))}
+      {user && <NavLink to="/profile" style={item}>{t.profile.menu}</NavLink>}
       {isAdmin(user) ? (
         <NavLink to="/admin" style={item}>
           {t.dashboard.menu} <CountBadge n={awaiting} />

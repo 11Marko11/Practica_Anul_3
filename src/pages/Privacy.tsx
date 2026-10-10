@@ -11,6 +11,7 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         body: (
           <ul>
             <li><strong>Account details</strong>: your name, email address and password when you sign up.</li>
+            <li><strong>Profile and identity documents</strong>: your phone number, date of birth and the photos or PDFs of your driving licence, ID card or passport that you upload to verify your account.</li>
             <li><strong>Bookings</strong>: the car, dates, delivery address, phone number and note you give us when you book, and Stripe's reference for your payment.</li>
             <li><strong>Contact messages</strong>: your name, email and whatever you write to us.</li>
           </ul>
@@ -32,6 +33,7 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
             <li>To sign you in and show your name in the account menu.</li>
             <li>To pre-fill the contact form with your name and email.</li>
             <li>To respond to booking requests and questions.</li>
+            <li>To check your identity and driving licence before you can rent a car. Your documents are stored in our database in the EU, are seen only by you and by Rent Motors administrators, are never public, and are permanently deleted when you delete your account.</li>
           </ul>
         ),
       },
@@ -74,6 +76,7 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         body: (
           <ul>
             <li><strong>Datele contului</strong>: numele, adresa de email și parola, atunci când te înregistrezi.</li>
+            <li><strong>Profilul și actele de identitate</strong>: numărul de telefon, data nașterii și pozele sau PDF-urile permisului de conducere, buletinului sau pașaportului pe care le încarci pentru verificarea contului.</li>
             <li><strong>Rezervările</strong>: mașina, datele, adresa de livrare, numărul de telefon și mesajul pe care ni le dai la rezervare, plus referința Stripe a plății.</li>
             <li><strong>Mesajele de contact</strong>: numele, emailul și tot ce ne scrii.</li>
           </ul>
@@ -94,6 +97,7 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
           <ul>
             <li>Pentru a te autentifica și a-ți afișa numele în meniul contului.</li>
             <li>Pentru a precompleta formularul de contact cu numele și emailul tău.</li>
+            <li>Pentru a-ți verifica identitatea și permisul de conducere înainte să poți închiria o mașină. Actele sunt stocate în baza noastră de date din UE, le vezi doar tu și administratorii Rent Motors, nu sunt niciodată publice și se șterg definitiv când îți ștergi contul.</li>
             <li>Pentru a răspunde la cererile de rezervare și la întrebări.</li>
           </ul>
         ),
@@ -137,6 +141,7 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
         body: (
           <ul>
             <li><strong>Данные аккаунта</strong>: ваше имя, адрес электронной почты и пароль при регистрации.</li>
+            <li><strong>Профиль и документы</strong>: номер телефона, дата рождения и фото или PDF водительского удостоверения, удостоверения личности или паспорта, которые вы загружаете для проверки аккаунта.</li>
             <li><strong>Бронирования</strong>: автомобиль, даты, адрес доставки, номер телефона и сообщение, которые вы указываете при бронировании, а также ссылка Stripe на ваш платёж.</li>
             <li><strong>Сообщения</strong>: ваше имя, email и всё, что вы нам пишете.</li>
           </ul>
@@ -157,6 +162,7 @@ const CONTENT: Record<Lang, { intro: string; sections: LegalSection[] }> = {
           <ul>
             <li>Чтобы выполнить вход и показать ваше имя в меню аккаунта.</li>
             <li>Чтобы заранее заполнить форму обратной связи вашим именем и email.</li>
+            <li>Чтобы проверить вашу личность и водительское удостоверение перед арендой. Документы хранятся в нашей базе данных в ЕС, их видите только вы и администраторы Rent Motors, они никогда не публикуются и безвозвратно удаляются при удалении аккаунта.</li>
             <li>Чтобы отвечать на запросы на бронирование и вопросы.</li>
           </ul>
         ),
