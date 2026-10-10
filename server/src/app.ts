@@ -12,6 +12,7 @@ import { authRoutes } from './routes/auth.js'
 import { bookingRoutes } from './routes/bookings.js'
 import { carRoutes } from './routes/cars.js'
 import { contentRoutes } from './routes/content.js'
+import { promotionRoutes } from './routes/promotions.js'
 import { MAX_DOCUMENT_BYTES, profileRoutes } from './routes/profile.js'
 import { dashboardRoutes } from './routes/dashboard.js'
 import { healthRoutes } from './routes/health.js'
@@ -61,6 +62,7 @@ export function buildApp() {
       await api.register(bookingRoutes)
       await api.register(adminBookingRoutes)
       await api.register(contentRoutes)
+      await api.register(promotionRoutes)
       await api.register(dashboardRoutes)
       await api.register(transactionRoutes)
       await api.register(accountRoutes)

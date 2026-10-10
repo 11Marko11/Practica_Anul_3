@@ -263,3 +263,27 @@ model SiteContent {
   data      Json
   updatedAt DateTime @updatedAt
 }
+
+enum PromotionPlacement {
+  HOME // banner section on the home page
+  MARKETPLACE // banner above the car list
+}
+
+// Advertising banners managed by the admin. Texts per language live in `texts`
+// ({ ro: { title, text, button }, en: {...}, ru: {...} }); an empty language falls back to Romanian.
+model Promotion {
+  id        Int                @id @default(autoincrement())
+  placement PromotionPlacement
+  texts     Json
+  imageUrl  String?
+  linkUrl   String? // a page of the site ("/cars/bmw-m4-competition") or a full https:// address
+  active    Boolean            @default(true)
+  startsOn  DateTime?          @db.Date // shown from this day (Moldova time), inclusive
+  endsOn    DateTime?          @db.Date // until this day, inclusive
+  position  Int                @default(0) // lower first
+  clicks    Int                @default(0)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  @@index([placement, active])
+}
