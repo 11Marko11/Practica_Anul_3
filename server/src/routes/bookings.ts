@@ -69,6 +69,8 @@ export async function bookingRoutes(app: FastifyInstance) {
   app.post('/bookings', { preHandler: requireUser, config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (request, reply) => {
     const body = createBody.parse(request.body)
     const user = request.user!
+    // Only customers whose documents the admin has checked can rent a car.
+    if (user.role !== 'ADMIN' && user.verificationStatus !== 'VERIFIED') throw new HttpError(403, 'account-not-verified')
     const payments = stripe() // fail early if payments are not configured
 
     const today = todayInMoldova()

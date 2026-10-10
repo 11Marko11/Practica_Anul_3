@@ -65,13 +65,56 @@ model User {
   // (replaced by a placeholder) and kept in deletedEmail for the admin's history.
   deletedAt    DateTime?
   deletedEmail String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  phone        String?
+  birthDate    DateTime? @db.Date
 
-  sessions Session[]
-  bookings Booking[]
-  reviews  Review[]
-  messages ContactMessage[]
+  // Identity check by the admin, from the documents the customer uploads.
+  verificationStatus      VerificationStatus @default(UNVERIFIED)
+  verificationNote        String? // why the admin rejected the documents, shown to the customer
+  verificationSubmittedAt DateTime?
+  verifiedAt              DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions  Session[]
+  bookings  Booking[]
+  reviews   Review[]
+  messages  ContactMessage[]
+  documents IdentityDocument[]
+}
+
+// UNVERIFIED: nothing sent yet · PENDING: sent, waiting for the admin · VERIFIED: may book ·
+// REJECTED: the admin explained what is wrong (verificationNote); the customer can send again.
+enum VerificationStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum DocumentType {
+  ID_CARD
+  PASSPORT
+  DRIVING_LICENSE
+  OTHER
+}
+
+// Photos or PDFs of a customer's documents. Stored in the database and only served through
+// the API to their owner and to admins; deleted with the account.
+model IdentityDocument {
+  id        String       @id @default(uuid())
+  userId    String
+  type      DocumentType
+  fileName  String
+  mimeType  String
+  size      Int
+  data      Bytes
+  createdAt DateTime     @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 // Sign-in sessions. The browser keeps a random token in an httpOnly cookie; only its SHA-256 hash is stored.

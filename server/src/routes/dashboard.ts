@@ -13,7 +13,7 @@ export async function dashboardRoutes(app: FastifyInstance) {
     const inAWeek = fromIsoDate(addDays(today, 7))
     const forAdmin = { forAdmin: true }
 
-    const [awaiting, upcoming, recent, charged, activeCars, hiddenCars, customers, reviews] = await Promise.all([
+    const [awaiting, upcoming, recent, charged, activeCars, hiddenCars, customers, reviews, verifications] = await Promise.all([
       prisma.booking.findMany({ where: { status: 'AWAITING_CONFIRMATION' }, include: bookingInclude, orderBy: { authorizedAt: 'asc' } }),
       prisma.booking.findMany({
         where: { status: 'CONFIRMED', pickupDate: { gte: fromIsoDate(today), lt: inAWeek } },
@@ -27,6 +27,11 @@ export async function dashboardRoutes(app: FastifyInstance) {
       prisma.car.count({ where: { status: 'HIDDEN' } }),
       prisma.user.count({ where: { role: 'CUSTOMER', deletedAt: null } }),
       prisma.review.aggregate({ _avg: { rating: true }, _count: { _all: true } }),
+      prisma.user.findMany({
+        where: { verificationStatus: 'PENDING', deletedAt: null },
+        select: { id: true, name: true, email: true, verificationSubmittedAt: true },
+        orderBy: { verificationSubmittedAt: 'asc' },
+      }),
     ])
 
     return {
@@ -38,6 +43,7 @@ export async function dashboardRoutes(app: FastifyInstance) {
       awaiting: awaiting.map(b => toBookingDto(b, forAdmin)),
       upcoming: upcoming.map(b => toBookingDto(b, forAdmin)),
       recent: recent.map(b => toBookingDto(b, forAdmin)),
+      verifications: verifications.map(u => ({ ...u, verificationSubmittedAt: u.verificationSubmittedAt?.toISOString() ?? null })),
     }
   })
 }

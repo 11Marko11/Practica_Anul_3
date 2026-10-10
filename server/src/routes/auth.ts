@@ -21,7 +21,7 @@ const loginBody = z.object({
 // Sign-in and sign-up are limited per IP address to slow down password guessing.
 const limited = { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }
 
-const publicUser = { id: true, name: true, email: true, role: true } as const
+const publicUser = { id: true, name: true, email: true, role: true, verificationStatus: true } as const
 
 async function startSession(reply: FastifyReply, user: PublicUser) {
   const token = await createSession(user.id)
@@ -46,7 +46,7 @@ export async function authRoutes(app: FastifyInstance) {
     const found = await prisma.user.findUnique({ where: { email: body.email } })
     const ok = found ? await verifyPassword(found.passwordHash, body.password) : await verifyDummy(body.password)
     if (!found || !ok) throw new HttpError(401, 'invalid-credentials')
-    return startSession(reply, { id: found.id, name: found.name, email: found.email, role: found.role })
+    return startSession(reply, { id: found.id, name: found.name, email: found.email, role: found.role, verificationStatus: found.verificationStatus })
   })
 
   app.post('/auth/logout', async (request, reply) => {

@@ -25,9 +25,10 @@ async function reply(id: string) {
 export async function adminBookingRoutes(app: FastifyInstance) {
   app.addHook('preHandler', requireAdmin)
 
-  // For the notification badge: paid bookings waiting for the admin's decision.
+  // For the notification badges: paid bookings and customer documents waiting for the admin.
   app.get('/admin/bookings/summary', async () => ({
     awaitingConfirmation: await prisma.booking.count({ where: { status: 'AWAITING_CONFIRMATION' } }),
+    pendingVerifications: await prisma.user.count({ where: { verificationStatus: 'PENDING', deletedAt: null } }),
   }))
 
   app.get('/admin/bookings', async request => {

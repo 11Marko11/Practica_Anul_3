@@ -1,4 +1,5 @@
 import cookie from '@fastify/cookie'
+import multipart from '@fastify/multipart'
 import rateLimit from '@fastify/rate-limit'
 import Fastify from 'fastify'
 import { SESSION_COOKIE, userForToken, type PublicUser } from './auth/session.js'
@@ -11,6 +12,7 @@ import { authRoutes } from './routes/auth.js'
 import { bookingRoutes } from './routes/bookings.js'
 import { carRoutes } from './routes/cars.js'
 import { contentRoutes } from './routes/content.js'
+import { MAX_DOCUMENT_BYTES, profileRoutes } from './routes/profile.js'
 import { dashboardRoutes } from './routes/dashboard.js'
 import { healthRoutes } from './routes/health.js'
 import { reviewRoutes } from './routes/reviews.js'
@@ -34,6 +36,8 @@ export function buildApp() {
   app.register(cookie)
   // Off by default; individual routes opt in with `config.rateLimit`.
   app.register(rateLimit, { global: false })
+  // Document uploads: one file per request, at most 8 MB.
+  app.register(multipart, { limits: { fileSize: MAX_DOCUMENT_BYTES, files: 1, fields: 5 } })
   registerErrorHandler(app)
 
   // Every route lives under /api, which Vercel forwards to this server.
@@ -61,6 +65,7 @@ export function buildApp() {
       await api.register(transactionRoutes)
       await api.register(accountRoutes)
       await api.register(adminPeopleRoutes)
+      await api.register(profileRoutes)
       await api.register(stripeWebhookRoutes)
     },
     { prefix: '/api' },

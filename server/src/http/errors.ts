@@ -21,6 +21,7 @@ export function registerErrorHandler(app: FastifyInstance) {
     }
     const status = (err as { statusCode?: number }).statusCode
     if (status === 429) return reply.code(429).send({ error: 'too-many-requests' })
+    if (status === 413) return reply.code(413).send({ error: 'file-too-large' })
     if (status && status >= 400 && status < 500) return reply.code(status).send({ error: 'bad-request' })
     request.log.error(err)
     return reply.code(500).send({ error: 'server-error' })

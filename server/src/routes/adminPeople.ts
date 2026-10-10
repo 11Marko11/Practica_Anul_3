@@ -12,6 +12,12 @@ const reviewDto = (r: { id: string; authorName: string; rating: number; text: st
   id: r.id, name: r.authorName, rating: r.rating, text: r.text, date: r.createdAt.toISOString().slice(0, 10), customerId: r.userId,
 })
 
+async function customer(id: string) {
+  const user = await prisma.user.findUnique({ where: { id } })
+  if (!user || user.role !== 'CUSTOMER') throw new HttpError(404, 'customer-not-found')
+  return user
+}
+
 // Customers (with their history) and reviews (grouped by car), for the admin pages.
 export async function adminPeopleRoutes(app: FastifyInstance) {
   app.addHook('preHandler', requireAdmin)
@@ -31,6 +37,8 @@ export async function adminPeopleRoutes(app: FastifyInstance) {
         name: u.name,
         email: u.deletedEmail ?? u.email,
         active: !u.deletedAt,
+        verificationStatus: u.verificationStatus,
+        verificationSubmittedAt: u.verificationSubmittedAt?.toISOString() ?? null,
         createdAt: u.createdAt.toISOString(),
         deletedAt: u.deletedAt?.toISOString() ?? null,
         bookings: u.bookings.filter(b => b.status !== 'PENDING_PAYMENT' && b.status !== 'EXPIRED').length,
@@ -46,20 +54,47 @@ export async function adminPeopleRoutes(app: FastifyInstance) {
     const { id } = z.object({ id: z.uuid() }).parse(request.params)
     const u = await prisma.user.findUnique({ where: { id } })
     if (!u || u.role !== 'CUSTOMER') throw new HttpError(404, 'customer-not-found')
-    const [bookings, reviews] = await Promise.all([
+    const [bookings, reviews, documents] = await Promise.all([
       prisma.booking.findMany({ where: { userId: id }, include: bookingInclude, orderBy: { createdAt: 'desc' } }),
       prisma.review.findMany({ where: { userId: id }, include: { car: { select: { slug: true, brand: true, model: true } } }, orderBy: { createdAt: 'desc' } }),
+      prisma.identityDocument.findMany({
+        where: { userId: id },
+        select: { id: true, type: true, fileName: true, mimeType: true, size: true, createdAt: true },
+        orderBy: { createdAt: 'asc' },
+      }),
     ])
     return {
       customer: {
         id: u.id, name: u.name, email: u.deletedEmail ?? u.email, active: !u.deletedAt,
         createdAt: u.createdAt.toISOString(), deletedAt: u.deletedAt?.toISOString() ?? null,
+        phone: u.phone, birthDate: u.birthDate?.toISOString().slice(0, 10) ?? null,
+        verificationStatus: u.verificationStatus, verificationNote: u.verificationNote,
+        verificationSubmittedAt: u.verificationSubmittedAt?.toISOString() ?? null, verifiedAt: u.verifiedAt?.toISOString() ?? null,
         spent: bookings.reduce((s, b) => s + kept(b), 0),
         refunded: bookings.reduce((s, b) => s + b.refundedAmount, 0),
       },
       bookings: bookings.map(b => toBookingDto(b, { forAdmin: true })),
       reviews: reviews.map(r => ({ ...reviewDto(r), car: r.car })),
+      documents: documents.map(d => ({ ...d, createdAt: d.createdAt.toISOString() })),
     }
+  })
+
+  // The admin checked the documents: the customer may now book.
+  app.post('/admin/customers/:id/verify', async request => {
+    const { id } = z.object({ id: z.uuid() }).parse(request.params)
+    const user = await customer(id)
+    if (user.deletedAt) throw new HttpError(409, 'account-deleted')
+    await prisma.user.update({ where: { id }, data: { verificationStatus: 'VERIFIED', verifiedAt: new Date(), verificationNote: null } })
+    return { ok: true }
+  })
+
+  // Not accepted (or verification withdrawn): the customer sees why and can send new documents.
+  app.post('/admin/customers/:id/reject', async request => {
+    const { id } = z.object({ id: z.uuid() }).parse(request.params)
+    const { note } = z.object({ note: z.string().trim().min(3).max(1000) }).parse(request.body)
+    await customer(id)
+    await prisma.user.update({ where: { id }, data: { verificationStatus: 'REJECTED', verificationNote: note, verifiedAt: null } })
+    return { ok: true }
   })
 
   // Every car with its reviews, the most reviewed first. Cars without reviews are included.

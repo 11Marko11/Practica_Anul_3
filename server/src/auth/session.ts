@@ -2,14 +2,14 @@ import { createHash, randomBytes } from 'node:crypto'
 import type { CookieSerializeOptions } from '@fastify/cookie'
 import { prisma } from '../db.js'
 import { env } from '../env.js'
-import type { Role } from '../generated/prisma/client.js'
+import type { Role, VerificationStatus } from '../generated/prisma/client.js'
 
 export const SESSION_COOKIE = 'rm_session'
 const SESSION_DAYS = 30
 const DAY_MS = 86_400_000
 
 // What the website gets about the signed-in user.
-export type PublicUser = { id: string; name: string; email: string; role: Role }
+export type PublicUser = { id: string; name: string; email: string; role: Role; verificationStatus: VerificationStatus }
 
 export const sessionCookieOptions: CookieSerializeOptions = {
   httpOnly: true, // not readable from JavaScript
@@ -36,7 +36,7 @@ export async function createSession(userId: string) {
 export async function userForToken(token: string): Promise<PublicUser | null> {
   const session = await prisma.session.findUnique({
     where: { id: tokenHash(token) },
-    include: { user: { select: { id: true, name: true, email: true, role: true } } },
+    include: { user: { select: { id: true, name: true, email: true, role: true, verificationStatus: true } } },
   })
   if (!session) return null
   if (session.expiresAt.getTime() < Date.now()) {
