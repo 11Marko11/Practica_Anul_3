@@ -36,6 +36,8 @@ async function profileOf(userId: string) {
       verificationNote: u.verificationNote,
       verificationSubmittedAt: u.verificationSubmittedAt?.toISOString() ?? null,
       verifiedAt: u.verifiedAt?.toISOString() ?? null,
+      role: u.role,
+      createdAt: u.createdAt.toISOString(),
     },
     documents: documents.map(d => ({ ...d, createdAt: d.createdAt.toISOString() })),
   }
@@ -49,6 +51,11 @@ export function hasRequiredDocuments(types: string[]) {
 // The signed-in user's profile, documents and identity verification.
 export async function profileRoutes(app: FastifyInstance) {
   app.addHook('preHandler', requireUser)
+
+  // Admins don't rent cars, so they have no documents to upload or send for verification.
+  const customersOnly = async (request: { user: { role: string } | null }) => {
+    if (request.user?.role === 'ADMIN') throw new HttpError(403, 'admin-no-documents')
+  }
 
   app.get('/profile', async request => profileOf(request.user!.id))
 
@@ -85,7 +92,7 @@ export async function profileRoutes(app: FastifyInstance) {
 
   // Upload one document (multipart: `type`, then `file`). A verified customer who changes
   // their documents goes back to "pending" so the admin can check them again.
-  app.post('/profile/documents', { config: { rateLimit: { max: 20, timeWindow: '1 minute' } } }, async (request, reply) => {
+  app.post('/profile/documents', { preHandler: customersOnly, config: { rateLimit: { max: 20, timeWindow: '1 minute' } } }, async (request, reply) => {
     const userId = request.user!.id
     if ((await prisma.identityDocument.count({ where: { userId } })) >= 10) throw new HttpError(409, 'too-many-documents')
     let type: string | undefined
@@ -117,7 +124,7 @@ export async function profileRoutes(app: FastifyInstance) {
     return { document: { ...doc, createdAt: doc.createdAt.toISOString() } }
   })
 
-  app.delete('/profile/documents/:id', async request => {
+  app.delete('/profile/documents/:id', { preHandler: customersOnly }, async request => {
     const { id } = z.object({ id: z.uuid() }).parse(request.params)
     const userId = request.user!.id
     const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } })
@@ -129,7 +136,7 @@ export async function profileRoutes(app: FastifyInstance) {
   })
 
   // Ask the admin to check the documents.
-  app.post('/profile/verification', async request => {
+  app.post('/profile/verification', { preHandler: customersOnly }, async request => {
     const userId = request.user!.id
     const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } })
     if (user.verificationStatus === 'PENDING' || user.verificationStatus === 'VERIFIED') throw new HttpError(409, 'already-submitted')

@@ -80,7 +80,7 @@ function ProfileContent() {
           {profile && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14, flexWrap: 'wrap' }}>
               <span style={{ fontSize: 15, color: '#f5f5f7' }}>{profile.name}</span>
-              <VerificationBadge status={profile.verificationStatus} />
+              {profile.role === 'ADMIN' ? <RoleBadge /> : <VerificationBadge status={profile.verificationStatus} />}
             </div>
           )}
         </div>
@@ -89,6 +89,12 @@ function ProfileContent() {
       <main style={{ maxWidth: 820, margin: '0 auto', padding: '8px 24px 96px' }}>
         {!profile ? (
           <p style={{ fontSize: 15, color: '#6e6e73', marginTop: 32 }}>{t.bookings.loading}</p>
+        ) : profile.role === 'ADMIN' ? (
+          // Admins don't rent cars: no documents or verification, just their account details.
+          <>
+            <AdminInfo profile={profile} lang={lang} />
+            <PasswordForm errorText={errorText} />
+          </>
         ) : (
           <>
             <Verification profile={profile} documents={documents} onChange={apply} onDocuments={setDocuments} errorText={errorText} lang={lang} />
@@ -231,6 +237,40 @@ function Verification({ profile, documents, onChange, onDocuments, errorText, la
           {!hasRequiredDocuments(documents) && <p style={{ fontSize: 13, color: '#6e6e73', margin: '8px 0 0' }}>{p.missing}</p>}
         </div>
       )}
+    </Section>
+  )
+}
+
+function RoleBadge() {
+  const { t } = useI18n()
+  return (
+    <span style={{ fontSize: 12, fontWeight: 500, padding: '3px 10px', borderRadius: 980, background: '#e6f0ff', color: '#0058b8' }}>
+      {t.profile.adminRole}
+    </span>
+  )
+}
+
+// Read-only account details for an admin.
+function AdminInfo({ profile, lang }: { profile: ProfileData; lang: string }) {
+  const { t } = useI18n()
+  const p = t.profile
+  const rows: [string, string][] = [
+    [p.name, profile.name],
+    [p.email, profile.email],
+    [p.phone, formatPhone(profile.phone) || '—'],
+    [p.role, p.adminRole],
+    [p.memberSince, new Date(profile.createdAt).toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' })],
+  ]
+  return (
+    <Section title={p.accountInfo}>
+      <dl style={{ display: 'grid', gridTemplateColumns: 'minmax(120px, auto) 1fr', gap: '12px 24px', margin: 0, padding: '18px 20px', borderRadius: 16, background: '#f5f5f7' }}>
+        {rows.map(([label, value]) => (
+          <div key={label} style={{ display: 'contents' }}>
+            <dt style={{ fontSize: 14, color: '#6e6e73' }}>{label}</dt>
+            <dd style={{ fontSize: 15, color: '#1d1d1f', margin: 0, overflowWrap: 'anywhere' }}>{value}</dd>
+          </div>
+        ))}
+      </dl>
     </Section>
   )
 }

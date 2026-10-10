@@ -14,6 +14,8 @@ export type Profile = {
   verificationNote: string | null
   verificationSubmittedAt: string | null
   verifiedAt: string | null
+  role: 'CUSTOMER' | 'ADMIN'
+  createdAt: string
 }
 type ProfileResponse = { profile: Profile; documents: IdentityDocument[] }
 
