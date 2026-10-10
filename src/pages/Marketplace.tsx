@@ -5,6 +5,7 @@ import { reloadCars, useCars, useCatalogStatus } from '../lib/carStore'
 import { addDays, fmt, today } from '../lib/rental'
 import { useRentalDates } from '../lib/useRentalDates'
 import { DateField } from '../components/DateField'
+import { PromoBanner } from '../components/PromoBanner'
 import { useI18n } from '../i18n/I18nContext'
 import { applyFilters, FUELS, POWER_OPTIONS, SEAT_OPTIONS, SORTS, useCarFilters, useUnavailableCars, type Filters, type Sort } from '../lib/carFilters'
 
@@ -143,6 +144,7 @@ export function Marketplace() {
 
       {/* Grid */}
       <main style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 24px 96px' }}>
+        <PromoBanner placement="MARKETPLACE" style={{ marginBottom: 32 }} />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(340px, 100%), 1fr))', gap: 20 }}>
           {list.map(car => <CarCard key={car.id} car={car} days={days} query={query} />)}
         </div>

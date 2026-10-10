@@ -16,6 +16,7 @@ import { AdminDashboard } from '../pages/admin/AdminDashboard'
 import { AdminTransactions } from '../pages/admin/AdminTransactions'
 import { AdminCustomers } from '../pages/admin/AdminCustomers'
 import { AdminReviews } from '../pages/admin/AdminReviews'
+import { AdminPromotions } from '../pages/admin/AdminPromotions'
 import { MyBookings } from '../pages/MyBookings'
 import { BookingDetails } from '../pages/BookingDetails'
 import { Profile } from '../pages/Profile'
@@ -44,6 +45,8 @@ export const router = createBrowserRouter([
       { path: 'admin/customers', Component: AdminCustomers },
       { path: 'admin/customers/:id', Component: AdminCustomers },
       { path: 'admin/reviews', Component: AdminReviews },
+      { path: 'admin/promotions', Component: AdminPromotions },
+      { path: 'admin/promotions/:id', Component: AdminPromotions },
       { path: 'admin/cars/new', Component: AdminCarForm },
       { path: 'admin/cars/:slug', Component: AdminCarForm },
     ],

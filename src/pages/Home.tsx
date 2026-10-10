@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router'
 import { useState, useEffect } from 'react'
 import { useI18n } from '../i18n/I18nContext'
 import { api } from '../lib/api'
+import { PromoBanner } from '../components/PromoBanner'
 
 type Brand = { name: string; count: number }
 type Stats = { cars: number; brands: Brand[]; averageRating: number | null; completedTrips: number }
@@ -121,6 +122,11 @@ export function Home() {
           ))}
         </div>
       </section>
+
+      {/* Advertising banners (managed in Admin → Ads) */}
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+        <PromoBanner placement="HOME" style={{ marginTop: 64 }} />
+      </div>
 
       {/* Brands */}
       {brands.length > 0 && <section style={{ padding: '88px 24px' }}>

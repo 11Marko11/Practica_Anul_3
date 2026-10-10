@@ -85,6 +85,10 @@ body {
 /* Shrinks with its tile (the tile is a size container), so large amounts never overflow. */
 .tile-value { font-size: min(30px, 14cqi); }
 
+/* Advertising banners: image with a dark shade so white text stays readable. */
+.promo-slide { position: relative; overflow: hidden; border-radius: 24px; padding: 44px 40px; min-height: 260px; display: flex; align-items: center; background: #1c1c1e center / cover no-repeat; }
+.promo-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.45) 55%, rgba(0,0,0,0.1) 100%); }
+
 /* Admin car list: search, brand and sort on one line, wrapping on phones. */
 .admin-car-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 
@@ -157,6 +161,8 @@ body {
   .spec-grid { grid-template-columns: repeat(2, 1fr); }
   .feature-list { grid-template-columns: 1fr; }
   .dashboard-columns { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .promo-slide { padding: 32px 22px 44px; min-height: 300px; align-items: flex-end; }
+  .promo-shade { background: linear-gradient(0deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.15) 100%); }
   .filters-toggle-row { display: block; }
   .filters-panel { display: none; grid-template-columns: 1fr 1fr; margin-top: 16px; }
   .filters-panel--open { display: grid; }
