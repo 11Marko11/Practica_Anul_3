@@ -18,6 +18,7 @@ enum Role {
 // Values match the front-end's Car type ('Petrol', 'AWD'…).
 enum Fuel {
   Petrol
+  Diesel
   Electric
   Hybrid
 }
@@ -25,6 +26,7 @@ enum Fuel {
 enum Drive {
   AWD
   RWD
+  FWD
 }
 
 enum CarStatus {
@@ -167,10 +169,13 @@ model Car {
 }
 
 model CarPhoto {
-  id       Int    @id @default(autoincrement())
-  carId    Int
-  url      String // full link, or an Unsplash photo id for the sample cars
-  position Int // 0 is the cover photo
+  id        Int     @id @default(autoincrement())
+  carId     Int
+  url       String // full link, or an Unsplash photo id for the sample cars
+  // Author and licence for photos that require attribution (e.g. Wikimedia Commons), shown under the photo.
+  credit    String?
+  creditUrl String?
+  position  Int // 0 is the cover photo
 
   car Car @relation(fields: [carId], references: [id], onDelete: Cascade)
 

@@ -19,7 +19,9 @@ async function uniqueSlug(brand: string, model: string) {
   return slug
 }
 
-const photoRows = (photos: string[]) => photos.map((url, position) => ({ url, position }))
+// Photos keep their credit when the admin saves a car without changing them.
+const photoRows = (photos: string[], credits = new Map<string, { credit: string | null; creditUrl: string | null }>()) =>
+  photos.map((url, position) => ({ url, position, ...(credits.get(url) ?? {}) }))
 
 export async function carRoutes(app: FastifyInstance) {
   // Public catalogue. Admins also get hidden cars, for the admin pages.
@@ -53,10 +55,12 @@ export async function carRoutes(app: FastifyInstance) {
   app.put('/admin/cars/:id', { preHandler: requireAdmin }, async request => {
     const { id } = idParam.parse(request.params)
     const input = carInput.parse(request.body)
-    if (!(await prisma.car.findUnique({ where: { id }, select: { id: true } }))) throw new HttpError(404, 'car-not-found')
+    const current = await prisma.car.findUnique({ where: { id }, select: { photos: { select: { url: true, credit: true, creditUrl: true } } } })
+    if (!current) throw new HttpError(404, 'car-not-found')
+    const credits = new Map(current.photos.map(p => [p.url, { credit: p.credit, creditUrl: p.creditUrl }]))
     const car = await prisma.car.update({
       where: { id },
-      data: { ...carData(input), photos: { deleteMany: {}, create: photoRows(input.photos) } },
+      data: { ...carData(input), photos: { deleteMany: {}, create: photoRows(input.photos, credits) } },
       include: carInclude,
     })
     return { car: toCarDto(car) }
