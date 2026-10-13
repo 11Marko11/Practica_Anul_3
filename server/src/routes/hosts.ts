@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { requireAdmin } from '../auth/guards.js'
+import { hostStats } from '../cars/hostStats.js'
 import { prisma } from '../db.js'
 import { HttpError } from '../http/errors.js'
 
@@ -10,21 +11,20 @@ const hostInput = z.object({
   phone: z.string().trim().max(30).optional().transform(v => v || null),
 })
 
-// Rating and trips are not edited by hand: they follow reviews and completed rentals.
+// Rating and trips are not edited by hand: they are calculated from reviews and completed rentals.
 export async function hostRoutes(app: FastifyInstance) {
   app.get('/admin/hosts', { preHandler: requireAdmin }, async () => {
     const hosts = await prisma.host.findMany({
       orderBy: { name: 'asc' },
       include: { cars: { select: { id: true, slug: true, brand: true, model: true, year: true, status: true }, orderBy: [{ brand: 'asc' }, { model: 'asc' }] } },
     })
+    const stats = await hostStats(hosts.map(h => h.id))
     return {
       hosts: hosts.map(h => ({
         id: h.id,
         name: h.name,
         phone: h.phone,
-        rating: Math.round(h.rating * 10) / 10,
-        ratingCount: h.ratingCount,
-        trips: h.trips,
+        ...stats(h.id),
         createdAt: h.createdAt.toISOString(),
         cars: h.cars,
       })),

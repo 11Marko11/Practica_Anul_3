@@ -206,7 +206,7 @@ export async function bookingRoutes(app: FastifyInstance) {
     const { id } = idParam.parse(request.params)
     const booking = await findOwnBooking(id, request.user!.id)
     if (!customerCanComplete(booking)) throw new HttpError(409, booking.status === 'CONFIRMED' ? 'too-early-to-complete' : 'not-confirmed')
-    await completeBooking(id, booking.carId)
+    await completeBooking(id)
     return { booking: toBookingDto(await findOwnBooking(id, request.user!.id)) }
   })
 }

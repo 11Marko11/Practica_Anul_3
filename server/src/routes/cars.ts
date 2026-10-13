@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { requireAdmin } from '../auth/guards.js'
 import { carData, carInclude, carInput, slugBase, toCarDto, type CarInput } from '../cars/dto.js'
+import { hostStats } from '../cars/hostStats.js'
 import { prisma } from '../db.js'
 import { HttpError } from '../http/errors.js'
 
@@ -31,6 +32,11 @@ async function hostLink(input: CarInput) {
   return { connect: { id: host.id } }
 }
 
+// One car with its host's current rating and trips.
+async function carDto(car: Parameters<typeof toCarDto>[0]) {
+  return toCarDto(car, (await hostStats([car.hostId]))(car.hostId))
+}
+
 export async function carRoutes(app: FastifyInstance) {
   // Public catalogue. Admins also get hidden cars, for the admin pages.
   app.get('/cars', async request => {
@@ -39,14 +45,15 @@ export async function carRoutes(app: FastifyInstance) {
       include: carInclude,
       orderBy: { createdAt: 'asc' },
     })
-    return { cars: cars.map(toCarDto) }
+    const stats = await hostStats(cars.map(c => c.hostId))
+    return { cars: cars.map(c => toCarDto(c, stats(c.hostId))) }
   })
 
   app.get('/cars/:slug', async request => {
     const { slug } = slugParam.parse(request.params)
     const car = await prisma.car.findUnique({ where: { slug }, include: carInclude })
     if (!car || (car.status !== 'ACTIVE' && !isAdmin(request))) throw new HttpError(404, 'car-not-found')
-    return { car: toCarDto(car) }
+    return { car: await carDto(car) }
   })
 
   app.post('/admin/cars', { preHandler: requireAdmin }, async (request, reply) => {
@@ -56,7 +63,7 @@ export async function carRoutes(app: FastifyInstance) {
       include: carInclude,
     })
     reply.code(201)
-    return { car: toCarDto(car) }
+    return { car: await carDto(car) }
   })
 
   // The slug (the car's web address) stays the same when a car is edited.
@@ -71,7 +78,7 @@ export async function carRoutes(app: FastifyInstance) {
       data: { ...carData(input), host: await hostLink(input), photos: { deleteMany: {}, create: photoRows(input.photos, credits) } },
       include: carInclude,
     })
-    return { car: toCarDto(car) }
+    return { car: await carDto(car) }
   })
 
   // Cars with bookings are kept for the booking history; hide them instead.

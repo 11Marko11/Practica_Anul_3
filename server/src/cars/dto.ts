@@ -1,11 +1,12 @@
 import { z } from 'zod'
 import type { Prisma } from '../generated/prisma/client.js'
+import type { HostStats } from './hostStats.js'
 
 export const carInclude = { photos: { orderBy: { position: 'asc' } }, host: true } as const satisfies Prisma.CarInclude
 type CarRow = Prisma.CarGetPayload<{ include: typeof carInclude }>
 
 // The car as the website uses it (same shape as its `Car` type in src/data/cars.ts).
-export function toCarDto(car: CarRow) {
+export function toCarDto(car: CarRow, host: HostStats) {
   return {
     id: car.id,
     slug: car.slug,
@@ -26,7 +27,7 @@ export function toCarDto(car: CarRow) {
     range: car.range ?? undefined,
     location: `${car.city}, Moldova`,
     pickup: { address: car.pickupAddress, lat: car.pickupLat, lng: car.pickupLng },
-    host: hostDto(car.host),
+    host: { id: car.host.id, name: car.host.name, ...host },
     description: car.description,
     features: car.features,
     translations: {
@@ -36,11 +37,6 @@ export function toCarDto(car: CarRow) {
     status: car.status,
     createdAt: car.createdAt.toISOString(), // for the admin list's "recently added" order
   }
-}
-
-// The host as shown on a car's page (the rating to one decimal, as on the site).
-export function hostDto(host: { id: number; name: string; rating: number; trips: number }) {
-  return { id: host.id, name: host.name, rating: Math.round(host.rating * 10) / 10, trips: host.trips }
 }
 
 const text = (max: number) => z.string().trim().min(1).max(max)

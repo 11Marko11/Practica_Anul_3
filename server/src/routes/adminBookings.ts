@@ -86,7 +86,7 @@ export async function adminBookingRoutes(app: FastifyInstance) {
     const { id } = idParam.parse(request.params)
     const booking = await findBooking(id)
     if (booking.status !== 'CONFIRMED') throw new HttpError(409, 'not-confirmed')
-    await completeBooking(id, booking.carId)
+    await completeBooking(id)
     return reply(id)
   })
 

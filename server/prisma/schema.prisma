@@ -168,17 +168,15 @@ model Car {
   @@index([hostId])
 }
 
-// The person or agency who rents out the car. One host can have several cars and keeps
-// one rating and one trip count across all of them.
+// The person or agency who rents out the car; one host can have several cars. Their rating
+// and trips are not stored: they are calculated from the reviews and completed bookings of
+// their cars (see cars/hostStats.ts).
 model Host {
-  id          Int      @id @default(autoincrement())
-  name        String
-  phone       String?
-  rating      Float    @default(5) // average of ratingCount ratings, 1–5
-  ratingCount Int      @default(0) // reviews of the host's cars, plus the history imported with the sample cars
-  trips       Int      @default(0) // completed rentals across all of the host's cars
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  name      String
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   cars Car[]
 }
