@@ -5,7 +5,7 @@ import { api } from './api'
 
 export const SORTS = ['newest', 'price-asc', 'price-desc', 'power', 'fastest'] as const
 export type Sort = (typeof SORTS)[number]
-export const FUELS: Car['fuel'][] = ['Petrol', 'Electric', 'Hybrid']
+export const FUELS: Car['fuel'][] = ['Petrol', 'Diesel', 'Electric', 'Hybrid']
 export const SEAT_OPTIONS = [2, 4, 5]
 export const POWER_OPTIONS = [300, 500, 700]
 
@@ -30,7 +30,7 @@ function parse(params: URLSearchParams): Filters {
     city: params.get('city'),
     fuels: (params.get('fuel') ?? '').split(',').filter((f): f is Car['fuel'] => FUELS.includes(f as Car['fuel'])),
     seats: int(params.get('seats')),
-    drive: drive === 'AWD' || drive === 'RWD' ? drive : null,
+    drive: drive === 'AWD' || drive === 'RWD' || drive === 'FWD' ? drive : null,
     minHp: int(params.get('hp')),
     maxPrice: int(params.get('maxPrice')),
     sort: SORTS.includes(sort as Sort) ? (sort as Sort) : 'newest',

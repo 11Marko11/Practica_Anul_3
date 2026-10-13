@@ -54,6 +54,18 @@ export function CarGallery({ car }: { car: Car }) {
         </span>
       </div>
 
+      {/* Attribution for photos under licences that require it (e.g. Wikimedia Commons). */}
+      {car.photoCredits?.[index] && (
+        <p style={{ fontSize: 11, color: '#86868b', margin: '6px 2px 0', textAlign: 'right' }}>
+          {t.gallery.photo}:{' '}
+          {car.photoCredits[index]!.url ? (
+            <a href={car.photoCredits[index]!.url!} target="_blank" rel="noopener noreferrer" style={{ color: '#86868b' }}>{car.photoCredits[index]!.text}</a>
+          ) : (
+            car.photoCredits[index]!.text
+          )}
+        </p>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${count}, 1fr)`, gap: 10, marginTop: 10 }}>
         {car.photos.map((_, i) => (
           <button

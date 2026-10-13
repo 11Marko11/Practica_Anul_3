@@ -18,10 +18,10 @@ function useStats() {
 
 type BrandSize = 'lg' | 'md' | 'sm'
 
-// Bigger collections get bigger tiles, sized relative to the largest brand.
-function brandSize(count: number, max: number): BrandSize {
-  const share = count / max
-  return share >= 0.65 ? 'lg' : share >= 0.35 ? 'md' : 'sm'
+// Bigger collections get bigger tiles: the largest brand gets the big tile, the next two
+// medium ones and the rest small ones, so the grid stays compact however many brands there are.
+function brandSize(rank: number): BrandSize {
+  return rank === 0 ? 'lg' : rank <= 2 ? 'md' : 'sm'
 }
 
 const HERO_IMAGES = [
@@ -36,7 +36,6 @@ export function Home() {
   const [slide, setSlide] = useState(0)
   const stats = useStats()
   const brands = [...(stats?.brands ?? [])].sort((a, b) => b.count - a.count)
-  const maxBrandCount = Math.max(1, ...brands.map(b => b.count))
   const statTiles = [
     { key: 'cars', value: stats?.cars },
     { key: 'brands', value: stats?.brands.length },
@@ -144,11 +143,11 @@ export function Home() {
             </button>
           </div>
           <div className="brand-grid">
-            {brands.map(brand => (
+            {brands.map((brand, rank) => (
               <BrandCard
                 key={brand.name}
                 brand={brand}
-                size={brandSize(brand.count, maxBrandCount)}
+                size={brandSize(rank)}
                 onClick={() => navigate(`/marketplace?brand=${encodeURIComponent(brand.name)}`)}
               />
             ))}
@@ -199,9 +198,9 @@ export function Home() {
 }
 
 const BRAND_TILE = {
-  lg: { gridColumn: 'span 2', gridRow: 'span 2', logo: 56, logoFont: 22, name: 28, count: 15, padding: '28px 28px' },
-  md: { gridColumn: 'span 2', gridRow: 'span 1', logo: 44, logoFont: 18, name: 20, count: 14, padding: '22px 24px' },
-  sm: { gridColumn: 'span 1', gridRow: 'span 1', logo: 36, logoFont: 15, name: 16, count: 13, padding: '20px 20px' },
+  lg: { gridColumn: 'span 2', gridRow: 'span 2', logo: 56, logoFont: 22, name: 28, count: 15, padding: '24px 26px' },
+  md: { gridColumn: 'span 2', gridRow: 'span 1', logo: 48, logoFont: 19, name: 20, count: 14, padding: '16px 22px' },
+  sm: { gridColumn: 'span 1', gridRow: 'span 1', logo: 32, logoFont: 14, name: 15, count: 12, padding: '14px 16px' },
 }
 
 function BrandCard({ brand, size, onClick }: { brand: Brand; size: BrandSize; onClick: () => void }) {
@@ -213,12 +212,12 @@ function BrandCard({ brand, size, onClick }: { brand: Brand; size: BrandSize; on
       onClick={onClick}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
-      style={{ gridColumn: tile.gridColumn, gridRow: tile.gridRow, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-start', padding: tile.padding, borderRadius: size === 'lg' ? 20 : 14, background: hov ? '#e8e8ed' : '#f5f5f7', border: 'none', cursor: 'pointer', transition: 'background 0.15s', textAlign: 'left', minWidth: 0 }}
+      style={{ gridColumn: tile.gridColumn, gridRow: tile.gridRow, display: 'flex', ...(size === 'md' ? { flexDirection: 'row', alignItems: 'center', gap: 16 } : { flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-start' }), padding: tile.padding, borderRadius: size === 'lg' ? 20 : 14, background: hov ? '#e8e8ed' : '#f5f5f7', border: 'none', cursor: 'pointer', transition: 'background 0.15s', textAlign: 'left', minWidth: 0 }}
     >
       <div style={{ width: tile.logo, height: tile.logo, flexShrink: 0, borderRadius: tile.logo / 4, background: '#1d1d1f', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: tile.logoFont, fontWeight: 700 }}>
         {brand.name.charAt(0).toUpperCase()}
       </div>
-      <div>
+      <div style={{ minWidth: 0 }}>
         <div style={{ fontSize: tile.name, fontWeight: 600, color: '#1d1d1f', letterSpacing: '-0.02em' }}>{brand.name}</div>
         <div style={{ fontSize: tile.count, color: '#6e6e73', marginTop: 2 }}>{t.home.carsAvailable(brand.count)}</div>
       </div>

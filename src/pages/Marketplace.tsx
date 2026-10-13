@@ -102,6 +102,7 @@ export function Marketplace() {
                 <option value="">{t.marketplace.any}</option>
                 <option value="AWD">{t.car.drive.AWD}</option>
                 <option value="RWD">{t.car.drive.RWD}</option>
+                <option value="FWD">{t.car.drive.FWD}</option>
               </Select>
             </FilterField>
             <FilterField label={t.marketplace.power}>
@@ -220,8 +221,8 @@ function CarCard({ car, days, query }: { car: Car; days: number; query: string }
       style={{ display: 'block', textDecoration: 'none', borderRadius: 18, overflow: 'hidden', background: '#f5f5f7', transition: 'transform 0.2s, box-shadow 0.2s', transform: hov ? 'translateY(-3px)' : 'none', boxShadow: hov ? '0 12px 40px rgba(0,0,0,0.10)' : '0 2px 8px rgba(0,0,0,0.04)' }}
     >
       <div style={{ position: 'relative', overflow: 'hidden', aspectRatio: '16/10', background: '#e8e8ed' }}>
-        <img src={carImage(car, 900, 600)} alt={`${car.year} ${car.brand} ${car.model}`} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s', transform: hov ? 'scale(1.04)' : 'scale(1)' }} />
-        {car.fuel !== 'Petrol' && (
+        <img src={carImage(car, 900, 600)} loading="lazy" decoding="async" alt={`${car.year} ${car.brand} ${car.model}`} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s', transform: hov ? 'scale(1.04)' : 'scale(1)' }} />
+        {(car.fuel === 'Electric' || car.fuel === 'Hybrid') && (
           <span style={{ position: 'absolute', top: 12, right: 12, fontSize: 11, fontWeight: 500, background: 'rgba(255,255,255,0.9)', color: '#1d1d1f', padding: '4px 10px', borderRadius: 980, backdropFilter: 'blur(8px)' }}>
             {t.common.fuel[car.fuel]}
           </span>

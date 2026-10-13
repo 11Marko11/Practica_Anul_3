@@ -623,7 +623,7 @@ export const ru: Dict = {
     trips: (n: number) => countOf('ru', n, { one: 'поездка', few: 'поездки', many: 'поездок', other: 'поездки' }),
     seats: (n: number) => countOf('ru', n, { one: 'место', few: 'места', many: 'мест', other: 'места' }),
     perDay: ' / день',
-    fuel: { Petrol: 'Бензин', Electric: 'Электро', Hybrid: 'Гибрид' },
+    fuel: { Petrol: 'Бензин', Diesel: 'Дизель', Electric: 'Электро', Hybrid: 'Гибрид' },
   },
   home: {
     eyebrow: 'Маркетплейс аренды премиальных авто',
@@ -695,7 +695,7 @@ export const ru: Dict = {
       range: 'Запас хода',
       electricRange: 'Запас хода на электричестве',
     },
-    drive: { AWD: 'Полный', RWD: 'Задний' },
+    drive: { AWD: 'Полный', RWD: 'Задний', FWD: 'Передний' },
     units: { hp: 'л. с.', s: 'с', kmh: 'км/ч', km: 'км' },
     about: 'Об автомобиле',
     features: 'Оснащение',
@@ -747,6 +747,7 @@ export const ru: Dict = {
     error: 'Не удалось сохранить отзыв. Попробуйте ещё раз.',
   },
   gallery: {
+    photo: 'Фото',
     photoAlt: (name: string, i: number, n: number) => `${name}, фото ${i} из ${n}`,
     previous: 'Предыдущее фото',
     next: 'Следующее фото',

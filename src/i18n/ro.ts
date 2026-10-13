@@ -623,7 +623,7 @@ export const ro: Dict = {
     trips: (n: number) => countOf('ro', n, { one: 'călătorie', few: 'călătorii', other: 'de călătorii' }),
     seats: (n: number) => countOf('ro', n, { one: 'loc', few: 'locuri', other: 'de locuri' }),
     perDay: ' / zi',
-    fuel: { Petrol: 'Benzină', Electric: 'Electric', Hybrid: 'Hibrid' },
+    fuel: { Petrol: 'Benzină', Diesel: 'Motorină', Electric: 'Electric', Hybrid: 'Hibrid' },
   },
   home: {
     eyebrow: 'Platformă de închirieri auto premium',
@@ -695,7 +695,7 @@ export const ro: Dict = {
       range: 'Autonomie',
       electricRange: 'Autonomie electrică',
     },
-    drive: { AWD: 'Integrală', RWD: 'Spate' },
+    drive: { AWD: 'Integrală', RWD: 'Spate', FWD: 'Față' },
     units: { hp: 'CP', s: 's', kmh: 'km/h', km: 'km' },
     about: 'Despre această mașină',
     features: 'Dotări',
@@ -747,6 +747,7 @@ export const ro: Dict = {
     error: 'Recenzia nu a putut fi salvată. Încearcă din nou.',
   },
   gallery: {
+    photo: 'Foto',
     photoAlt: (name: string, i: number, n: number) => `${name}, fotografia ${i} din ${n}`,
     previous: 'Fotografia anterioară',
     next: 'Fotografia următoare',

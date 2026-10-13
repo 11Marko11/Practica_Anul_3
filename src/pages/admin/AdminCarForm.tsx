@@ -54,7 +54,7 @@ type FormState = {
 
 const EMPTY: FormState = {
   brand: '', model: '', year: String(new Date().getFullYear()), price: '', fuel: 'Petrol', seats: '4',
-  horsepower: '', acceleration: '', topSpeed: '', transmission: '', drive: 'AWD', status: 'ACTIVE', range: '', hostName: '',
+  horsepower: '', acceleration: '', topSpeed: '', transmission: '', drive: 'FWD', status: 'ACTIVE', range: '', hostName: '',
   city: CITIES[0], address: '', pickup: null, photos: '', descriptionEn: '', descriptionRo: '', descriptionRu: '', features: '',
 }
 
@@ -125,7 +125,7 @@ function AdminCarFormContent({ slug }: { slug?: string }) {
       topSpeed: Math.round(num(f.topSpeed)),
       transmission: f.transmission.trim(),
       drive: f.drive,
-      range: f.fuel !== 'Petrol' && positive(f.range) ? Math.round(num(f.range)) : undefined,
+      range: (f.fuel === 'Electric' || f.fuel === 'Hybrid') && positive(f.range) ? Math.round(num(f.range)) : undefined,
       city: f.city,
       pickup: f.pickup,
       hostName: f.hostName.trim(),
@@ -177,12 +177,12 @@ function AdminCarFormContent({ slug }: { slug?: string }) {
             <div className="admin-fields">
               <Field label={t.admin.fields.fuel}>
                 <select value={form.fuel} onChange={e => set('fuel', e.target.value as Car['fuel'])} style={inputStyle}>
-                  {(['Petrol', 'Electric', 'Hybrid'] as const).map(f => <option key={f} value={f}>{t.common.fuel[f]}</option>)}
+                  {(['Petrol', 'Diesel', 'Electric', 'Hybrid'] as const).map(f => <option key={f} value={f}>{t.common.fuel[f]}</option>)}
                 </select>
               </Field>
               <Field label={t.admin.fields.drive}>
                 <select value={form.drive} onChange={e => set('drive', e.target.value as Car['drive'])} style={inputStyle}>
-                  {(['AWD', 'RWD'] as const).map(d => <option key={d} value={d}>{t.car.drive[d]}</option>)}
+                  {(['FWD', 'AWD', 'RWD'] as const).map(d => <option key={d} value={d}>{t.car.drive[d]}</option>)}
                 </select>
               </Field>
               <Field label={t.admin.fields.seats} required><input inputMode="numeric" value={form.seats} onChange={e => set('seats', e.target.value)} style={inputStyle} /></Field>
@@ -190,7 +190,7 @@ function AdminCarFormContent({ slug }: { slug?: string }) {
               <Field label={t.admin.fields.acceleration} required><input inputMode="decimal" value={form.acceleration} onChange={e => set('acceleration', e.target.value)} style={inputStyle} /></Field>
               <Field label={t.admin.fields.topSpeed} required><input inputMode="numeric" value={form.topSpeed} onChange={e => set('topSpeed', e.target.value)} style={inputStyle} /></Field>
               <Field label={t.admin.fields.transmission} required><input value={form.transmission} onChange={e => set('transmission', e.target.value)} style={inputStyle} /></Field>
-              {form.fuel !== 'Petrol' && (
+              {(form.fuel === 'Electric' || form.fuel === 'Hybrid') && (
                 <Field label={t.admin.fields.range} hint={t.admin.hints.range}><input inputMode="numeric" value={form.range} onChange={e => set('range', e.target.value)} style={inputStyle} /></Field>
               )}
             </div>

@@ -5,14 +5,14 @@ export type Car = {
   model: string
   year: number
   pricePerDay: number // Moldovan lei (MDL)
-  fuel: 'Petrol' | 'Electric' | 'Hybrid'
+  fuel: 'Petrol' | 'Diesel' | 'Electric' | 'Hybrid'
   seats: number
   photos: string[] // Unsplash photo ids or full image links; the first one is the cover
   horsepower: number
   acceleration: number // 0–100 km/h in seconds
   topSpeed: number // km/h
   transmission: string
-  drive: 'AWD' | 'RWD'
+  drive: 'AWD' | 'RWD' | 'FWD'
   range?: number // electric range in km
   location: string // city shown in listings
   pickup: { address: string; lat: number; lng: number } // where the car is collected
@@ -20,6 +20,7 @@ export type Car = {
   description: string // English
   features: string[]
   translations?: Partial<Record<'ro' | 'ru', { description: string }>>
+  photoCredits?: ({ text: string; url: string | null } | null)[] // author and licence, same order as photos
   status?: 'ACTIVE' | 'HIDDEN' // hidden cars are only sent to admins
   createdAt?: string // when the car was added
 }
@@ -31,8 +32,10 @@ export function carImage(car: Car, width: number, height: number, index = 0) {
   return photoUrl(car.photos[index], width, height)
 }
 
-// A full image link is used as is; anything else is treated as an Unsplash photo id.
+// A full image link is used as is; photos served by the site (/cars/…-960.jpg) also exist in
+// 330 px for thumbnails; anything else is treated as an Unsplash photo id.
 export function photoUrl(photo: string, width: number, height: number) {
+  if (photo.startsWith('/cars/')) return width <= 400 ? photo.replace(/-960\.jpg$/, '-330.jpg') : photo
   if (/^https?:\/\//.test(photo)) return photo
   return `https://images.unsplash.com/${photo}?w=${width}&h=${height}&fit=crop&auto=format`
 }
