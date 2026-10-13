@@ -1,9 +1,10 @@
 import { useRef, useState, type ReactNode } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router'
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { CITIES, photoUrl, type Car } from '../../data/cars'
 import { saveCar, useAllCars, useFreshCatalog } from '../../lib/carStore'
 import { ApiError } from '../../lib/api'
 import { searchAddress, type Place } from '../../lib/delivery'
+import { useAdminHosts } from '../../lib/hosts'
 import { useI18n } from '../../i18n/I18nContext'
 import { AdminGuard } from './AdminGuard'
 
@@ -41,7 +42,9 @@ type FormState = {
   drive: Car['drive']
   status: 'ACTIVE' | 'HIDDEN'
   range: string
-  hostName: string
+  hostId: string // a host's id, or 'new' to create one with the car
+  newHostName: string
+  newHostPhone: string
   city: string
   address: string
   pickup: Pickup | null
@@ -54,7 +57,7 @@ type FormState = {
 
 const EMPTY: FormState = {
   brand: '', model: '', year: String(new Date().getFullYear()), price: '', fuel: 'Petrol', seats: '4',
-  horsepower: '', acceleration: '', topSpeed: '', transmission: '', drive: 'FWD', status: 'ACTIVE', range: '', hostName: '',
+  horsepower: '', acceleration: '', topSpeed: '', transmission: '', drive: 'FWD', status: 'ACTIVE', range: '', hostId: '', newHostName: '', newHostPhone: '',
   city: CITIES[0], address: '', pickup: null, photos: '', descriptionEn: '', descriptionRo: '', descriptionRu: '', features: '',
 }
 
@@ -62,7 +65,7 @@ function fromCar(car: Car): FormState {
   return {
     brand: car.brand, model: car.model, year: String(car.year), price: String(car.pricePerDay), fuel: car.fuel, seats: String(car.seats),
     horsepower: String(car.horsepower), acceleration: String(car.acceleration), topSpeed: String(car.topSpeed), transmission: car.transmission,
-    drive: car.drive, status: car.status ?? 'ACTIVE', range: car.range ? String(car.range) : '', hostName: car.host.name,
+    drive: car.drive, status: car.status ?? 'ACTIVE', range: car.range ? String(car.range) : '', hostId: car.host.id ? String(car.host.id) : '', newHostName: '', newHostPhone: '',
     city: car.location.split(',')[0], address: car.pickup.address, pickup: car.pickup,
     photos: car.photos.join('\n'), descriptionEn: car.description, descriptionRo: car.translations?.ro?.description ?? '', descriptionRu: car.translations?.ru?.description ?? '',
     features: car.features.join('\n'),
@@ -80,7 +83,10 @@ function AdminCarFormContent({ slug }: { slug?: string }) {
   // Back to the car list as it was left (sorting, filters), when we came from it.
   const listSearch = (location.state as { listSearch?: string } | null)?.listSearch
   const listUrl = `/admin/cars${listSearch ? `?${listSearch}` : ''}`
-  const [form, setForm] = useState<FormState>(() => (existing ? fromCar(existing) : EMPTY))
+  const { hosts } = useAdminHosts()
+  // "Add a car for this host" on the Hosts page opens the form with the host already chosen (?host=12).
+  const [search] = useSearchParams()
+  const [form, setForm] = useState<FormState>(() => (existing ? fromCar(existing) : { ...EMPTY, hostId: search.get('host') ?? '' }))
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -101,7 +107,8 @@ function AdminCarFormContent({ slug }: { slug?: string }) {
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     const f = form
-    const required = [f.brand, f.model, f.transmission, f.hostName, f.descriptionEn].every(v => v.trim())
+    const host = f.hostId === 'new' ? f.newHostName : f.hostId
+    const required = [f.brand, f.model, f.transmission, host, f.descriptionEn].every(v => v.trim())
     const numbers = [f.year, f.price, f.seats, f.horsepower, f.acceleration, f.topSpeed].every(positive)
     if (!required || !numbers) return setError(t.admin.errors.required)
     if (!f.pickup) return setError(t.admin.errors.address)
@@ -128,7 +135,9 @@ function AdminCarFormContent({ slug }: { slug?: string }) {
       range: (f.fuel === 'Electric' || f.fuel === 'Hybrid') && positive(f.range) ? Math.round(num(f.range)) : undefined,
       city: f.city,
       pickup: f.pickup,
-      hostName: f.hostName.trim(),
+      ...(f.hostId === 'new'
+        ? { newHost: { name: f.newHostName.trim(), phone: f.newHostPhone.trim() || undefined } }
+        : { hostId: Number(f.hostId) }),
       description: f.descriptionEn.trim(),
       features: lines(f.features),
       translations,
@@ -163,13 +172,29 @@ function AdminCarFormContent({ slug }: { slug?: string }) {
               <Field label={t.admin.fields.model} required><input value={form.model} onChange={e => set('model', e.target.value)} style={inputStyle} /></Field>
               <Field label={t.admin.fields.year} required><input inputMode="numeric" value={form.year} onChange={e => set('year', e.target.value)} style={inputStyle} /></Field>
               <Field label={t.admin.fields.price} required><input inputMode="numeric" value={form.price} onChange={e => set('price', e.target.value)} style={inputStyle} /></Field>
-              <Field label={t.admin.fields.hostName} required><input value={form.hostName} onChange={e => set('hostName', e.target.value)} style={inputStyle} /></Field>
+              <Field label={t.admin.fields.host} required>
+                <select value={form.hostId} onChange={e => set('hostId', e.target.value)} style={inputStyle}>
+                  <option value="" disabled>{hosts ? t.admin.fields.hostChoose : '…'}</option>
+                  {(hosts ?? []).map(h => (
+                    <option key={h.id} value={h.id}>
+                      {h.name} — {t.admin.fields.hostSummary(h.rating.toFixed(1), t.common.trips(h.trips), t.adminHosts.cars(h.cars.length))}
+                    </option>
+                  ))}
+                  <option value="new">{t.admin.fields.hostNew}</option>
+                </select>
+              </Field>
               <Field label={t.admin.status}>
                 <select value={form.status} onChange={e => set('status', e.target.value as FormState['status'])} style={inputStyle}>
                   <option value="ACTIVE">{t.admin.statusActive}</option>
                   <option value="HIDDEN">{t.admin.statusHidden}</option>
                 </select>
               </Field>
+              {form.hostId === 'new' && (
+                <>
+                  <Field label={t.admin.fields.hostNewName} required><input value={form.newHostName} onChange={e => set('newHostName', e.target.value)} style={inputStyle} /></Field>
+                  <Field label={t.admin.fields.hostPhone}><input type="tel" value={form.newHostPhone} onChange={e => set('newHostPhone', e.target.value)} style={inputStyle} /></Field>
+                </>
+              )}
             </div>
           </FormSection>
 

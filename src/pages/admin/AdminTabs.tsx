@@ -18,6 +18,7 @@ export function AdminTabs() {
     <nav style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 20 }}>
       <NavLink to="/admin" end style={tab}>{t.dashboard.tab}</NavLink>
       <NavLink to="/admin/cars" style={tab}>{t.adminBookings.tabCars}</NavLink>
+      <NavLink to="/admin/hosts" style={tab}>{t.adminHosts.tab}</NavLink>
       <NavLink to="/admin/bookings" style={tab}>
         {t.adminBookings.tabBookings} <CountBadge n={counts.bookings} />
       </NavLink>

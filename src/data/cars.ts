@@ -16,7 +16,7 @@ export type Car = {
   range?: number // electric range in km
   location: string // city shown in listings
   pickup: { address: string; lat: number; lng: number } // where the car is collected
-  host: { name: string; rating: number; trips: number }
+  host: { id?: number; name: string; rating: number; trips: number }
   description: string // English
   features: string[]
   translations?: Partial<Record<'ro' | 'ru', { description: string }>>

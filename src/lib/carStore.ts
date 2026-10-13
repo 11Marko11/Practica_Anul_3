@@ -67,8 +67,14 @@ export function useFreshCatalog() {
   return fresh
 }
 
-// What the admin form sends; the server fills in id, slug and the host's rating.
-export type CarInput = Omit<Car, 'id' | 'slug' | 'location' | 'host'> & { city: string; hostName: string; status: 'ACTIVE' | 'HIDDEN' }
+// What the admin form sends; the server fills in id and slug. The host is an existing one
+// (hostId) or a new one created with the car (newHost).
+export type CarInput = Omit<Car, 'id' | 'slug' | 'location' | 'host'> & {
+  city: string
+  hostId?: number
+  newHost?: { name: string; phone?: string }
+  status: 'ACTIVE' | 'HIDDEN'
+}
 
 export async function saveCar(input: CarInput, id?: number) {
   const res = id

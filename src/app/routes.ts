@@ -17,6 +17,7 @@ import { AdminTransactions } from '../pages/admin/AdminTransactions'
 import { AdminCustomers } from '../pages/admin/AdminCustomers'
 import { AdminReviews } from '../pages/admin/AdminReviews'
 import { AdminPromotions } from '../pages/admin/AdminPromotions'
+import { AdminHosts } from '../pages/admin/AdminHosts'
 import { MyBookings } from '../pages/MyBookings'
 import { BookingDetails } from '../pages/BookingDetails'
 import { Profile } from '../pages/Profile'
@@ -39,6 +40,7 @@ export const router = createBrowserRouter([
       { path: 'bookings/:id', Component: BookingDetails },
       { path: 'admin', Component: AdminDashboard },
       { path: 'admin/cars', Component: AdminCars },
+      { path: 'admin/hosts', Component: AdminHosts },
       { path: 'admin/bookings', Component: AdminBookings },
       { path: 'admin/pages', Component: AdminPages },
       { path: 'admin/transactions', Component: AdminTransactions },
