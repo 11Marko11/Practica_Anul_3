@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import type { Prisma } from '../generated/prisma/client.js'
 
-export const carInclude = { photos: { orderBy: { position: 'asc' } } } as const satisfies Prisma.CarInclude
+export const carInclude = { photos: { orderBy: { position: 'asc' } }, host: true } as const satisfies Prisma.CarInclude
 type CarRow = Prisma.CarGetPayload<{ include: typeof carInclude }>
 
 // The car as the website uses it (same shape as its `Car` type in src/data/cars.ts).
@@ -26,7 +26,7 @@ export function toCarDto(car: CarRow) {
     range: car.range ?? undefined,
     location: `${car.city}, Moldova`,
     pickup: { address: car.pickupAddress, lat: car.pickupLat, lng: car.pickupLng },
-    host: { name: car.hostName, rating: car.hostRating, trips: car.hostTrips },
+    host: hostDto(car.host),
     description: car.description,
     features: car.features,
     translations: {
@@ -36,6 +36,11 @@ export function toCarDto(car: CarRow) {
     status: car.status,
     createdAt: car.createdAt.toISOString(), // for the admin list's "recently added" order
   }
+}
+
+// The host as shown on a car's page (the rating to one decimal, as on the site).
+export function hostDto(host: { id: number; name: string; rating: number; trips: number }) {
+  return { id: host.id, name: host.name, rating: Math.round(host.rating * 10) / 10, trips: host.trips }
 }
 
 const text = (max: number) => z.string().trim().min(1).max(max)
@@ -57,7 +62,9 @@ export const carInput = z.object({
   range: z.int().positive().max(2000).nullish(),
   city: text(60),
   pickup: z.object({ address: text(200), lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) }),
-  hostName: text(80),
+  // An existing host, or the name (and phone) of a new one to create with the car.
+  hostId: z.int().positive().optional(),
+  newHost: z.object({ name: text(80), phone: optionalText(30) }).optional(),
   description: text(5000),
   translations: z
     .object({
@@ -68,10 +75,10 @@ export const carInput = z.object({
   features: z.array(text(120)).max(40).default([]),
   photos: z.array(text(2000)).min(1).max(20),
   status: z.enum(['ACTIVE', 'HIDDEN']).default('ACTIVE'),
-})
+}).refine(c => !!c.hostId !== !!c.newHost, { message: 'host required', path: ['hostId'] })
 export type CarInput = z.infer<typeof carInput>
 
-// The database columns for a car, from the admin form (photos are handled separately).
+// The database columns for a car, from the admin form (photos and the host are handled separately).
 export function carData(input: CarInput) {
   return {
     brand: input.brand,
@@ -90,7 +97,6 @@ export function carData(input: CarInput) {
     pickupAddress: input.pickup.address,
     pickupLat: input.pickup.lat,
     pickupLng: input.pickup.lng,
-    hostName: input.hostName,
     description: input.description,
     descriptionRo: input.translations.ro?.description ?? null,
     descriptionRu: input.translations.ru?.description ?? null,

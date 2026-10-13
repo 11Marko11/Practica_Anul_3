@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { requireUser } from '../auth/guards.js'
 import { prisma } from '../db.js'
+import type { Prisma } from '../generated/prisma/client.js'
 import { HttpError } from '../http/errors.js'
 
 const slugParam = z.object({ slug: z.string().max(200) })
@@ -55,8 +56,12 @@ export async function reviewRoutes(app: FastifyInstance) {
     const user = request.user!
     const booking = await reviewableBooking(user.id, carId)
     if (!booking) throw new HttpError(403, 'review-needs-trip')
-    const review = await prisma.review.create({
-      data: { carId, userId: user.id, bookingId: booking.id, authorName: user.name, rating: input.rating, text: input.text },
+    const review = await prisma.$transaction(async tx => {
+      const created = await tx.review.create({
+        data: { carId, userId: user.id, bookingId: booking.id, authorName: user.name, rating: input.rating, text: input.text },
+      })
+      await rateHost(tx, carId, input.rating, 1)
+      return created
     })
     reply.code(201)
     return { id: review.id }
@@ -66,10 +71,23 @@ export async function reviewRoutes(app: FastifyInstance) {
   app.delete('/reviews/:id', { preHandler: requireUser }, async request => {
     const { id } = idParam.parse(request.params)
     const user = request.user!
-    const review = await prisma.review.findUnique({ where: { id }, select: { userId: true } })
+    const review = await prisma.review.findUnique({ where: { id }, select: { userId: true, carId: true, rating: true } })
     if (!review) throw new HttpError(404, 'review-not-found')
     if (review.userId !== user.id && user.role !== 'ADMIN') throw new HttpError(403, 'forbidden')
-    await prisma.review.delete({ where: { id } })
+    await prisma.$transaction(async tx => {
+      await tx.review.delete({ where: { id } })
+      await rateHost(tx, review.carId, review.rating, -1)
+    })
     return { ok: true }
   })
+}
+
+// Adds (+1) or removes (-1) one rating from the average of the car's host.
+async function rateHost(tx: Prisma.TransactionClient, carId: number, rating: number, change: 1 | -1) {
+  const car = await tx.car.findUnique({ where: { id: carId }, select: { host: { select: { id: true, rating: true, ratingCount: true } } } })
+  if (!car) return
+  const { id, rating: average, ratingCount } = car.host
+  const count = ratingCount + change
+  const next = count > 0 ? (average * ratingCount + change * rating) / count : 5
+  await tx.host.update({ where: { id }, data: { rating: Math.min(5, Math.max(1, next)), ratingCount: Math.max(0, count) } })
 }

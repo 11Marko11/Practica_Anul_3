@@ -38,6 +38,6 @@ export function markHoldReleased(paymentIntentId: string) {
 export async function completeBooking(bookingId: string, carId: number) {
   await prisma.$transaction(async tx => {
     const done = await tx.booking.updateMany({ where: { id: bookingId, status: 'CONFIRMED' }, data: { status: 'COMPLETED' } })
-    if (done.count) await tx.car.update({ where: { id: carId }, data: { hostTrips: { increment: 1 } } })
+    if (done.count) await tx.car.update({ where: { id: carId }, data: { host: { update: { trips: { increment: 1 } } } } })
   })
 }
