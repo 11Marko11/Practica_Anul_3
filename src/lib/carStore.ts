@@ -36,7 +36,7 @@ function useStore() {
   return useSyncExternalStore(subscribe, () => state)
 }
 
-const active = (cars: Car[]) => cars.filter(c => c.status !== 'HIDDEN')
+const active = (cars: Car[]) => cars.filter(c => (c.status ?? 'ACTIVE') === 'ACTIVE')
 
 // Active cars, for the public pages.
 export function useCars() {
@@ -67,13 +67,12 @@ export function useFreshCatalog() {
   return fresh
 }
 
-// What the admin form sends; the server fills in id and slug. The host is an existing one
-// (hostId) or a new one created with the car (newHost).
-export type CarInput = Omit<Car, 'id' | 'slug' | 'location' | 'host'> & {
+// What the car forms send; the server fills in id and slug. Admins also choose the host
+// (hostId); a host's own cars are always theirs.
+export type CarInput = Omit<Car, 'id' | 'slug' | 'location' | 'host' | 'status'> & {
   city: string
   hostId?: number
-  newHost?: { name: string; phone?: string }
-  status: 'ACTIVE' | 'HIDDEN'
+  status: 'ACTIVE' | 'HIDDEN' | 'REMOVED'
 }
 
 export async function saveCar(input: CarInput, id?: number) {

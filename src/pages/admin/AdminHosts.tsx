@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import { useI18n } from '../../i18n/I18nContext'
 import { ApiError } from '../../lib/api'
-import { createHost, deleteHost, updateHost, useAdminHosts, type AdminHost, type HostInput } from '../../lib/hosts'
+import { createHostWithAccount, deleteHost, updateHost, updateHostAccount, useAdminHosts, type AccountInput, type AdminHost, type HostInput } from '../../lib/hosts'
 import { useUrlParams } from '../../lib/useUrlParams'
 import { pageFrom, Pagination } from '../../components/Pagination'
 import { AdminGuard } from './AdminGuard'
@@ -48,8 +48,8 @@ function HostsContent() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  async function add(input: HostInput) {
-    await createHost(input)
+  async function add(input: HostInput & AccountInput) {
+    await createHostWithAccount({ ...input, password: input.password ?? '' })
     setAdding(false)
     await reload()
   }
@@ -76,7 +76,7 @@ function HostsContent() {
       <main style={{ maxWidth: 1000, margin: '0 auto', padding: '24px 24px 96px' }}>
         {adding && (
           <div style={{ padding: 20, borderRadius: 16, background: '#f5f5f7', marginBottom: 20 }}>
-            <HostEditor onSave={add} onCancel={() => setAdding(false)} />
+            <HostEditor withAccount onSave={add} onCancel={() => setAdding(false)} />
           </div>
         )}
 
@@ -104,11 +104,17 @@ function HostsContent() {
 function HostRow({ host, onChanged }: { host: AdminHost; onChanged: () => Promise<unknown> }) {
   const { t } = useI18n()
   const h = t.adminHosts
-  const [editing, setEditing] = useState(false)
+  const [editing, setEditing] = useState<'details' | 'account' | null>(null)
 
   async function save(input: HostInput) {
     await updateHost(host.id, input)
-    setEditing(false)
+    setEditing(null)
+    await onChanged()
+  }
+
+  async function saveAccount(input: AccountInput) {
+    await updateHostAccount(host.id, input)
+    setEditing(null)
     await onChanged()
   }
 
@@ -124,8 +130,10 @@ function HostRow({ host, onChanged }: { host: AdminHost; onChanged: () => Promis
 
   return (
     <li style={{ padding: '18px 0', borderBottom: '1px solid #f0f0f0' }}>
-      {editing ? (
-        <HostEditor host={host} onSave={save} onCancel={() => setEditing(false)} />
+      {editing === 'details' ? (
+        <HostEditor host={host} onSave={save} onCancel={() => setEditing(null)} />
+      ) : editing === 'account' ? (
+        <AccountEditor host={host} onSave={saveAccount} onCancel={() => setEditing(null)} />
       ) : (
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
           <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#1d1d1f', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, fontWeight: 600, flexShrink: 0 }}>
@@ -138,6 +146,7 @@ function HostRow({ host, onChanged }: { host: AdminHost; onChanged: () => Promis
               {host.account ? (
                 <Link to={`/admin/customers/${host.account.id}`} style={{ fontSize: 12, padding: '2px 9px', borderRadius: 980, background: '#e8f1fd', color: '#0071e3', textDecoration: 'none' }}>
                   {h.account}: {host.account.email}
+                  {!host.account.hasPassword && <span style={{ color: '#b25000' }}> · {h.noPassword}</span>}
                 </Link>
               ) : (
                 <span style={{ fontSize: 12, color: '#86868b' }}>{h.noAccount}</span>
@@ -149,15 +158,16 @@ function HostRow({ host, onChanged }: { host: AdminHost; onChanged: () => Promis
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10 }}>
               {host.cars.length === 0 && <span style={{ fontSize: 13, color: '#86868b' }}>{h.noCars}</span>}
               {host.cars.map(car => (
-                <Link key={car.id} to={`/admin/cars/${car.slug}`} style={{ fontSize: 12, padding: '4px 10px', borderRadius: 980, background: '#f5f5f7', color: car.status === 'HIDDEN' ? '#86868b' : '#1d1d1f', textDecoration: 'none' }}>
-                  {car.brand} {car.model} {car.year}{car.status === 'HIDDEN' && ` · ${h.hidden}`}
+                <Link key={car.id} to={`/admin/cars/${car.slug}`} style={{ fontSize: 12, padding: '4px 10px', borderRadius: 980, background: '#f5f5f7', color: car.status === 'ACTIVE' ? '#1d1d1f' : '#86868b', textDecoration: car.status === 'REMOVED' ? 'line-through' : 'none' }}>
+                  {car.brand} {car.model} {car.year}{car.status === 'HIDDEN' && ` · ${h.hidden}`}{car.status === 'REMOVED' && ` · ${t.admin.removed}`}
                 </Link>
               ))}
               <Link to={`/admin/cars/new?host=${host.id}`} style={{ fontSize: 12, padding: '4px 10px', color: '#0071e3', textDecoration: 'none' }}>{h.addCar}</Link>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 16, fontSize: 14, flexShrink: 0 }}>
-            <button onClick={() => setEditing(true)} style={{ ...linkButton, color: '#0071e3', fontWeight: 500 }}>{h.edit}</button>
+            <button onClick={() => setEditing('details')} style={{ ...linkButton, color: '#0071e3', fontWeight: 500 }}>{h.edit}</button>
+            <button onClick={() => setEditing('account')} style={{ ...linkButton, color: '#0071e3' }}>{h.accountEdit}</button>
             <button onClick={remove} style={{ ...linkButton, color: '#d70015' }}>{h.delete}</button>
           </div>
         </div>
@@ -166,23 +176,32 @@ function HostRow({ host, onChanged }: { host: AdminHost; onChanged: () => Promis
   )
 }
 
-// Name and phone of a host, for adding a new one or editing one.
-function HostEditor({ host, onSave, onCancel }: { host?: AdminHost; onSave: (input: HostInput) => Promise<void>; onCancel: () => void }) {
+// Name and phone of a host, for adding a new one (with the email and password of their
+// account) or editing one.
+function HostEditor({ host, withAccount = false, onSave, onCancel }: {
+  host?: AdminHost
+  withAccount?: boolean
+  onSave: (input: HostInput & AccountInput) => Promise<void>
+  onCancel: () => void
+}) {
   const { t } = useI18n()
   const h = t.adminHosts
   const [name, setName] = useState(host?.name ?? '')
   const [phone, setPhone] = useState(host?.phone ?? '')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const ready = name.trim() && (!withAccount || (email.trim() && password.length >= 8))
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!name.trim()) return
+    if (!ready) return
     setBusy(true)
     try {
-      await onSave({ name: name.trim(), phone: phone.trim() || undefined })
-    } catch {
-      setError(h.error)
+      await onSave({ name: name.trim(), phone: phone.trim() || undefined, email: email.trim(), ...(withAccount ? { password } : {}) })
+    } catch (err) {
+      setError(err instanceof ApiError && err.code === 'email-taken' ? h.emailTaken : h.error)
       setBusy(false)
     }
   }
@@ -197,12 +216,73 @@ function HostEditor({ host, onSave, onCancel }: { host?: AdminHost; onSave: (inp
         {h.phone}
         <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} maxLength={30} placeholder="+373…" style={{ ...control, borderRadius: 10 }} />
       </label>
-      <button type="submit" disabled={busy || !name.trim()} style={{ fontSize: 14, fontWeight: 500, padding: '10px 20px', borderRadius: 980, background: '#1d1d1f', color: '#fff', border: 'none', cursor: 'pointer', opacity: busy || !name.trim() ? 0.5 : 1 }}>
+      {withAccount && <AccountFields email={email} password={password} onEmail={setEmail} onPassword={setPassword} passwordLabel={h.password} />}
+      <button type="submit" disabled={busy || !ready} style={{ fontSize: 14, fontWeight: 500, padding: '10px 20px', borderRadius: 980, background: '#1d1d1f', color: '#fff', border: 'none', cursor: 'pointer', opacity: busy || !ready ? 0.5 : 1 }}>
         {h.save}
       </button>
       <button type="button" onClick={onCancel} style={{ ...linkButton, color: '#6e6e73', padding: '10px 4px' }}>{h.cancel}</button>
       {error && <p style={{ flexBasis: '100%', fontSize: 13, color: '#d70015', margin: 0 }}>{error}</p>}
     </form>
+  )
+}
+
+// Email and password of a host's account. Without an account yet, a password is required.
+function AccountEditor({ host, onSave, onCancel }: { host: AdminHost; onSave: (input: AccountInput) => Promise<void>; onCancel: () => void }) {
+  const { t } = useI18n()
+  const h = t.adminHosts
+  const [email, setEmail] = useState(host.account?.email ?? '')
+  const [password, setPassword] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const needsPassword = !host.account
+  const ready = email.trim() && (password ? password.length >= 8 : !needsPassword)
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!ready) return
+    setBusy(true)
+    try {
+      await onSave({ email: email.trim(), ...(password ? { password } : {}) })
+    } catch (err) {
+      setError(err instanceof ApiError && err.code === 'email-taken' ? h.emailTaken : h.error)
+      setBusy(false)
+    }
+  }
+
+  return (
+    <form onSubmit={submit} style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+      <p style={{ flexBasis: '100%', fontSize: 15, fontWeight: 600, color: '#1d1d1f', margin: 0 }}>{h.accountEdit}: {host.name}</p>
+      <AccountFields email={email} password={password} onEmail={setEmail} onPassword={setPassword} passwordLabel={needsPassword ? h.password : h.newPassword} />
+      <button type="submit" disabled={busy || !ready} style={{ fontSize: 14, fontWeight: 500, padding: '10px 20px', borderRadius: 980, background: '#1d1d1f', color: '#fff', border: 'none', cursor: 'pointer', opacity: busy || !ready ? 0.5 : 1 }}>
+        {h.save}
+      </button>
+      <button type="button" onClick={onCancel} style={{ ...linkButton, color: '#6e6e73', padding: '10px 4px' }}>{h.cancel}</button>
+      {error && <p style={{ flexBasis: '100%', fontSize: 13, color: '#d70015', margin: 0 }}>{error}</p>}
+    </form>
+  )
+}
+
+function AccountFields({ email, password, onEmail, onPassword, passwordLabel }: {
+  email: string
+  password: string
+  onEmail: (v: string) => void
+  onPassword: (v: string) => void
+  passwordLabel: string
+}) {
+  const { t } = useI18n()
+  const h = t.adminHosts
+  return (
+    <>
+      <label style={field}>
+        {h.email}
+        <input type="email" value={email} onChange={e => onEmail(e.target.value)} required maxLength={254} autoComplete="off" style={{ ...control, borderRadius: 10 }} />
+      </label>
+      <label style={field}>
+        {passwordLabel}
+        <input type="text" value={password} onChange={e => onPassword(e.target.value)} minLength={8} maxLength={200} autoComplete="new-password" style={{ ...control, borderRadius: 10 }} />
+        <span style={{ fontSize: 11, color: '#86868b' }}>{h.passwordHint}</span>
+      </label>
+    </>
   )
 }
 

@@ -9,7 +9,7 @@ import { Login } from '../pages/Login'
 import { Terms } from '../pages/Terms'
 import { Privacy } from '../pages/Privacy'
 import { AdminCars } from '../pages/admin/AdminCars'
-import { AdminCarForm } from '../pages/admin/AdminCarForm'
+import { AdminCarForm, HostCarForm } from '../pages/admin/AdminCarForm'
 import { AdminBookings } from '../pages/admin/AdminBookings'
 import { AdminPages } from '../pages/admin/AdminPages'
 import { AdminDashboard } from '../pages/admin/AdminDashboard'
@@ -43,6 +43,8 @@ export const router = createBrowserRouter([
       { path: 'admin/cars', Component: AdminCars },
       { path: 'admin/hosts', Component: AdminHosts },
       { path: 'host', Component: HostPanel },
+      { path: 'host/cars/new', Component: HostCarForm },
+      { path: 'host/cars/:id', Component: HostCarForm },
       { path: 'admin/bookings', Component: AdminBookings },
       { path: 'admin/pages', Component: AdminPages },
       { path: 'admin/transactions', Component: AdminTransactions },

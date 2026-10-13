@@ -4,7 +4,7 @@ import { useAuth } from '../auth/AuthContext'
 import { Money } from '../components/Money'
 import { photoUrl } from '../data/cars'
 import { useI18n } from '../i18n/I18nContext'
-import { api } from '../lib/api'
+import { api, ApiError } from '../lib/api'
 import type { BookingStatus } from '../lib/bookings'
 import { formatDate } from '../lib/rental'
 import { useUrlParams } from '../lib/useUrlParams'
@@ -70,9 +70,21 @@ function HostPanelContent() {
   const h = t.hostPortal
   const [data, setData] = useState<HostData | null>(null)
   const [failed, setFailed] = useState(false)
+  const load = () => api<HostData>('/host').then(setData).catch(() => setFailed(true))
   useEffect(() => {
-    api<HostData>('/host').then(setData).catch(() => setFailed(true))
+    load()
   }, [])
+
+  // The car leaves the site at once; the server refuses while a booking is still going on.
+  async function remove(car: CarRef) {
+    if (!confirm(h.deleteAsk(`${car.brand} ${car.model}`))) return
+    try {
+      await api(`/host/cars/${car.id}`, { method: 'DELETE' })
+      await load()
+    } catch (err) {
+      alert(err instanceof ApiError && err.code === 'car-has-active-bookings' ? h.activeBookings : h.deleteError)
+    }
+  }
 
   const { params, edit } = useUrlParams()
   const tab: Tab = TABS.includes(params.get('tab') as Tab) ? (params.get('tab') as Tab) : 'cars'
@@ -90,7 +102,10 @@ function HostPanelContent() {
         <div style={{ maxWidth: 1000, margin: '0 auto' }}>
           <p style={{ fontSize: 13, color: '#a1a1a6', margin: '0 0 8px' }}>{h.eyebrow}</p>
           <h1 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#f5f5f7', margin: 0, lineHeight: 1.05 }}>{data?.host.name ?? '…'}</h1>
-          <p style={{ fontSize: 14, color: '#a1a1a6', margin: '12px 0 0', maxWidth: 620, lineHeight: 1.5 }}>{h.intro}</p>
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+            <p style={{ fontSize: 14, color: '#a1a1a6', margin: '12px 0 0', maxWidth: 620, lineHeight: 1.5 }}>{h.intro}</p>
+            <Link to="/host/cars/new" style={{ fontSize: 15, fontWeight: 500, padding: '12px 24px', borderRadius: 980, background: '#f5f5f7', color: '#1c1c1e', textDecoration: 'none' }}>{h.addCar}</Link>
+          </div>
         </div>
       </div>
 
@@ -148,7 +163,11 @@ function HostPanelContent() {
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
                       <span style={{ fontSize: 12, color: '#86868b' }}>{h.earned}</span>
                       <strong style={{ fontSize: 16, color: '#1d1d1f' }}><Money value={car.earned} /></strong>
-                      <Link to={`/cars/${car.slug}`} style={{ fontSize: 13, color: '#0071e3', textDecoration: 'none' }}>{h.view}</Link>
+                      <div style={{ display: 'flex', gap: 14, fontSize: 13 }}>
+                        {car.status === 'ACTIVE' && <Link to={`/cars/${car.slug}`} style={{ color: '#6e6e73', textDecoration: 'none' }}>{h.view}</Link>}
+                        <Link to={`/host/cars/${car.id}`} style={{ color: '#0071e3', textDecoration: 'none', fontWeight: 500 }}>{h.edit}</Link>
+                        <button onClick={() => remove(car)} style={{ fontSize: 13, color: '#d70015', background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit' }}>{h.delete}</button>
+                      </div>
                     </div>
                   </li>
                 ))}

@@ -20,9 +20,10 @@ export type Car = {
   host: { id?: number; name: string; rating: number | null; reviews?: number; trips: number }
   description: string // English
   features: string[]
+  defects?: string[] // known flaws listed by the host
   translations?: Partial<Record<'ro' | 'ru', { description: string }>>
   photoCredits?: ({ text: string; url: string | null } | null)[] // author and licence, same order as photos
-  status?: 'ACTIVE' | 'HIDDEN' // hidden cars are only sent to admins
+  status?: 'ACTIVE' | 'HIDDEN' | 'REMOVED' // hidden and removed cars are only sent to admins
   createdAt?: string // when the car was added
 }
 
@@ -37,6 +38,6 @@ export function carImage(car: Car, width: number, height: number, index = 0) {
 // 330 px for thumbnails; anything else is treated as an Unsplash photo id.
 export function photoUrl(photo: string, width: number, height: number) {
   if (photo.startsWith('/cars/')) return width <= 400 ? photo.replace(/-960\.jpg$/, '-330.jpg') : photo
-  if (/^https?:\/\//.test(photo)) return photo
+  if (/^https?:\/\//.test(photo) || photo.startsWith('/api/')) return photo // full links and uploaded photos
   return `https://images.unsplash.com/${photo}?w=${width}&h=${height}&fit=crop&auto=format`
 }

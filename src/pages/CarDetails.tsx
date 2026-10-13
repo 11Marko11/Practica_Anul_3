@@ -172,6 +172,20 @@ function CarDetailsContent({ car }: { car: Car }) {
               </ul>
             </Section>
 
+            {(car.defects?.length ?? 0) > 0 && (
+              <Section title={t.car.defects}>
+                <p style={{ fontSize: 14, color: '#6e6e73', margin: '0 0 12px' }}>{t.car.defectsNote}</p>
+                <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {car.defects!.map(d => (
+                    <li key={d} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 15, color: '#1d1d1f' }}>
+                      <span aria-hidden style={{ flexShrink: 0, width: 18, height: 18, borderRadius: '50%', background: '#fff4e5', color: '#b25000', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>!</span>
+                      {d}
+                    </li>
+                  ))}
+                </ul>
+              </Section>
+            )}
+
             <Section title={t.car.pickupLocation}>
               <PickupMap car={car} />
             </Section>

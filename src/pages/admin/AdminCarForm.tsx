@@ -1,10 +1,12 @@
-import { useRef, useState, type ReactNode } from 'react'
-import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
+import { useAuth } from '../../auth/AuthContext'
 import { CITIES, photoUrl, type Car } from '../../data/cars'
-import { saveCar, useAllCars, useFreshCatalog } from '../../lib/carStore'
-import { ApiError } from '../../lib/api'
+import { saveCar, useAllCars, useFreshCatalog, type CarInput } from '../../lib/carStore'
+import { api, ApiError } from '../../lib/api'
 import { searchAddress, type Place } from '../../lib/delivery'
 import { useAdminHosts } from '../../lib/hosts'
+import { uploadPhoto } from '../../lib/photos'
 import { useI18n } from '../../i18n/I18nContext'
 import { AdminGuard } from './AdminGuard'
 
@@ -25,7 +27,75 @@ function FreshCatalog({ children }: { children: ReactNode }) {
   return useFreshCatalog() ? <>{children}</> : <div style={{ minHeight: '80vh' }} />
 }
 
+function AdminCarFormContent({ slug }: { slug?: string }) {
+  const existing = useAllCars().find(c => c.slug === slug)
+  const location = useLocation()
+  const { t } = useI18n()
+  // Back to the car list as it was left (sorting, filters), when we came from it.
+  const listSearch = (location.state as { listSearch?: string } | null)?.listSearch
+  const listUrl = `/admin/cars${listSearch ? `?${listSearch}` : ''}`
+  // "Add a car for this host" on the Hosts page opens the form with the host already chosen (?host=12).
+  const [search] = useSearchParams()
+
+  if (slug && !existing) return <NotFound backUrl={listUrl} backLabel={t.admin.back} />
+  return (
+    <CarForm
+      mode="admin"
+      existing={existing}
+      initialHostId={search.get('host') ?? ''}
+      backUrl={listUrl}
+      backLabel={t.admin.back}
+      title={existing ? t.admin.editTitle : t.admin.newTitle}
+      save={input => saveCar(input, existing?.id)}
+    />
+  )
+}
+
+// /host/cars/new and /host/cars/:id: a host adds or edits one of their own cars.
+export function HostCarForm() {
+  const { id } = useParams()
+  const { user, loading } = useAuth()
+  const location = useLocation()
+  if (loading) return <div style={{ minHeight: '70vh' }} />
+  if (!user) return <Navigate to="/login" state={{ from: location.pathname }} replace />
+  if (!user.host) return <Navigate to="/host" replace />
+  return <HostCarFormContent key={id ?? 'new'} id={id} />
+}
+
+function HostCarFormContent({ id }: { id?: string }) {
+  const { t } = useI18n()
+  const h = t.hostPortal
+  const [existing, setExisting] = useState<Car | null | undefined>(id ? undefined : null)
+  useEffect(() => {
+    if (id) api<{ car: Car }>(`/host/cars/${id}`).then(r => setExisting(r.car)).catch(() => setExisting(null))
+  }, [id])
+
+  if (existing === undefined) return <div style={{ minHeight: '80vh' }} />
+  if (id && !existing) return <NotFound backUrl="/host" backLabel={h.back} />
+  return (
+    <CarForm
+      mode="host"
+      existing={existing ?? undefined}
+      backUrl="/host"
+      backLabel={h.back}
+      title={existing ? h.editTitle : h.newTitle}
+      save={input => (existing ? api(`/host/cars/${existing.id}`, { method: 'PUT', body: input }) : api('/host/cars', { body: input }))}
+    />
+  )
+}
+
+function NotFound({ backUrl, backLabel }: { backUrl: string; backLabel: string }) {
+  const { t } = useI18n()
+  return (
+    <div style={{ paddingTop: 52, textAlign: 'center', padding: '140px 24px' }}>
+      <h1 style={{ fontSize: 28, fontWeight: 600, color: '#1d1d1f', margin: '0 0 20px' }}>{t.car.notFound}</h1>
+      <Link to={backUrl} style={{ color: '#0071e3', textDecoration: 'none' }}>{backLabel}</Link>
+    </div>
+  )
+}
+
 type Pickup = { address: string; lat: number; lng: number }
+type Status = 'ACTIVE' | 'HIDDEN' | 'REMOVED'
 
 // Number fields are kept as text while typing and checked on save.
 type FormState = {
@@ -40,64 +110,57 @@ type FormState = {
   topSpeed: string
   transmission: string
   drive: Car['drive']
-  status: 'ACTIVE' | 'HIDDEN'
+  status: Status
   range: string
-  hostId: string // a host's id, or 'new' to create one with the car
-  newHostName: string
-  newHostPhone: string
+  hostId: string
   city: string
   address: string
   pickup: Pickup | null
-  photos: string
+  photos: string[]
   descriptionEn: string
   descriptionRo: string
   descriptionRu: string
   features: string
+  defects: string
 }
 
 const EMPTY: FormState = {
   brand: '', model: '', year: String(new Date().getFullYear()), price: '', fuel: 'Petrol', seats: '4',
-  horsepower: '', acceleration: '', topSpeed: '', transmission: '', drive: 'FWD', status: 'ACTIVE', range: '', hostId: '', newHostName: '', newHostPhone: '',
-  city: CITIES[0], address: '', pickup: null, photos: '', descriptionEn: '', descriptionRo: '', descriptionRu: '', features: '',
+  horsepower: '', acceleration: '', topSpeed: '', transmission: '', drive: 'FWD', status: 'ACTIVE', range: '', hostId: '',
+  city: CITIES[0], address: '', pickup: null, photos: [], descriptionEn: '', descriptionRo: '', descriptionRu: '', features: '', defects: '',
 }
 
 function fromCar(car: Car): FormState {
   return {
     brand: car.brand, model: car.model, year: String(car.year), price: String(car.pricePerDay), fuel: car.fuel, seats: String(car.seats),
     horsepower: String(car.horsepower), acceleration: String(car.acceleration), topSpeed: String(car.topSpeed), transmission: car.transmission,
-    drive: car.drive, status: car.status ?? 'ACTIVE', range: car.range ? String(car.range) : '', hostId: car.host.id ? String(car.host.id) : '', newHostName: '', newHostPhone: '',
+    drive: car.drive, status: car.status ?? 'ACTIVE', range: car.range ? String(car.range) : '', hostId: car.host.id ? String(car.host.id) : '',
     city: car.location.split(',')[0], address: car.pickup.address, pickup: car.pickup,
-    photos: car.photos.join('\n'), descriptionEn: car.description, descriptionRo: car.translations?.ro?.description ?? '', descriptionRu: car.translations?.ru?.description ?? '',
-    features: car.features.join('\n'),
+    photos: car.photos, descriptionEn: car.description, descriptionRo: car.translations?.ro?.description ?? '', descriptionRu: car.translations?.ru?.description ?? '',
+    features: car.features.join('\n'), defects: (car.defects ?? []).join('\n'),
   }
 }
 
 const lines = (text: string) => text.split('\n').map(l => l.trim()).filter(Boolean)
 const positive = (text: string) => Number(text.replace(',', '.')) > 0
 
-function AdminCarFormContent({ slug }: { slug?: string }) {
-  const existing = useAllCars().find(c => c.slug === slug)
+// The car form shared by admins (who also pick the host) and hosts (their own cars).
+function CarForm({ mode, existing, initialHostId = '', backUrl, backLabel, title, save }: {
+  mode: 'admin' | 'host'
+  existing?: Car
+  initialHostId?: string
+  backUrl: string
+  backLabel: string
+  title: string
+  save: (input: CarInput) => Promise<unknown>
+}) {
   const navigate = useNavigate()
-  const location = useLocation()
   const { t } = useI18n()
-  // Back to the car list as it was left (sorting, filters), when we came from it.
-  const listSearch = (location.state as { listSearch?: string } | null)?.listSearch
-  const listUrl = `/admin/cars${listSearch ? `?${listSearch}` : ''}`
-  const { hosts } = useAdminHosts()
-  // "Add a car for this host" on the Hosts page opens the form with the host already chosen (?host=12).
-  const [search] = useSearchParams()
-  const [form, setForm] = useState<FormState>(() => (existing ? fromCar(existing) : { ...EMPTY, hostId: search.get('host') ?? '' }))
+  const isAdmin = mode === 'admin'
+  const { hosts } = useAdminHosts(isAdmin)
+  const [form, setForm] = useState<FormState>(() => (existing ? fromCar(existing) : { ...EMPTY, hostId: initialHostId }))
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
-
-  if (slug && !existing) {
-    return (
-      <div style={{ paddingTop: 52, textAlign: 'center', padding: '140px 24px' }}>
-        <h1 style={{ fontSize: 28, fontWeight: 600, color: '#1d1d1f', margin: '0 0 20px' }}>{t.car.notFound}</h1>
-        <Link to={listUrl} style={{ color: '#0071e3', textDecoration: 'none' }}>{t.admin.back}</Link>
-      </div>
-    )
-  }
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm(f => ({ ...f, [key]: value }))
@@ -107,26 +170,25 @@ function AdminCarFormContent({ slug }: { slug?: string }) {
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     const f = form
-    const host = f.hostId === 'new' ? f.newHostName : f.hostId
-    const required = [f.brand, f.model, f.transmission, host, f.descriptionEn].every(v => v.trim())
+    const required = [f.brand, f.model, f.transmission, f.descriptionEn, isAdmin ? f.hostId : 'host'].every(v => v.trim())
     const numbers = [f.year, f.price, f.seats, f.horsepower, f.acceleration, f.topSpeed].every(positive)
     if (!required || !numbers) return setError(t.admin.errors.required)
     if (!f.pickup) return setError(t.admin.errors.address)
-    if (!lines(f.photos).length) return setError(t.admin.errors.photos)
+    if (!f.photos.length) return setError(t.admin.errors.photos)
 
     const num = (text: string) => Number(text.replace(',', '.'))
     const translations: Car['translations'] = {}
     if (f.descriptionRo.trim()) translations.ro = { description: f.descriptionRo.trim() }
     if (f.descriptionRu.trim()) translations.ru = { description: f.descriptionRu.trim() }
 
-    const input = {
+    const input: CarInput = {
       brand: f.brand.trim(),
       model: f.model.trim(),
       year: Math.round(num(f.year)),
       pricePerDay: Math.round(num(f.price)),
       fuel: f.fuel,
       seats: Math.round(num(f.seats)),
-      photos: lines(f.photos),
+      photos: f.photos,
       horsepower: Math.round(num(f.horsepower)),
       acceleration: num(f.acceleration),
       topSpeed: Math.round(num(f.topSpeed)),
@@ -135,19 +197,18 @@ function AdminCarFormContent({ slug }: { slug?: string }) {
       range: (f.fuel === 'Electric' || f.fuel === 'Hybrid') && positive(f.range) ? Math.round(num(f.range)) : undefined,
       city: f.city,
       pickup: f.pickup,
-      ...(f.hostId === 'new'
-        ? { newHost: { name: f.newHostName.trim(), phone: f.newHostPhone.trim() || undefined } }
-        : { hostId: Number(f.hostId) }),
+      ...(isAdmin ? { hostId: Number(f.hostId) } : {}),
       description: f.descriptionEn.trim(),
       features: lines(f.features),
+      defects: lines(f.defects),
       translations,
       status: f.status,
     }
     setBusy(true)
     try {
       // The server creates the slug (the car's web address); it stays the same when the car is edited.
-      await saveCar(input, existing?.id)
-      navigate(listUrl)
+      await save(input)
+      navigate(backUrl)
     } catch (err) {
       setError(err instanceof ApiError && err.code === 'validation' ? t.admin.errors.required : t.admin.saveError)
       setBusy(false)
@@ -159,10 +220,8 @@ function AdminCarFormContent({ slug }: { slug?: string }) {
   return (
     <div style={{ paddingTop: 52 }}>
       <main style={{ maxWidth: 820, margin: '0 auto', padding: '32px 24px 96px' }}>
-        <Link to={listUrl} style={{ fontSize: 14, color: '#0071e3', textDecoration: 'none' }}>{t.admin.back}</Link>
-        <h1 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#1d1d1f', margin: '16px 0 8px' }}>
-          {existing ? t.admin.editTitle : t.admin.newTitle}
-        </h1>
+        <Link to={backUrl} style={{ fontSize: 14, color: '#0071e3', textDecoration: 'none' }}>{backLabel}</Link>
+        <h1 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#1d1d1f', margin: '16px 0 8px' }}>{title}</h1>
         {existing && <p style={{ fontSize: 15, color: '#6e6e73', margin: 0 }}>{existing.brand} {existing.model}</p>}
 
         <form onSubmit={submit} noValidate>
@@ -172,29 +231,25 @@ function AdminCarFormContent({ slug }: { slug?: string }) {
               <Field label={t.admin.fields.model} required><input value={form.model} onChange={e => set('model', e.target.value)} style={inputStyle} /></Field>
               <Field label={t.admin.fields.year} required><input inputMode="numeric" value={form.year} onChange={e => set('year', e.target.value)} style={inputStyle} /></Field>
               <Field label={t.admin.fields.price} required><input inputMode="numeric" value={form.price} onChange={e => set('price', e.target.value)} style={inputStyle} /></Field>
-              <Field label={t.admin.fields.host} required>
-                <select value={form.hostId} onChange={e => set('hostId', e.target.value)} style={inputStyle}>
-                  <option value="" disabled>{hosts ? t.admin.fields.hostChoose : '…'}</option>
-                  {(hosts ?? []).map(h => (
-                    <option key={h.id} value={h.id}>
-                      {h.name} — {t.admin.fields.hostSummary(h.rating?.toFixed(1) ?? null, t.common.trips(h.trips), t.adminHosts.cars(h.cars.length))}
-                    </option>
-                  ))}
-                  <option value="new">{t.admin.fields.hostNew}</option>
-                </select>
-              </Field>
+              {isAdmin && (
+                <Field label={t.admin.fields.host} required>
+                  <select value={form.hostId} onChange={e => set('hostId', e.target.value)} style={inputStyle}>
+                    <option value="" disabled>{hosts ? t.admin.fields.hostChoose : '…'}</option>
+                    {(hosts ?? []).map(h => (
+                      <option key={h.id} value={h.id}>
+                        {h.name} — {t.admin.fields.hostSummary(h.rating?.toFixed(1) ?? null, t.common.trips(h.trips), t.adminHosts.cars(h.cars.length))}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+              )}
               <Field label={t.admin.status}>
-                <select value={form.status} onChange={e => set('status', e.target.value as FormState['status'])} style={inputStyle}>
+                <select value={form.status} onChange={e => set('status', e.target.value as Status)} style={inputStyle}>
                   <option value="ACTIVE">{t.admin.statusActive}</option>
                   <option value="HIDDEN">{t.admin.statusHidden}</option>
+                  {isAdmin && existing?.status === 'REMOVED' && <option value="REMOVED">{t.admin.statusRemoved}</option>}
                 </select>
               </Field>
-              {form.hostId === 'new' && (
-                <>
-                  <Field label={t.admin.fields.hostNewName} required><input value={form.newHostName} onChange={e => set('newHostName', e.target.value)} style={inputStyle} /></Field>
-                  <Field label={t.admin.fields.hostPhone}><input type="tel" value={form.newHostPhone} onChange={e => set('newHostPhone', e.target.value)} style={inputStyle} /></Field>
-                </>
-              )}
             </div>
           </FormSection>
 
@@ -234,10 +289,7 @@ function AdminCarFormContent({ slug }: { slug?: string }) {
           </FormSection>
 
           <FormSection title={t.admin.sections.photos}>
-            <Field label={t.admin.fields.photos} hint={t.admin.hints.photos} required>
-              <textarea rows={4} value={form.photos} onChange={e => set('photos', e.target.value)} placeholder="https://…" style={{ ...inputStyle, resize: 'vertical', fontSize: 13, fontFamily: 'ui-monospace, monospace' }} />
-            </Field>
-            <PhotoPreviews photos={lines(form.photos)} />
+            <PhotoManager photos={form.photos} onChange={photos => set('photos', photos)} />
           </FormSection>
 
           <FormSection title={t.admin.sections.description}>
@@ -255,13 +307,19 @@ function AdminCarFormContent({ slug }: { slug?: string }) {
             </Field>
           </FormSection>
 
+          <FormSection title={t.admin.defectsSection}>
+            <Field label={t.admin.defectsLabel} hint={t.admin.defectsHint}>
+              <textarea rows={4} value={form.defects} onChange={e => set('defects', e.target.value)} style={{ ...inputStyle, resize: 'vertical' }} />
+            </Field>
+          </FormSection>
+
           {error && <p role="alert" style={{ fontSize: 14, color: '#d70015', margin: '24px 0 0' }}>{error}</p>}
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginTop: 28 }}>
             <button type="submit" disabled={busy} style={{ opacity: busy ? 0.6 : 1, padding: '14px 32px', fontSize: 15, fontWeight: 500, background: '#1d1d1f', color: '#fff', border: 'none', borderRadius: 980, cursor: 'pointer' }}>
               {busy ? t.admin.saving : t.admin.save}
             </button>
-            <Link to={listUrl} style={{ fontSize: 15, color: '#6e6e73', textDecoration: 'none' }}>{t.admin.cancel}</Link>
+            <Link to={backUrl} style={{ fontSize: 15, color: '#6e6e73', textDecoration: 'none' }}>{t.admin.cancel}</Link>
           </div>
         </form>
       </main>
@@ -361,30 +419,82 @@ function PickupField({ city, cities, address, pickup, onCity, onAddress, onPick 
   )
 }
 
-function PhotoPreviews({ photos }: { photos: string[] }) {
+// The car's photos: upload from the device (stored on our server) or paste links; the first
+// one is the cover. Photos can be moved to the front or removed.
+function PhotoManager({ photos, onChange }: { photos: string[]; onChange: (photos: string[]) => void }) {
   const { t } = useI18n()
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
+  const [failed, setFailed] = useState(false)
+  const [links, setLinks] = useState('')
   const [broken, setBroken] = useState<string[]>([])
-  if (!photos.length) return null
+  const fileInput = useRef<HTMLInputElement>(null)
+
+  async function upload(files: FileList | null) {
+    if (!files?.length) return
+    setFailed(false)
+    const added: string[] = []
+    for (let i = 0; i < files.length; i++) {
+      setProgress({ done: i + 1, total: files.length })
+      try {
+        added.push(await uploadPhoto(files[i]))
+      } catch {
+        setFailed(true)
+      }
+    }
+    setProgress(null)
+    onChange([...photos, ...added])
+    if (fileInput.current) fileInput.current.value = ''
+  }
+
+  function addLinks() {
+    const urls = lines(links).filter(u => /^https?:\/\//.test(u))
+    if (urls.length) onChange([...photos, ...urls])
+    setLinks('')
+  }
+
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10, marginTop: 12 }}>
-      {photos.map((photo, i) => (
-        <div key={`${i}-${photo}`} style={{ aspectRatio: '16/10', borderRadius: 10, overflow: 'hidden', background: '#f5f5f7', position: 'relative' }}>
-          {broken.includes(photo) ? (
-            <p style={{ fontSize: 12, color: '#d70015', margin: 0, padding: 10 }}>{t.admin.photoBroken}</p>
-          ) : (
-            <img
-              src={photoUrl(photo, 280, 175)}
-              alt=""
-              onError={() => setBroken(b => [...b, photo])}
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-            />
-          )}
-          {i === 0 && <span style={{ position: 'absolute', left: 6, top: 6, fontSize: 11, fontWeight: 500, background: 'rgba(28,28,30,0.75)', color: '#fff', padding: '2px 8px', borderRadius: 980 }}>1</span>}
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <button type="button" onClick={() => fileInput.current?.click()} disabled={!!progress} style={{ fontSize: 14, fontWeight: 500, padding: '11px 20px', borderRadius: 980, border: 'none', background: '#1d1d1f', color: '#fff', cursor: 'pointer', opacity: progress ? 0.6 : 1 }}>
+          {progress ? t.admin.uploading(progress.done, progress.total) : t.admin.upload}
+        </button>
+        <input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp" multiple hidden onChange={e => upload(e.target.files)} />
+        <span style={hintStyle}>{t.admin.hints.photos}</span>
+      </div>
+      {failed && <p style={{ ...hintStyle, color: '#d70015' }}>{t.admin.uploadError}</p>}
+
+      {photos.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10, marginTop: 12 }}>
+          {photos.map((photo, i) => (
+            <div key={`${i}-${photo}`} style={{ aspectRatio: '16/10', borderRadius: 10, overflow: 'hidden', background: '#f5f5f7', position: 'relative' }}>
+              {broken.includes(photo) ? (
+                <p style={{ fontSize: 12, color: '#d70015', margin: 0, padding: 10 }}>{t.admin.photoBroken}</p>
+              ) : (
+                <img src={photoUrl(photo, 280, 175)} alt="" onError={() => setBroken(b => [...b, photo])} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              )}
+              {i === 0 ? (
+                <span style={{ ...photoChip, left: 6 }}>1</span>
+              ) : (
+                <button type="button" title="1" onClick={() => onChange([photo, ...photos.filter((_, j) => j !== i)])} style={{ ...photoChip, left: 6, border: 'none', cursor: 'pointer' }}>↑ 1</button>
+              )}
+              <button type="button" aria-label={t.admin.removePhoto} title={t.admin.removePhoto} onClick={() => onChange(photos.filter((_, j) => j !== i))} style={{ ...photoChip, right: 6, border: 'none', cursor: 'pointer' }}>✕</button>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
+
+      <details style={{ marginTop: 14 }}>
+        <summary style={{ fontSize: 13, color: '#0071e3', cursor: 'pointer' }}>{t.admin.fields.photos}</summary>
+        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+          <textarea rows={2} value={links} onChange={e => setLinks(e.target.value)} placeholder="https://…" style={{ ...inputStyle, resize: 'vertical', fontSize: 13, fontFamily: 'ui-monospace, monospace' }} />
+          <button type="button" onClick={addLinks} style={{ flexShrink: 0, fontSize: 14, fontWeight: 500, padding: '0 18px', borderRadius: 12, border: 'none', background: '#f5f5f7', color: '#1d1d1f', cursor: 'pointer' }}>+</button>
+        </div>
+      </details>
     </div>
   )
 }
+
+const photoChip: React.CSSProperties = { position: 'absolute', top: 6, fontSize: 11, fontWeight: 500, background: 'rgba(28,28,30,0.75)', color: '#fff', padding: '2px 8px', borderRadius: 980 }
 
 function FormSection({ title, children }: { title: string; children: ReactNode }) {
   return (

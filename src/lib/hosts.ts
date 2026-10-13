@@ -9,22 +9,25 @@ export type AdminHost = {
   reviews: number
   trips: number // completed rentals of their cars
   createdAt: string
-  account: { id: string; name: string; email: string } | null // user with the host role
-  cars: { id: number; slug: string; brand: string; model: string; year: number; status: 'ACTIVE' | 'HIDDEN' }[]
+  account: { id: string; name: string; email: string; hasPassword: boolean } | null // the host's sign-in account
+  cars: { id: number; slug: string; brand: string; model: string; year: number; status: 'ACTIVE' | 'HIDDEN' | 'REMOVED' }[]
 }
 
 export type HostInput = { name: string; phone?: string }
+export type AccountInput = { email: string; password?: string }
 
-// Every host with their cars, for the admin pages. `reload` after a change.
-export function useAdminHosts() {
+// Every host with their cars, for the admin pages (`enabled` false skips the request,
+// e.g. in a host's own car form). `reload` after a change.
+export function useAdminHosts(enabled = true) {
   const [hosts, setHosts] = useState<AdminHost[] | null>(null)
   const reload = () => api<{ hosts: AdminHost[] }>('/admin/hosts').then(r => setHosts(r.hosts)).catch(() => setHosts([]))
   useEffect(() => {
-    reload()
-  }, [])
+    if (enabled) reload()
+  }, [enabled])
   return { hosts, reload }
 }
 
-export const createHost = (input: HostInput) => api<{ id: number }>('/admin/hosts', { body: input })
+export const createHostWithAccount = (input: HostInput & Required<AccountInput>) => api<{ id: number }>('/admin/hosts', { body: input })
+export const updateHostAccount = (id: number, input: AccountInput) => api(`/admin/hosts/${id}/account`, { method: 'PUT', body: input })
 export const updateHost = (id: number, input: HostInput) => api(`/admin/hosts/${id}`, { method: 'PUT', body: input })
 export const deleteHost = (id: number) => api(`/admin/hosts/${id}`, { method: 'DELETE' })

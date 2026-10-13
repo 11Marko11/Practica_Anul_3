@@ -13,7 +13,7 @@ import type { Car } from '../../data/cars'
 
 const SORTS = ['recent', 'oldest', 'name', 'price-asc', 'price-desc', 'year', 'power'] as const
 type Sort = (typeof SORTS)[number]
-const STATUS_FILTERS = ['all', 'ACTIVE', 'HIDDEN'] as const
+const STATUS_FILTERS = ['all', 'ACTIVE', 'HIDDEN', 'REMOVED'] as const
 const PAGE_SIZE = 20
 
 const name = (c: Car) => `${c.brand} ${c.model}`
@@ -55,7 +55,7 @@ function AdminCarsContent() {
   const q = query.trim().toLowerCase()
   const cars = allCars
     .filter(c => (status === 'all' || (c.status ?? 'ACTIVE') === status) && (!brand || c.brand === brand))
-    .filter(c => !q || `${name(c)} ${c.location}`.toLowerCase().includes(q))
+    .filter(c => !q || `${name(c)} ${c.location} ${c.host.name}`.toLowerCase().includes(q))
     .sort(COMPARE[sort])
   const pages = Math.ceil(cars.length / PAGE_SIZE)
   const page = pageFrom(params, pages)
@@ -147,6 +147,8 @@ function AdminCarsContent() {
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f' }}>{name} <span style={{ fontWeight: 400, color: '#6e6e73' }}>· {car.year}</span>
                     {car.status === 'HIDDEN' && <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 500, color: '#6e6e73', background: '#f0f0f0', padding: '2px 8px', borderRadius: 980 }}>{t.admin.hidden}</span>}
+                    {car.status === 'REMOVED' && <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 500, color: '#d70015', background: '#fdecec', padding: '2px 8px', borderRadius: 980 }}>{t.admin.statusRemoved}</span>}
+                    <span style={{ marginLeft: 8, fontSize: 12, fontWeight: 400, color: '#86868b' }}>· {car.host.name}</span>
                   </div>
                   <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 2 }}>
                     {fmt(car.pricePerDay)}{t.common.perDay} · {carText(car, lang).location} · {car.horsepower} {t.car.units.hp}
