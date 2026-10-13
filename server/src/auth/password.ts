@@ -5,8 +5,13 @@ export function hashPassword(password: string) {
   return hash(password)
 }
 
-export function verifyPassword(passwordHash: string, password: string) {
-  return verify(passwordHash, password)
+// False for accounts without a usable password (e.g. host accounts before the admin sets one).
+export async function verifyPassword(passwordHash: string, password: string) {
+  try {
+    return await verify(passwordHash, password)
+  } catch {
+    return false
+  }
 }
 
 // Used when the email is unknown, so a failed sign-in takes the same time either way

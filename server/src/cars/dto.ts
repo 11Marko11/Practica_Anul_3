@@ -30,6 +30,7 @@ export function toCarDto(car: CarRow, host: HostStats) {
     host: { id: car.host.id, name: car.host.name, ...host },
     description: car.description,
     features: car.features,
+    defects: car.defects,
     translations: {
       ...(car.descriptionRo ? { ro: { description: car.descriptionRo } } : {}),
       ...(car.descriptionRu ? { ru: { description: car.descriptionRu } } : {}),
@@ -42,8 +43,8 @@ export function toCarDto(car: CarRow, host: HostStats) {
 const text = (max: number) => z.string().trim().min(1).max(max)
 const optionalText = (max: number) => z.string().trim().max(max).optional().transform(v => v || null)
 
-// What the admin form sends when creating or updating a car.
-export const carInput = z.object({
+// What the car forms send when creating or updating a car (admins and hosts).
+const carFields = z.object({
   brand: text(60),
   model: text(80),
   year: z.int().min(1950).max(new Date().getFullYear() + 1),
@@ -58,9 +59,6 @@ export const carInput = z.object({
   range: z.int().positive().max(2000).nullish(),
   city: text(60),
   pickup: z.object({ address: text(200), lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) }),
-  // An existing host, or the name (and phone) of a new one to create with the car.
-  hostId: z.int().positive().optional(),
-  newHost: z.object({ name: text(80), phone: optionalText(30) }).optional(),
   description: text(5000),
   translations: z
     .object({
@@ -69,10 +67,17 @@ export const carInput = z.object({
     })
     .default({}),
   features: z.array(text(120)).max(40).default([]),
+  defects: z.array(text(300)).max(30).default([]),
   photos: z.array(text(2000)).min(1).max(20),
-  status: z.enum(['ACTIVE', 'HIDDEN']).default('ACTIVE'),
-}).refine(c => !!c.hostId !== !!c.newHost, { message: 'host required', path: ['hostId'] })
-export type CarInput = z.infer<typeof carInput>
+})
+// Admins choose the car's host and may bring back a car its host removed.
+export const carInput = carFields.extend({
+  hostId: z.int().positive(),
+  status: z.enum(['ACTIVE', 'HIDDEN', 'REMOVED']).default('ACTIVE'),
+})
+// Hosts save their own cars; removing one goes through DELETE.
+export const hostCarInput = carFields.extend({ status: z.enum(['ACTIVE', 'HIDDEN']).default('ACTIVE') })
+export type CarInput = z.infer<typeof hostCarInput> | z.infer<typeof carInput>
 
 // The database columns for a car, from the admin form (photos and the host are handled separately).
 export function carData(input: CarInput) {
@@ -97,6 +102,7 @@ export function carData(input: CarInput) {
     descriptionRo: input.translations.ro?.description ?? null,
     descriptionRu: input.translations.ru?.description ?? null,
     features: input.features,
+    defects: input.defects,
     status: input.status,
   }
 }

@@ -18,6 +18,7 @@ import { dashboardRoutes } from './routes/dashboard.js'
 import { healthRoutes } from './routes/health.js'
 import { hostRoutes } from './routes/hosts.js'
 import { hostPortalRoutes } from './routes/hostPortal.js'
+import { photoRoutes } from './routes/photos.js'
 import { reviewRoutes } from './routes/reviews.js'
 import { statsRoutes } from './routes/stats.js'
 import { stripeWebhookRoutes } from './routes/stripeWebhook.js'
@@ -51,9 +52,10 @@ export function buildApp() {
         const token = request.cookies[SESSION_COOKIE]
         request.user = token ? await userForToken(token) : null
       })
-      // Answers depend on who is signed in, so neither browsers nor Vercel may cache them.
+      // Answers depend on who is signed in, so neither browsers nor Vercel may cache them
+      // (unless a route says otherwise, like the photos).
       api.addHook('onSend', async (_request, reply) => {
-        reply.header('Cache-Control', 'no-store')
+        if (!reply.hasHeader('Cache-Control')) reply.header('Cache-Control', 'no-store')
       })
 
       await api.register(healthRoutes)
@@ -61,6 +63,7 @@ export function buildApp() {
       await api.register(carRoutes)
       await api.register(hostRoutes)
       await api.register(hostPortalRoutes)
+      await api.register(photoRoutes)
       await api.register(reviewRoutes)
       await api.register(statsRoutes)
       await api.register(bookingRoutes)

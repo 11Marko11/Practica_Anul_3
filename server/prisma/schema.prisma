@@ -32,6 +32,7 @@ enum Drive {
 enum CarStatus {
   ACTIVE // shown on the site
   HIDDEN // kept for past bookings, not bookable
+  REMOVED // deleted by its host but kept for the booking history; only admins still see it
 }
 
 // Who cancelled a booking: customers can cancel until the admin confirms; afterwards only the admin can.
@@ -156,6 +157,7 @@ model Car {
   descriptionRo String?
   descriptionRu String?
   features      String[]
+  defects       String[]  @default([]) // known flaws the host lists (scratches, a worn seat…)
   status        CarStatus @default(ACTIVE)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -309,4 +311,15 @@ model Promotion {
   updatedAt DateTime           @updatedAt
 
   @@index([placement, active])
+}
+
+// Photos uploaded from the car forms, served at /api/photos/<id>. The website shrinks them
+// before uploading, so they are stored as they arrive.
+model UploadedPhoto {
+  id         String   @id @default(uuid())
+  mimeType   String
+  size       Int
+  data       Bytes
+  uploadedBy String? // user id
+  createdAt  DateTime @default(now())
 }

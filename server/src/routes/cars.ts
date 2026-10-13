@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { requireAdmin } from '../auth/guards.js'
-import { carData, carInclude, carInput, slugBase, toCarDto, type CarInput } from '../cars/dto.js'
+import { carData, carInclude, carInput, slugBase, toCarDto } from '../cars/dto.js'
 import { hostStats } from '../cars/hostStats.js'
 import { prisma } from '../db.js'
 import { HttpError } from '../http/errors.js'
@@ -12,7 +12,7 @@ const slugParam = z.object({ slug: z.string().max(200) })
 const isAdmin = (request: FastifyRequest) => request.user?.role === 'ADMIN'
 
 // "bmw-m4-competition", or "bmw-m4-competition-2" if another car already has it.
-async function uniqueSlug(brand: string, model: string) {
+export async function uniqueSlug(brand: string, model: string) {
   const base = slugBase(brand, model)
   const taken = new Set((await prisma.car.findMany({ where: { slug: { startsWith: base } }, select: { slug: true } })).map(c => c.slug))
   let slug = base
@@ -21,19 +21,18 @@ async function uniqueSlug(brand: string, model: string) {
 }
 
 // Photos keep their credit when the admin saves a car without changing them.
-const photoRows = (photos: string[], credits = new Map<string, { credit: string | null; creditUrl: string | null }>()) =>
+export const photoRows = (photos: string[], credits = new Map<string, { credit: string | null; creditUrl: string | null }>()) =>
   photos.map((url, position) => ({ url, position, ...(credits.get(url) ?? {}) }))
 
-// The car's host: an existing one picked in the admin form, or a new one created with the car.
-async function hostLink(input: CarInput) {
-  if (input.newHost) return { create: { name: input.newHost.name, phone: input.newHost.phone } }
-  const host = await prisma.host.findUnique({ where: { id: input.hostId! }, select: { id: true } })
+// The host picked in the admin form.
+async function hostLink(hostId: number) {
+  const host = await prisma.host.findUnique({ where: { id: hostId }, select: { id: true } })
   if (!host) throw new HttpError(400, 'host-not-found')
   return { connect: { id: host.id } }
 }
 
 // One car with its host's current rating and trips.
-async function carDto(car: Parameters<typeof toCarDto>[0]) {
+export async function carDto(car: Parameters<typeof toCarDto>[0]) {
   return toCarDto(car, (await hostStats([car.hostId]))(car.hostId))
 }
 
@@ -59,7 +58,7 @@ export async function carRoutes(app: FastifyInstance) {
   app.post('/admin/cars', { preHandler: requireAdmin }, async (request, reply) => {
     const input = carInput.parse(request.body)
     const car = await prisma.car.create({
-      data: { ...carData(input), host: await hostLink(input), slug: await uniqueSlug(input.brand, input.model), photos: { create: photoRows(input.photos) } },
+      data: { ...carData(input), host: await hostLink(input.hostId), slug: await uniqueSlug(input.brand, input.model), photos: { create: photoRows(input.photos) } },
       include: carInclude,
     })
     reply.code(201)
@@ -75,7 +74,7 @@ export async function carRoutes(app: FastifyInstance) {
     const credits = new Map(current.photos.map(p => [p.url, { credit: p.credit, creditUrl: p.creditUrl }]))
     const car = await prisma.car.update({
       where: { id },
-      data: { ...carData(input), host: await hostLink(input), photos: { deleteMany: {}, create: photoRows(input.photos, credits) } },
+      data: { ...carData(input), host: await hostLink(input.hostId), photos: { deleteMany: {}, create: photoRows(input.photos, credits) } },
       include: carInclude,
     })
     return { car: await carDto(car) }
