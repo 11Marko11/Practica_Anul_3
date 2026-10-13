@@ -8,7 +8,8 @@ import { Link, useParams } from 'react-router'
 import { BookingCard } from '../../components/BookingCard'
 import { Money } from '../../components/Money'
 import { useI18n } from '../../i18n/I18nContext'
-import { api } from '../../lib/api'
+import { api, ApiError } from '../../lib/api'
+import { useAdminHosts } from '../../lib/hosts'
 import type { Booking } from '../../lib/bookings'
 import { formatDate } from '../../lib/rental'
 import { AdminGuard } from './AdminGuard'
@@ -28,9 +29,10 @@ type Customer = {
   spent: number
   lastBookingAt: string | null
   reviews: number
+  host: { id: number; name: string } | null
 }
 type Detail = {
-  customer: Pick<Customer, 'id' | 'name' | 'email' | 'active' | 'createdAt' | 'deletedAt' | 'spent' | 'verificationStatus' | 'verificationSubmittedAt'> & {
+  customer: Pick<Customer, 'id' | 'name' | 'email' | 'active' | 'createdAt' | 'deletedAt' | 'spent' | 'verificationStatus' | 'verificationSubmittedAt' | 'host'> & {
     refunded: number
     phone: string | null
     birthDate: string | null
@@ -127,6 +129,7 @@ function CustomerList() {
                     <strong style={{ fontSize: 15, fontWeight: 600, color: '#1d1d1f' }}>{x.name}</strong>
                     <StatusPill active={x.active} />
                     {x.active && <VerificationBadge status={x.verificationStatus} />}
+                    {x.host && <HostBadge />}
                   </div>
                   <div style={{ fontSize: 13, color: '#6e6e73', overflowWrap: 'anywhere' }}>{x.email}</div>
                   <div style={{ fontSize: 12, color: '#86868b', marginTop: 2 }}>
@@ -186,6 +189,7 @@ function CustomerDetail({ id }: { id: string }) {
             </div>
 
             <VerificationPanel data={data} onChange={() => api<Detail>(`/admin/customers/${id}`).then(setData)} />
+            <HostRolePanel customer={data.customer} onChange={() => api<Detail>(`/admin/customers/${id}`).then(setData)} />
 
             <h2 style={sectionTitle}>{c.history}</h2>
             {data.bookings.length === 0 && <p style={{ fontSize: 14, color: '#6e6e73' }}>{c.noBookings}</p>}
@@ -321,3 +325,64 @@ function VerificationPanel({ data, onChange }: { data: Detail; onChange: () => v
 }
 
 const actionButton: React.CSSProperties = { fontSize: 14, fontWeight: 500, padding: '10px 18px', borderRadius: 980, border: 'none', cursor: 'pointer' }
+
+function HostBadge() {
+  const { t } = useI18n()
+  return <span style={{ fontSize: 12, fontWeight: 500, padding: '3px 10px', borderRadius: 980, background: '#e8f1fd', color: '#0071e3', whiteSpace: 'nowrap' }}>{t.hostRole.badge}</span>
+}
+
+// Host role: the admin ties the customer to a host (a new profile from their account, or an
+// existing host without an account) or takes the role away. The host keeps their cars either way.
+function HostRolePanel({ customer, onChange }: { customer: Detail['customer']; onChange: () => void }) {
+  const { t } = useI18n()
+  const r = t.hostRole
+  const { hosts } = useAdminHosts()
+  const [choice, setChoice] = useState('new')
+  const [busy, setBusy] = useState(false)
+  const free = (hosts ?? []).filter(h => !h.account)
+
+  async function run(action: () => Promise<unknown>, question: string) {
+    if (!confirm(question)) return
+    setBusy(true)
+    try {
+      await action()
+      onChange()
+    } catch (err) {
+      alert(err instanceof ApiError && err.code === 'account-deleted' ? r.deleted : r.error)
+    }
+    setBusy(false)
+  }
+  const assign = () => api(`/admin/customers/${customer.id}/host`, { body: choice === 'new' ? {} : { hostId: Number(choice) } })
+  const remove = () => api(`/admin/customers/${customer.id}/host`, { method: 'DELETE' })
+
+  return (
+    <>
+      <h2 style={sectionTitle}>{r.section}</h2>
+      {customer.host ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <HostBadge />
+          <p style={{ fontSize: 14, color: '#424245', margin: 0, flex: '1 1 300px' }}>{r.is(customer.host.name)}</p>
+          <Link to={`/admin/hosts?q=${encodeURIComponent(customer.host.name)}`} style={{ fontSize: 14, color: '#0071e3', textDecoration: 'none' }}>{r.viewHost}</Link>
+          <button onClick={() => run(remove, r.removeAsk)} disabled={busy} style={{ ...actionButton, background: '#f5f5f7', color: '#d70015' }}>{r.remove}</button>
+        </div>
+      ) : !customer.active ? (
+        <p style={{ fontSize: 14, color: '#6e6e73', margin: 0 }}>{r.deleted}</p>
+      ) : (
+        <>
+          <p style={{ fontSize: 14, color: '#6e6e73', margin: '0 0 12px' }}>{r.none}</p>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <select value={choice} onChange={e => setChoice(e.target.value)} style={{ fontSize: 14, padding: '9px 14px', borderRadius: 980, border: '1px solid #d2d2d7', background: '#fff', fontFamily: 'inherit', maxWidth: '100%' }}>
+              <option value="new">{r.newProfile}</option>
+              {free.length > 0 && (
+                <optgroup label={r.existing}>
+                  {free.map(h => <option key={h.id} value={h.id}>{h.name} · {t.adminHosts.cars(h.cars.length)}</option>)}
+                </optgroup>
+              )}
+            </select>
+            <button onClick={() => run(assign, r.assignAsk)} disabled={busy} style={{ ...actionButton, background: '#1d1d1f', color: '#fff' }}>{r.assign}</button>
+          </div>
+        </>
+      )}
+    </>
+  )
+}

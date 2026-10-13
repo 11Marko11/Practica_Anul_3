@@ -198,6 +198,7 @@ function AccountButton({ btnStyle }: { btnStyle: React.CSSProperties }) {
           ) : (
             <MenuLink to="/bookings">{t.bookings.menu}</MenuLink>
           )}
+          {user.host && <MenuLink to="/host">{t.hostPortal.menu}</MenuLink>}
           <button
             role="menuitem"
             onClick={() => { signOut(); setOpen(false) }}
@@ -252,6 +253,7 @@ function MobileMenu() {
       ) : (
         user && <NavLink to="/bookings" end style={item}>{t.bookings.menu}</NavLink>
       )}
+      {user?.host && <NavLink to="/host" style={item}>{t.hostPortal.menu}</NavLink>}
       {loading ? null : user ? (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 20 }}>
           <div style={{ minWidth: 0 }}>

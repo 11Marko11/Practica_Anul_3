@@ -4,7 +4,8 @@ import { api } from '../lib/api'
 // The signed-in user comes from the server, which keeps the session in an httpOnly cookie.
 // Failed calls throw an ApiError whose `code` the login page translates.
 export type VerificationStatus = 'UNVERIFIED' | 'PENDING' | 'VERIFIED' | 'REJECTED'
-export type User = { id: string; name: string; email: string; role: 'CUSTOMER' | 'ADMIN'; verificationStatus: VerificationStatus }
+// `host` is set when the admin gave the user the host role (they then have the host panel).
+export type User = { id: string; name: string; email: string; role: 'CUSTOMER' | 'ADMIN'; verificationStatus: VerificationStatus; host?: { id: number; name: string } | null }
 
 type AuthContextValue = {
   user: User | null

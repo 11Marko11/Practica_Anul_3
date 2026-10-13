@@ -9,6 +9,7 @@ export type AdminHost = {
   reviews: number
   trips: number // completed rentals of their cars
   createdAt: string
+  account: { id: string; name: string; email: string } | null // user with the host role
   cars: { id: number; slug: string; brand: string; model: string; year: number; status: 'ACTIVE' | 'HIDDEN' }[]
 }
 
