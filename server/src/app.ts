@@ -17,6 +17,7 @@ import { MAX_DOCUMENT_BYTES, profileRoutes } from './routes/profile.js'
 import { dashboardRoutes } from './routes/dashboard.js'
 import { healthRoutes } from './routes/health.js'
 import { hostRoutes } from './routes/hosts.js'
+import { hostPortalRoutes } from './routes/hostPortal.js'
 import { reviewRoutes } from './routes/reviews.js'
 import { statsRoutes } from './routes/stats.js'
 import { stripeWebhookRoutes } from './routes/stripeWebhook.js'
@@ -59,6 +60,7 @@ export function buildApp() {
       await api.register(authRoutes)
       await api.register(carRoutes)
       await api.register(hostRoutes)
+      await api.register(hostPortalRoutes)
       await api.register(reviewRoutes)
       await api.register(statsRoutes)
       await api.register(bookingRoutes)

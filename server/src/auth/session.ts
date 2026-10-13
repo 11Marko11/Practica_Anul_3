@@ -9,7 +9,9 @@ const SESSION_DAYS = 30
 const DAY_MS = 86_400_000
 
 // What the website gets about the signed-in user.
-export type PublicUser = { id: string; name: string; email: string; role: Role; verificationStatus: VerificationStatus }
+// `host` is set for users the admin gave the host role.
+export type PublicUser = { id: string; name: string; email: string; role: Role; verificationStatus: VerificationStatus; host: { id: number; name: string } | null }
+export const publicUserSelect = { id: true, name: true, email: true, role: true, verificationStatus: true, host: { select: { id: true, name: true } } } as const
 
 export const sessionCookieOptions: CookieSerializeOptions = {
   httpOnly: true, // not readable from JavaScript
@@ -36,7 +38,7 @@ export async function createSession(userId: string) {
 export async function userForToken(token: string): Promise<PublicUser | null> {
   const session = await prisma.session.findUnique({
     where: { id: tokenHash(token) },
-    include: { user: { select: { id: true, name: true, email: true, role: true, verificationStatus: true } } },
+    include: { user: { select: publicUserSelect } },
   })
   if (!session) return null
   if (session.expiresAt.getTime() < Date.now()) {

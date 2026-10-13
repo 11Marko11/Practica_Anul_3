@@ -84,6 +84,7 @@ model User {
   reviews   Review[]
   messages  ContactMessage[]
   documents IdentityDocument[]
+  host      Host? // set when the admin gave this user the host role
 }
 
 // UNVERIFIED: nothing sent yet · PENDING: sent, waiting for the admin · VERIFIED: may book ·
@@ -175,9 +176,13 @@ model Host {
   id        Int      @id @default(autoincrement())
   name      String
   phone     String?
+  // The user account of the host, if the admin gave someone the host role. That user can
+  // then follow the host's cars, bookings and reviews on the host pages.
+  userId    String?  @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
   cars Car[]
 }
 

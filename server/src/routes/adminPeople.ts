@@ -28,6 +28,7 @@ export async function adminPeopleRoutes(app: FastifyInstance) {
       include: {
         bookings: { select: { status: true, confirmedAt: true, total: true, refundedAmount: true, createdAt: true } },
         _count: { select: { reviews: true } },
+        host: { select: { id: true, name: true } },
       },
       orderBy: { createdAt: 'desc' },
     })
@@ -46,13 +47,14 @@ export async function adminPeopleRoutes(app: FastifyInstance) {
         spent: u.bookings.reduce((s, b) => s + kept(b), 0),
         lastBookingAt: u.bookings.map(b => b.createdAt).sort((a, b) => b.getTime() - a.getTime())[0]?.toISOString() ?? null,
         reviews: u._count.reviews,
+        host: u.host,
       })),
     }
   })
 
   app.get('/admin/customers/:id', async request => {
     const { id } = z.object({ id: z.uuid() }).parse(request.params)
-    const u = await prisma.user.findUnique({ where: { id } })
+    const u = await prisma.user.findUnique({ where: { id }, include: { host: { select: { id: true, name: true } } } })
     if (!u || u.role !== 'CUSTOMER') throw new HttpError(404, 'customer-not-found')
     const [bookings, reviews, documents] = await Promise.all([
       prisma.booking.findMany({ where: { userId: id }, include: bookingInclude, orderBy: { createdAt: 'desc' } }),
@@ -72,6 +74,7 @@ export async function adminPeopleRoutes(app: FastifyInstance) {
         verificationSubmittedAt: u.verificationSubmittedAt?.toISOString() ?? null, verifiedAt: u.verifiedAt?.toISOString() ?? null,
         spent: bookings.reduce((s, b) => s + kept(b), 0),
         refunded: bookings.reduce((s, b) => s + b.refundedAmount, 0),
+        host: u.host,
       },
       bookings: bookings.map(b => toBookingDto(b, { forAdmin: true })),
       reviews: reviews.map(r => ({ ...reviewDto(r), car: r.car })),
@@ -94,6 +97,37 @@ export async function adminPeopleRoutes(app: FastifyInstance) {
     const { note } = z.object({ note: z.string().trim().min(3).max(1000) }).parse(request.body)
     await customer(id)
     await prisma.user.update({ where: { id }, data: { verificationStatus: 'REJECTED', verificationNote: note, verifiedAt: null } })
+    return { ok: true }
+  })
+
+  // Host role: tie the customer to an existing host without an account (hostId), or create a
+  // host profile from their name and phone. They then see that host's cars, bookings and reviews.
+  app.post('/admin/customers/:id/host', async (request, reply) => {
+    const { id } = z.object({ id: z.uuid() }).parse(request.params)
+    const { hostId } = z.object({ hostId: z.int().positive().optional() }).parse(request.body ?? {})
+    const user = await customer(id)
+    if (user.deletedAt) throw new HttpError(409, 'account-deleted')
+    if (await prisma.host.findUnique({ where: { userId: id }, select: { id: true } })) throw new HttpError(409, 'already-host')
+    let host
+    if (hostId) {
+      const existing = await prisma.host.findUnique({ where: { id: hostId }, select: { id: true, name: true } })
+      if (!existing) throw new HttpError(404, 'host-not-found')
+      // Only a host without an account; checked in the update so two admins can't both take it.
+      const done = await prisma.host.updateMany({ where: { id: hostId, userId: null }, data: { userId: id } })
+      if (!done.count) throw new HttpError(409, 'host-taken')
+      host = existing
+    } else {
+      host = await prisma.host.create({ data: { name: user.name, phone: user.phone, userId: id }, select: { id: true, name: true } })
+      reply.code(201)
+    }
+    return { host }
+  })
+
+  // Takes the host role away; the host profile and its cars stay.
+  app.delete('/admin/customers/:id/host', async request => {
+    const { id } = z.object({ id: z.uuid() }).parse(request.params)
+    await customer(id)
+    await prisma.host.updateMany({ where: { userId: id }, data: { userId: null } })
     return { ok: true }
   })
 

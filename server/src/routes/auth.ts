@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyReply } from 'fastify'
 import { z } from 'zod'
 import { hashPassword, verifyDummy, verifyPassword } from '../auth/password.js'
 import { normalizePhone } from '../auth/phone.js'
-import { createSession, deleteSession, SESSION_COOKIE, sessionCookieOptions, type PublicUser } from '../auth/session.js'
+import { createSession, deleteSession, publicUserSelect, SESSION_COOKIE, sessionCookieOptions, type PublicUser } from '../auth/session.js'
 import { prisma } from '../db.js'
 import { HttpError } from '../http/errors.js'
 
@@ -22,8 +22,6 @@ const loginBody = z.object({
 
 // Sign-in and sign-up are limited per IP address to slow down password guessing.
 const limited = { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }
-
-const publicUser = { id: true, name: true, email: true, role: true, verificationStatus: true } as const
 
 export function phoneInUse(phone: string, exceptUserId?: string) {
   return prisma.user.findFirst({ where: { phone, deletedAt: null, ...(exceptUserId ? { id: { not: exceptUserId } } : {}) }, select: { id: true } })
@@ -51,7 +49,7 @@ export async function authRoutes(app: FastifyInstance) {
     // One phone number per active account (deleted accounts don't count).
     if (await phoneInUse(phone)) throw new HttpError(409, 'phone-taken')
     const user = await prisma.user
-      .create({ data: { name: body.name, email: body.email, phone, passwordHash: await hashPassword(body.password) }, select: publicUser })
+      .create({ data: { name: body.name, email: body.email, phone, passwordHash: await hashPassword(body.password) }, select: publicUserSelect })
       .catch(err => {
         throw uniqueViolation(err) ?? err
       })
@@ -61,10 +59,10 @@ export async function authRoutes(app: FastifyInstance) {
 
   app.post('/auth/login', limited, async (request, reply) => {
     const body = loginBody.parse(request.body)
-    const found = await prisma.user.findUnique({ where: { email: body.email } })
+    const found = await prisma.user.findUnique({ where: { email: body.email }, include: { host: { select: { id: true, name: true } } } })
     const ok = found ? await verifyPassword(found.passwordHash, body.password) : await verifyDummy(body.password)
     if (!found || !ok) throw new HttpError(401, 'invalid-credentials')
-    return startSession(reply, { id: found.id, name: found.name, email: found.email, role: found.role, verificationStatus: found.verificationStatus })
+    return startSession(reply, { id: found.id, name: found.name, email: found.email, role: found.role, verificationStatus: found.verificationStatus, host: found.host })
   })
 
   app.post('/auth/logout', async (request, reply) => {

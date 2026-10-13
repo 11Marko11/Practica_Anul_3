@@ -16,7 +16,7 @@ export async function hostRoutes(app: FastifyInstance) {
   app.get('/admin/hosts', { preHandler: requireAdmin }, async () => {
     const hosts = await prisma.host.findMany({
       orderBy: { name: 'asc' },
-      include: { cars: { select: { id: true, slug: true, brand: true, model: true, year: true, status: true }, orderBy: [{ brand: 'asc' }, { model: 'asc' }] } },
+      include: { user: { select: { id: true, name: true, email: true, deletedEmail: true } }, cars: { select: { id: true, slug: true, brand: true, model: true, year: true, status: true }, orderBy: [{ brand: 'asc' }, { model: 'asc' }] } },
     })
     const stats = await hostStats(hosts.map(h => h.id))
     return {
@@ -25,6 +25,8 @@ export async function hostRoutes(app: FastifyInstance) {
         name: h.name,
         phone: h.phone,
         ...stats(h.id),
+        // The user account with the host role, if any.
+        account: h.user ? { id: h.user.id, name: h.user.name, email: h.user.deletedEmail ?? h.user.email } : null,
         createdAt: h.createdAt.toISOString(),
         cars: h.cars,
       })),
