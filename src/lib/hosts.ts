@@ -5,9 +5,9 @@ export type AdminHost = {
   id: number
   name: string
   phone: string | null
-  rating: number
-  ratingCount: number
-  trips: number
+  rating: number | null // average of the reviews of their cars; null before the first review
+  reviews: number
+  trips: number // completed rentals of their cars
   createdAt: string
   cars: { id: number; slug: string; brand: string; model: string; year: number; status: 'ACTIVE' | 'HIDDEN' }[]
 }

@@ -177,7 +177,7 @@ function AdminCarFormContent({ slug }: { slug?: string }) {
                   <option value="" disabled>{hosts ? t.admin.fields.hostChoose : '…'}</option>
                   {(hosts ?? []).map(h => (
                     <option key={h.id} value={h.id}>
-                      {h.name} — {t.admin.fields.hostSummary(h.rating.toFixed(1), t.common.trips(h.trips), t.adminHosts.cars(h.cars.length))}
+                      {h.name} — {t.admin.fields.hostSummary(h.rating?.toFixed(1) ?? null, t.common.trips(h.trips), t.adminHosts.cars(h.cars.length))}
                     </option>
                   ))}
                   <option value="new">{t.admin.fields.hostNew}</option>

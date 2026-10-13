@@ -12,7 +12,7 @@ const SORTS = ['name', 'rating', 'trips', 'cars'] as const
 type Sort = (typeof SORTS)[number]
 const COMPARE: Record<Sort, (a: AdminHost, b: AdminHost) => number> = {
   name: (a, b) => a.name.localeCompare(b.name),
-  rating: (a, b) => b.rating - a.rating || b.ratingCount - a.ratingCount,
+  rating: (a, b) => (b.rating ?? 0) - (a.rating ?? 0) || b.reviews - a.reviews,
   trips: (a, b) => b.trips - a.trips,
   cars: (a, b) => b.cars.length - a.cars.length || a.name.localeCompare(b.name),
 }
@@ -137,7 +137,7 @@ function HostRow({ host, onChanged }: { host: AdminHost; onChanged: () => Promis
               {host.phone && <a href={`tel:${host.phone}`} style={{ fontSize: 13, color: '#0071e3', textDecoration: 'none' }}>{host.phone}</a>}
             </div>
             <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 3 }}>
-              {host.ratingCount ? `★ ${host.rating.toFixed(1)} (${h.ratings(host.ratingCount)})` : h.noRatings} · {t.common.trips(host.trips)} · {h.cars(host.cars.length)}
+              {host.rating !== null ? `★ ${host.rating.toFixed(1)} (${h.ratings(host.reviews)})` : h.noRatings} · {t.common.trips(host.trips)} · {h.cars(host.cars.length)}
             </div>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10 }}>
               {host.cars.length === 0 && <span style={{ fontSize: 13, color: '#86868b' }}>{h.noCars}</span>}

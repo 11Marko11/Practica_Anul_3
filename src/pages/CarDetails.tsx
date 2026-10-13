@@ -184,7 +184,7 @@ function CarDetailsContent({ car }: { car: Car }) {
                 <div>
                   <div style={{ fontSize: 16, fontWeight: 600, color: '#f5f5f7' }}>{car.host.name}</div>
                   <div style={{ fontSize: 14, color: '#a1a1a6', marginTop: 2 }}>
-                    ★ {car.host.rating.toFixed(1)} · {t.common.trips(car.host.trips)} · {t.car.verifiedHost}
+                    {car.host.rating !== null ? `★ ${car.host.rating.toFixed(1)} (${t.car.hostReviews(car.host.reviews ?? 0)})` : t.car.hostNoReviews} · {t.common.trips(car.host.trips)} · {t.car.verifiedHost}
                   </div>
                 </div>
               </div>
