@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { carImage, type Car } from '../data/cars'
 import { reloadCars, useCars, useCatalogStatus } from '../lib/carStore'
@@ -6,15 +6,18 @@ import { addDays, fmt, today } from '../lib/rental'
 import { useRentalDates } from '../lib/useRentalDates'
 import { DateField } from '../components/DateField'
 import { PromoBanner } from '../components/PromoBanner'
+import { pageFrom, Pagination } from '../components/Pagination'
 import { useI18n } from '../i18n/I18nContext'
 import { applyFilters, FUELS, POWER_OPTIONS, SEAT_OPTIONS, SORTS, useCarFilters, useUnavailableCars, type Filters, type Sort } from '../lib/carFilters'
+
+const PAGE_SIZE = 12
 
 export function Marketplace() {
   const { t } = useI18n()
   const cars = useCars()
   const status = useCatalogStatus()
   const { pickup, dropoff, days, query, changePickup, changeDropoff } = useRentalDates()
-  const { filters, update, active, reset } = useCarFilters()
+  const { filters, update, active, reset, params, edit } = useCarFilters()
   const unavailable = useUnavailableCars(pickup, dropoff) ?? []
   const [showFilters, setShowFilters] = useState(false)
 
@@ -22,6 +25,16 @@ export function Marketplace() {
   const free = cars.filter(c => !unavailable.includes(c.id))
   const list = applyFilters(free, filters)
   const hiddenBooked = cars.length - free.length
+
+  // Long lists are split into pages; the page number lives in the URL (?page=2).
+  const pages = Math.ceil(list.length / PAGE_SIZE)
+  const page = pageFrom(params, pages)
+  const shown = list.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const gridTop = useRef<HTMLElement>(null)
+  function goToPage(n: number) {
+    edit(p => (n > 1 ? p.set('page', String(n)) : p.delete('page')), { push: true })
+    gridTop.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
   const brands = [...new Set(cars.map(c => c.brand))].sort((a, b) => a.localeCompare(b))
   const cities = [...new Set(cars.map(c => c.location.split(',')[0]))].sort((a, b) => a.localeCompare(b))
@@ -144,11 +157,12 @@ export function Marketplace() {
       </div>
 
       {/* Grid */}
-      <main style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 24px 96px' }}>
+      <main ref={gridTop} style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 24px 96px', scrollMarginTop: 52 }}>
         <PromoBanner placement="MARKETPLACE" style={{ marginBottom: 32 }} />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(340px, 100%), 1fr))', gap: 20 }}>
-          {list.map(car => <CarCard key={car.id} car={car} days={days} query={query} />)}
+          {shown.map(car => <CarCard key={car.id} car={car} days={days} query={query} />)}
         </div>
+        <Pagination page={page} pages={pages} total={list.length} pageSize={PAGE_SIZE} onChange={goToPage} />
         {list.length === 0 && status === 'loading' && (
           <p style={{ textAlign: 'center', padding: '80px 0', fontSize: 15, color: '#6e6e73' }}>{t.marketplace.loading}</p>
         )}

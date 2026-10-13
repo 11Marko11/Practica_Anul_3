@@ -10,11 +10,12 @@ export function useUrlParams() {
   if (pending.current?.toString() === params.toString()) pending.current = null
   const current = pending.current ?? params
 
-  function edit(change: (next: URLSearchParams) => void) {
+  // Filters replace the history entry; `push` adds one (e.g. a page change, so Back returns to the previous page).
+  function edit(change: (next: URLSearchParams) => void, { push = false } = {}) {
     const next = new URLSearchParams(pending.current ?? params)
     change(next)
     pending.current = next
-    setParams(next, { replace: true })
+    setParams(next, { replace: !push })
   }
 
   return { params: current, edit }

@@ -746,6 +746,13 @@ export const en = {
     deleteConfirm: 'Delete this review?',
     error: "Couldn't save your review. Please try again.",
   },
+  pagination: {
+    label: 'Pages',
+    previous: 'Previous',
+    next: 'Next',
+    page: (n: number) => `Page ${n}`,
+    showing: (from: number, to: number, total: number) => `${from}–${to} of ${total}`,
+  },
   gallery: {
     photo: 'Photo',
     photoAlt: (name: string, i: number, n: number) => `${name}, photo ${i} of ${n}`,

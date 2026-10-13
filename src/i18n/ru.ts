@@ -746,6 +746,13 @@ export const ru: Dict = {
     deleteConfirm: 'Удалить этот отзыв?',
     error: 'Не удалось сохранить отзыв. Попробуйте ещё раз.',
   },
+  pagination: {
+    label: 'Страницы',
+    previous: 'Назад',
+    next: 'Вперёд',
+    page: (n: number) => `Страница ${n}`,
+    showing: (from: number, to: number, total: number) => `${from}–${to} из ${total}`,
+  },
   gallery: {
     photo: 'Фото',
     photoAlt: (name: string, i: number, n: number) => `${name}, фото ${i} из ${n}`,

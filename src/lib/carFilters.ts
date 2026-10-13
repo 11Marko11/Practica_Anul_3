@@ -58,12 +58,13 @@ export function useCarFilters() {
       put('hp', next.minHp)
       put('maxPrice', next.maxPrice)
       put('sort', next.sort === 'newest' ? null : next.sort)
+      p.delete('page') // a new selection starts again from the first page
     })
   }
 
   const active = [filters.brand, filters.city, filters.fuels.length || null, filters.seats, filters.drive, filters.minHp, filters.maxPrice].filter(v => v !== null).length
 
-  return { filters, update, active, reset: () => update(NO_FILTERS) }
+  return { filters, update, active, reset: () => update(NO_FILTERS), params, edit }
 }
 
 export function applyFilters(cars: Car[], f: Filters) {

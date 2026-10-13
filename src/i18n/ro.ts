@@ -746,6 +746,13 @@ export const ro: Dict = {
     deleteConfirm: 'Ștergi această recenzie?',
     error: 'Recenzia nu a putut fi salvată. Încearcă din nou.',
   },
+  pagination: {
+    label: 'Pagini',
+    previous: 'Înapoi',
+    next: 'Înainte',
+    page: (n: number) => `Pagina ${n}`,
+    showing: (from: number, to: number, total: number) => `${from}–${to} din ${total}`,
+  },
   gallery: {
     photo: 'Foto',
     photoAlt: (name: string, i: number, n: number) => `${name}, fotografia ${i} din ${n}`,

@@ -8,11 +8,13 @@ import { carText } from '../../i18n/cars'
 import { AdminGuard } from './AdminGuard'
 import { AdminTabs } from './AdminTabs'
 import { useUrlParams } from '../../lib/useUrlParams'
+import { pageFrom, Pagination } from '../../components/Pagination'
 import type { Car } from '../../data/cars'
 
 const SORTS = ['recent', 'oldest', 'name', 'price-asc', 'price-desc', 'year', 'power'] as const
 type Sort = (typeof SORTS)[number]
 const STATUS_FILTERS = ['all', 'ACTIVE', 'HIDDEN'] as const
+const PAGE_SIZE = 20
 
 const name = (c: Car) => `${c.brand} ${c.model}`
 const added = (c: Car) => c.createdAt ?? ''
@@ -46,7 +48,8 @@ function AdminCarsContent() {
   const status = STATUS_FILTERS.includes(params.get('status') as never) ? (params.get('status') as (typeof STATUS_FILTERS)[number]) : 'all'
   const brand = params.get('brand') ?? ''
   const query = params.get('q') ?? ''
-  const set = (key: string, value: string, fallback: string) => edit(p => (value && value !== fallback ? p.set(key, value) : p.delete(key)))
+  // Any change of search, filter or sorting goes back to the first page.
+  const set = (key: string, value: string, fallback: string) => edit(p => { if (value && value !== fallback) p.set(key, value); else p.delete(key); p.delete('page') })
 
   const brands = [...new Set(allCars.map(c => c.brand))].sort((a, b) => a.localeCompare(b))
   const q = query.trim().toLowerCase()
@@ -54,6 +57,13 @@ function AdminCarsContent() {
     .filter(c => (status === 'all' || (c.status ?? 'ACTIVE') === status) && (!brand || c.brand === brand))
     .filter(c => !q || `${name(c)} ${c.location}`.toLowerCase().includes(q))
     .sort(COMPARE[sort])
+  const pages = Math.ceil(cars.length / PAGE_SIZE)
+  const page = pageFrom(params, pages)
+  const shown = cars.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  function goToPage(n: number) {
+    edit(p => (n > 1 ? p.set('page', String(n)) : p.delete('page')), { push: true })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
   const count = (f: (typeof STATUS_FILTERS)[number]) => allCars.filter(c => f === 'all' || (c.status ?? 'ACTIVE') === f).length
 
   async function remove(id: number, name: string) {
@@ -117,7 +127,7 @@ function AdminCarsContent() {
             </button>
           ))}
           {(q || brand || status !== 'all') && (
-            <button onClick={() => edit(p => { p.delete('q'); p.delete('brand'); p.delete('status') })} style={{ fontSize: 13, color: '#0071e3', background: 'none', border: 'none', cursor: 'pointer', marginLeft: 6 }}>
+            <button onClick={() => edit(p => { p.delete('q'); p.delete('brand'); p.delete('status'); p.delete('page') })} style={{ fontSize: 13, color: '#0071e3', background: 'none', border: 'none', cursor: 'pointer', marginLeft: 6 }}>
               {s.reset}
             </button>
           )}
@@ -127,7 +137,7 @@ function AdminCarsContent() {
         {allCars.length > 0 && cars.length === 0 && <p style={{ fontSize: 15, color: '#6e6e73', padding: '32px 0' }}>{s.noMatch}</p>}
 
         <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-          {cars.map(car => {
+          {shown.map(car => {
             const name = `${car.brand} ${car.model}`
             return (
               <li key={car.id} className="admin-row" style={{ padding: '16px 0', borderBottom: '1px solid #f0f0f0' }}>
@@ -157,6 +167,7 @@ function AdminCarsContent() {
             )
           })}
         </ul>
+        <Pagination page={page} pages={pages} total={cars.length} pageSize={PAGE_SIZE} onChange={goToPage} />
 
       </main>
     </div>

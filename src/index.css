@@ -185,3 +185,20 @@ body {
 @media (max-width: 480px) {
   .date-pair, .date-pair--inline { grid-template-columns: 1fr; }
 }
+
+/* Page numbers under long lists (see Pagination). */
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 40px;
+}
+.pagination button:not(:disabled):hover { background-color: #f0f0f0; }
+.pagination button[aria-current='page']:hover { background-color: #1d1d1f; }
+
+@media (max-width: 640px) {
+  .pagination { gap: 4px; }
+  .pagination-word { display: none; }
+}
