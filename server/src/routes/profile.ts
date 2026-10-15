@@ -128,10 +128,21 @@ export async function profileRoutes(app: FastifyInstance) {
     const { id } = z.object({ id: z.uuid() }).parse(request.params)
     const userId = request.user!.id
     const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } })
-    // While the admin is checking, or once verified, documents stay as they were checked.
-    if (user.verificationStatus === 'PENDING' || user.verificationStatus === 'VERIFIED') throw new HttpError(409, 'documents-locked')
-    const done = await prisma.identityDocument.deleteMany({ where: { id, userId } })
-    if (!done.count) throw new HttpError(404, 'document-not-found')
+    await prisma.$transaction(async tx => {
+      const done = await tx.identityDocument.deleteMany({ where: { id, userId } })
+      if (!done.count) throw new HttpError(404, 'document-not-found')
+      // Removing a document from documents being checked or already checked withdraws the
+      // verification: the rest go back to the admin, or the account is unverified if none are left.
+      if (user.verificationStatus === 'PENDING' || user.verificationStatus === 'VERIFIED') {
+        const left = await tx.identityDocument.count({ where: { userId } })
+        await tx.user.update({
+          where: { id: userId },
+          data: left
+            ? { verificationStatus: 'PENDING', verificationSubmittedAt: new Date(), verifiedAt: null }
+            : { verificationStatus: 'UNVERIFIED', verificationSubmittedAt: null, verifiedAt: null },
+        })
+      }
+    })
     return profileOf(userId)
   })
 

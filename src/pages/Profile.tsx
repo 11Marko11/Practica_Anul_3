@@ -119,7 +119,6 @@ function Verification({ profile, documents, onChange, onDocuments, errorText, la
   const { t } = useI18n()
   const p = t.profile
   const status = profile.verificationStatus
-  const locked = status === 'PENDING' || status === 'VERIFIED'
   const [type, setType] = useState<DocumentType>(documents.some(d => d.type === 'DRIVING_LICENSE') ? 'ID_CARD' : 'DRIVING_LICENSE')
   const [file, setFile] = useState<File | null>(null)
   const [busy, setBusy] = useState<'upload' | 'submit' | null>(null)
@@ -147,7 +146,8 @@ function Verification({ profile, documents, onChange, onDocuments, errorText, la
   }
 
   async function remove(id: string) {
-    if (!confirm(p.removeAsk)) return
+    // Removing a checked document withdraws the verification, so say so before deleting.
+    if (!confirm(status === 'VERIFIED' || status === 'PENDING' ? p.removeAskChecked : p.removeAsk)) return
     try {
       onChange(await removeDocument(id))
     } catch (err) {
@@ -196,11 +196,9 @@ function Verification({ profile, documents, onChange, onDocuments, errorText, la
               <div style={{ fontSize: 12, color: '#86868b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {d.fileName} · {fileSize(d.size)} · {new Date(d.createdAt).toLocaleDateString(lang)}
               </div>
-              {!locked && (
-                <button onClick={() => remove(d.id)} style={{ marginTop: 6, fontSize: 13, color: '#d70015', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
-                  {p.remove}
-                </button>
-              )}
+              <button onClick={() => remove(d.id)} style={{ marginTop: 6, fontSize: 13, color: '#d70015', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+                {p.remove}
+              </button>
             </div>
           </div>
         ))}
