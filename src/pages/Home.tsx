@@ -135,11 +135,11 @@ export function Home() {
             <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#1d1d1f', margin: 0 }}>
               {t.home.brandsTitle[0]}<br />{t.home.brandsTitle[1]}
             </h2>
-            <button
-              onClick={() => navigate('/marketplace')}
-              style={{ fontSize: 15, color: '#0071e3', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 400, padding: 0 }}
-            >
+            <button onClick={() => navigate('/marketplace')} className="btn-action btn-action--primary btn-cta">
               {t.home.seeAll}
+              <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden>
+                <path d="M3 7h8M7.5 3.5 11 7l-3.5 3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </button>
           </div>
           <div className="brand-grid">

@@ -266,3 +266,5 @@ select:not([multiple]):not([size]) {
   .host-card-cta { display: none; }
   .host-card-btn { width: 36px; padding: 0; }
 }
+/* Bigger call-to-action button ("See all cars" on the home page). */
+.btn-cta { height: 44px; padding: 0 22px; font-size: 15px; gap: 8px; }

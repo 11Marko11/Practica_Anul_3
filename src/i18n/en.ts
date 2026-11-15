@@ -753,7 +753,7 @@ export const en = {
     stats: { cars: 'Cars available', brands: 'Premium brands', rating: 'Average rating', trips: 'Trips completed' },
     brandsEyebrow: 'Brands',
     brandsTitle: ['Every great brand,', 'in one place.'],
-    seeAll: 'See all rentals →',
+    seeAll: 'See all cars',
     carsAvailable: (n: number) => `${countOf('en', n, { one: 'car', other: 'cars' })} available`,
     howEyebrow: 'How it works',
     howTitle: 'Simple. Fast. Reliable.',

@@ -753,7 +753,7 @@ export const ru: Dict = {
     stats: { cars: 'Автомобилей доступно', brands: 'Премиальных марок', rating: 'Средний рейтинг', trips: 'Поездок завершено' },
     brandsEyebrow: 'Марки',
     brandsTitle: ['Все лучшие марки', 'в одном месте.'],
-    seeAll: 'Все автомобили →',
+    seeAll: 'Все автомобили',
     carsAvailable: (n: number) => `Доступно: ${countOf('ru', n, { one: 'автомобиль', few: 'автомобиля', many: 'автомобилей', other: 'автомобиля' })}`,
     howEyebrow: 'Как это работает',
     howTitle: 'Просто. Быстро. Надёжно.',

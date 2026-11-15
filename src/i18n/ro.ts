@@ -753,7 +753,7 @@ export const ro: Dict = {
     stats: { cars: 'Mașini disponibile', brands: 'Mărci premium', rating: 'Rating mediu', trips: 'Călătorii încheiate' },
     brandsEyebrow: 'Mărci',
     brandsTitle: ['Toate mărcile mari,', 'într-un singur loc.'],
-    seeAll: 'Vezi toate mașinile →',
+    seeAll: 'Vezi toate mașinile',
     carsAvailable: (n: number) => n === 1 ? '1 mașină disponibilă' : `${countOf('ro', n, { few: 'mașini', other: 'de mașini' })} disponibile`,
     howEyebrow: 'Cum funcționează',
     howTitle: 'Simplu. Rapid. Sigur.',
