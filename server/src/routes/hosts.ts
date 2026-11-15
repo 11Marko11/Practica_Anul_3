@@ -3,7 +3,7 @@ import { randomBytes } from 'node:crypto'
 import { z } from 'zod'
 import { requireAdmin } from '../auth/guards.js'
 import { hashPassword } from '../auth/password.js'
-import { carInclude, toCarDto } from '../cars/dto.js'
+import { carInclude, isListed, LISTED, toCarDto } from '../cars/dto.js'
 import { hostStats } from '../cars/hostStats.js'
 import { prisma } from '../db.js'
 import { HttpError } from '../http/errors.js'
@@ -32,7 +32,7 @@ export async function hostRoutes(app: FastifyInstance) {
     const host = await prisma.host.findUnique({
       where: { id },
       include: {
-        cars: { where: { status: 'ACTIVE' }, include: carInclude, orderBy: [{ brand: 'asc' }, { model: 'asc' }] },
+        cars: { where: LISTED, include: carInclude, orderBy: [{ brand: 'asc' }, { model: 'asc' }] },
       },
     })
     if (!host) throw new HttpError(404, 'host-not-found')
@@ -40,7 +40,7 @@ export async function hostRoutes(app: FastifyInstance) {
       hostStats([host.id]),
       prisma.review.findMany({
         where: { car: { hostId: host.id } },
-        include: { car: { select: { slug: true, brand: true, model: true, status: true } } },
+        include: { car: { select: { slug: true, brand: true, model: true, status: true, reviewStatus: true } } },
         orderBy: { createdAt: 'desc' },
         take: 100,
       }),
@@ -51,7 +51,7 @@ export async function hostRoutes(app: FastifyInstance) {
       cars: host.cars.map(c => toCarDto(c, hostStatsNow)),
       reviews: reviews.map(r => ({
         id: r.id, name: r.authorName, rating: r.rating, text: r.text, date: r.createdAt.toISOString().slice(0, 10),
-        car: r.car.status === 'ACTIVE' ? { slug: r.car.slug, name: `${r.car.brand} ${r.car.model}` } : { slug: null, name: `${r.car.brand} ${r.car.model}` },
+        car: isListed(r.car) ? { slug: r.car.slug, name: `${r.car.brand} ${r.car.model}` } : { slug: null, name: `${r.car.brand} ${r.car.model}` },
       })),
     }
   })

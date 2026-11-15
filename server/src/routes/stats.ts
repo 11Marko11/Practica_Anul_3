@@ -1,3 +1,4 @@
+import { LISTED } from '../cars/dto.js'
 import type { FastifyInstance } from 'fastify'
 import { prisma } from '../db.js'
 
@@ -5,7 +6,7 @@ import { prisma } from '../db.js'
 export async function statsRoutes(app: FastifyInstance) {
   app.get('/stats', async () => {
     const [brands, rating, completedTrips] = await Promise.all([
-      prisma.car.groupBy({ by: ['brand'], where: { status: 'ACTIVE' }, _count: { _all: true }, orderBy: { brand: 'asc' } }),
+      prisma.car.groupBy({ by: ['brand'], where: LISTED, _count: { _all: true }, orderBy: { brand: 'asc' } }),
       prisma.review.aggregate({ _avg: { rating: true }, _count: { _all: true } }),
       prisma.booking.count({ where: { status: 'COMPLETED' } }),
     ])

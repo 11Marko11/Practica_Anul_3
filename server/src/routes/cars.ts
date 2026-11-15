@@ -1,10 +1,11 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { requireAdmin } from '../auth/guards.js'
-import { carInclude, slugBase, toCarDto } from '../cars/dto.js'
+import { carInclude, isListed, LISTED, slugBase, toCarDto } from '../cars/dto.js'
 import { hostStats } from '../cars/hostStats.js'
 import { prisma } from '../db.js'
 import { HttpError } from '../http/errors.js'
+import { documentDto, hostDocumentMeta } from './hostApplication.js'
 
 const idParam = z.object({ id: z.coerce.number().int().positive() })
 const slugParam = z.object({ slug: z.string().max(200) })
@@ -33,7 +34,7 @@ export async function carRoutes(app: FastifyInstance) {
   // Public catalogue. Admins also get hidden cars, for the admin pages.
   app.get('/cars', async request => {
     const cars = await prisma.car.findMany({
-      where: isAdmin(request) ? {} : { status: 'ACTIVE' },
+      where: isAdmin(request) ? {} : LISTED,
       include: carInclude,
       orderBy: { createdAt: 'asc' },
     })
@@ -44,7 +45,7 @@ export async function carRoutes(app: FastifyInstance) {
   app.get('/cars/:slug', async request => {
     const { slug } = slugParam.parse(request.params)
     const car = await prisma.car.findUnique({ where: { slug }, include: carInclude })
-    if (!car || (car.status !== 'ACTIVE' && !isAdmin(request))) throw new HttpError(404, 'car-not-found')
+    if (!car || (!isListed(car) && !isAdmin(request))) throw new HttpError(404, 'car-not-found')
     return { car: await carDto(car) }
   })
 
@@ -54,6 +55,30 @@ export async function carRoutes(app: FastifyInstance) {
     const { id } = idParam.parse(request.params)
     const { status } = z.object({ status: z.enum(['ACTIVE', 'HIDDEN']) }).parse(request.body)
     const done = await prisma.car.updateMany({ where: { id, status: { not: 'REMOVED' } }, data: { status } })
+    if (!done.count) throw new HttpError(404, 'car-not-found')
+    return { ok: true }
+  })
+
+  // A car's papers and the state of their check, for the admin's review.
+  app.get('/admin/cars/:id/review', { preHandler: requireAdmin }, async request => {
+    const { id } = idParam.parse(request.params)
+    const car = await prisma.car.findUnique({ where: { id }, select: { reviewStatus: true, reviewNote: true, reviewSubmittedAt: true } })
+    if (!car) throw new HttpError(404, 'car-not-found')
+    const documents = await prisma.hostDocument.findMany({ where: { carId: id }, select: hostDocumentMeta, orderBy: { createdAt: 'asc' } })
+    return { status: car.reviewStatus, note: car.reviewNote, submittedAt: car.reviewSubmittedAt?.toISOString() ?? null, documents: documents.map(documentDto) }
+  })
+
+  // The admin checked the papers: the car shows on the site, or the host sees why not.
+  app.post('/admin/cars/:id/review', { preHandler: requireAdmin }, async request => {
+    const { id } = idParam.parse(request.params)
+    const body = z.discriminatedUnion('decision', [
+      z.object({ decision: z.literal('approve') }),
+      z.object({ decision: z.literal('reject'), note: z.string().trim().min(3).max(1000) }),
+    ]).parse(request.body)
+    const done = await prisma.car.updateMany({
+      where: { id, status: { not: 'REMOVED' } },
+      data: body.decision === 'approve' ? { reviewStatus: 'APPROVED', reviewNote: null } : { reviewStatus: 'REJECTED', reviewNote: body.note },
+    })
     if (!done.count) throw new HttpError(404, 'car-not-found')
     return { ok: true }
   })

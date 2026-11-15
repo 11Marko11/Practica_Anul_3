@@ -7,6 +7,7 @@ import { bookingInclude, customerCanCancel, customerCanComplete, toBookingDto } 
 import { completeBooking } from '../bookings/payment.js'
 import { syncCheckout } from '../bookings/payment.js'
 import { assertInMoldova, deliveryQuote } from '../bookings/pricing.js'
+import { isListed } from '../cars/dto.js'
 import { prisma } from '../db.js'
 import { env } from '../env.js'
 import { HttpError } from '../http/errors.js'
@@ -79,7 +80,7 @@ export async function bookingRoutes(app: FastifyInstance) {
     if (days < 1 || days > MAX_DAYS) throw new HttpError(422, 'invalid-dates')
 
     const car = await prisma.car.findUnique({ where: { slug: body.carSlug } })
-    if (!car || car.status !== 'ACTIVE') throw new HttpError(404, 'car-not-found')
+    if (!car || !isListed(car)) throw new HttpError(404, 'car-not-found')
 
     let delivery: { address: string; lat: number; lng: number; km: number; fee: number } | null = null
     if (body.handover.mode === 'DELIVERY') {

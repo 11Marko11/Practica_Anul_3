@@ -2,6 +2,10 @@ import { z } from 'zod'
 import type { Prisma } from '../generated/prisma/client.js'
 import type { HostStats } from './hostStats.js'
 
+// Cars the public sees and can book: shown by their host and with papers checked by the admin.
+export const LISTED = { status: 'ACTIVE', reviewStatus: 'APPROVED' } as const satisfies Prisma.CarWhereInput
+export const isListed = (car: { status: string; reviewStatus: string }) => car.status === 'ACTIVE' && car.reviewStatus === 'APPROVED'
+
 export const carInclude = { photos: { orderBy: { position: 'asc' } }, host: true } as const satisfies Prisma.CarInclude
 type CarRow = Prisma.CarGetPayload<{ include: typeof carInclude }>
 
@@ -36,6 +40,7 @@ export function toCarDto(car: CarRow, host: HostStats) {
       ...(car.descriptionRu ? { ru: { description: car.descriptionRu } } : {}),
     },
     status: car.status,
+    reviewStatus: car.reviewStatus, // the admin's check of the car's papers
     createdAt: car.createdAt.toISOString(), // for the admin list's "recently added" order
   }
 }
@@ -71,7 +76,8 @@ const carFields = z.object({
   photos: z.array(text(2000)).min(1).max(20),
 })
 // Only hosts save cars (their own); removing one goes through DELETE.
-export const hostCarInput = carFields.extend({ status: z.enum(['ACTIVE', 'HIDDEN']).default('ACTIVE') })
+// `documentIds`: the car's papers, uploaded first through POST /host/documents.
+export const hostCarInput = carFields.extend({ status: z.enum(['ACTIVE', 'HIDDEN']).default('ACTIVE'), documentIds: z.array(z.uuid()).max(10).default([]) })
 export type CarInput = z.infer<typeof hostCarInput>
 
 // The database columns for a car, from the host's form (photos and the host are handled separately).

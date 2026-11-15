@@ -137,6 +137,9 @@ model IdentityDocument {
 enum HostDocumentType {
   BUSINESS_REGISTRATION // certificate of registration (individual entrepreneur, IDNO, patent)
   BANK_DETAILS // bank account details for the payouts
+  CAR_REGISTRATION // the car's registration certificate, in the host's name
+  CAR_INSURANCE // compulsory motor insurance (RCA)
+  CAR_OWNERSHIP // sale contract or power of attorney (optional)
 }
 
 // Private documents a host (or a customer asking to become one) uploads for the admin.
@@ -144,6 +147,7 @@ enum HostDocumentType {
 model HostDocument {
   id        String           @id @default(uuid())
   userId    String
+  carId     Int? // set for a car's papers; null for the request to become a host
   type      HostDocumentType
   fileName  String
   mimeType  String
@@ -152,8 +156,17 @@ model HostDocument {
   createdAt DateTime         @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  car  Car? @relation(fields: [carId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([carId])
+}
+
+// The admin checks each car's papers (registration and RCA insurance) before it shows on the site.
+enum CarReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 // Sign-in sessions. The browser keeps a random token in an httpOnly cookie; only its SHA-256 hash is stored.
@@ -169,38 +182,43 @@ model Session {
 }
 
 model Car {
-  id            Int       @id @default(autoincrement())
-  slug          String    @unique // used in the car's web address
-  brand         String
-  model         String
-  year          Int
-  pricePerDay   Int // MDL
-  fuel          Fuel
-  seats         Int
-  horsepower    Int
-  acceleration  Float // 0–100 km/h in seconds
-  topSpeed      Int // km/h
-  transmission  String
-  drive         Drive
-  range         Int? // electric range in km
-  city          String // e.g. "Chișinău"
-  pickupAddress String
-  pickupLat     Float
-  pickupLng     Float
-  hostId        Int
-  description   String // English
-  descriptionRo String?
-  descriptionRu String?
-  features      String[]
-  defects       String[]  @default([]) // known flaws the host lists (scratches, a worn seat…)
-  status        CarStatus @default(ACTIVE)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                Int             @id @default(autoincrement())
+  slug              String          @unique // used in the car's web address
+  brand             String
+  model             String
+  year              Int
+  pricePerDay       Int // MDL
+  fuel              Fuel
+  seats             Int
+  horsepower        Int
+  acceleration      Float // 0–100 km/h in seconds
+  topSpeed          Int // km/h
+  transmission      String
+  drive             Drive
+  range             Int? // electric range in km
+  city              String // e.g. "Chișinău"
+  pickupAddress     String
+  pickupLat         Float
+  pickupLng         Float
+  hostId            Int
+  description       String // English
+  descriptionRo     String?
+  descriptionRu     String?
+  features          String[]
+  defects           String[]        @default([]) // known flaws the host lists (scratches, a worn seat…)
+  status            CarStatus       @default(ACTIVE)
+  // Shown on the site only when ACTIVE and APPROVED.
+  reviewStatus      CarReviewStatus @default(PENDING)
+  reviewNote        String? // why the admin rejected the papers, shown to the host
+  reviewSubmittedAt DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
 
-  host     Host       @relation(fields: [hostId], references: [id], onDelete: Restrict)
-  photos   CarPhoto[]
-  bookings Booking[]
-  reviews  Review[]
+  host      Host           @relation(fields: [hostId], references: [id], onDelete: Restrict)
+  photos    CarPhoto[]
+  bookings  Booking[]
+  reviews   Review[]
+  documents HostDocument[]
 
   @@index([status])
   @@index([hostId])
