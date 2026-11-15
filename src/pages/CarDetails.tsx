@@ -205,8 +205,11 @@ function CarDetailsContent({ car }: { car: Car }) {
                     {car.host.rating !== null ? `★ ${car.host.rating.toFixed(1)} (${t.car.hostReviews(car.host.reviews ?? 0)})` : t.car.hostNoReviews} · {t.common.trips(car.host.trips)} · {t.car.verifiedHost}
                   </div>
                 </div>
-                <span style={{ fontSize: 14, fontWeight: 500, color: '#6cb4ff', flexShrink: 0 }}>
-                  <span className="host-card-cta">{t.hostPage.viewProfile} </span>→
+                <span className="btn-action btn-action--light host-card-btn">
+                  <span className="host-card-cta">{t.hostPage.viewProfile}</span>
+                  <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden>
+                    <path d="M3 7h8M7.5 3.5 11 7l-3.5 3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                 </span>
               </Link>
             </Section>

@@ -258,4 +258,11 @@ select:not([multiple]):not([size]) {
 /* The "Your host" card on a car's page links to the host's profile. */
 .host-card-link { transition: background-color 0.15s; }
 .host-card-link:hover { background-color: #2a2a2d !important; }
-@media (max-width: 640px) { .host-card-cta { display: none; } }
+/* Light button on a dark card ("View profile" on the host card). */
+.btn-action--light { background: #f5f5f7; color: #1d1d1f; gap: 6px; height: 36px; padding: 0 16px; font-size: 14px; }
+.host-card-link:hover .btn-action--light { background: #fff; }
+.host-card-btn { flex-shrink: 0; }
+@media (max-width: 640px) {
+  .host-card-cta { display: none; }
+  .host-card-btn { width: 36px; padding: 0; }
+}
