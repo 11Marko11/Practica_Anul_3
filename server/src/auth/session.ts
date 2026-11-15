@@ -5,8 +5,12 @@ import { env } from '../env.js'
 import type { Role, VerificationStatus } from '../generated/prisma/client.js'
 
 export const SESSION_COOKIE = 'rm_session'
-const SESSION_DAYS = 30
-const DAY_MS = 86_400_000
+// A session ends after this long without any request. While the site is open it checks in
+// every few minutes (see AuthContext), so closing it and coming back soon keeps you signed in,
+// while coming back later asks you to sign in again.
+const IDLE_MS = 30 * 60_000
+// Refresh the expiry at most this often, so not every request writes to the database.
+const REFRESH_MS = 2 * 60_000
 
 // What the website gets about the signed-in user.
 // `host` is set for users the admin gave the host role.
@@ -18,7 +22,8 @@ export const sessionCookieOptions: CookieSerializeOptions = {
   secure: env.NODE_ENV === 'production', // HTTPS only on the live site
   sameSite: 'lax', // not sent with cross-site form posts
   path: '/',
-  maxAge: SESSION_DAYS * 86_400,
+  // The browser may keep the cookie for a day; the server decides whether the session is still alive.
+  maxAge: 86_400,
 }
 
 // The cookie holds a random token; the database stores only its hash, so a leaked
@@ -30,7 +35,7 @@ function tokenHash(token: string) {
 export async function createSession(userId: string) {
   const token = randomBytes(32).toString('base64url')
   await prisma.session.create({
-    data: { id: tokenHash(token), userId, expiresAt: new Date(Date.now() + SESSION_DAYS * DAY_MS) },
+    data: { id: tokenHash(token), userId, expiresAt: new Date(Date.now() + IDLE_MS) },
   })
   return token
 }
@@ -45,9 +50,9 @@ export async function userForToken(token: string): Promise<PublicUser | null> {
     await prisma.session.delete({ where: { id: session.id } }).catch(() => {})
     return null
   }
-  // Keep active users signed in: push the expiry forward once half the session has passed.
-  if (session.expiresAt.getTime() - Date.now() < (SESSION_DAYS / 2) * DAY_MS) {
-    await prisma.session.update({ where: { id: session.id }, data: { expiresAt: new Date(Date.now() + SESSION_DAYS * DAY_MS) } })
+  // Activity keeps the session alive for another IDLE_MS.
+  if (session.expiresAt.getTime() - Date.now() < IDLE_MS - REFRESH_MS) {
+    await prisma.session.update({ where: { id: session.id }, data: { expiresAt: new Date(Date.now() + IDLE_MS) } })
   }
   return session.user
 }

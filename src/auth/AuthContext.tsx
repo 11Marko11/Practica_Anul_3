@@ -40,6 +40,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false))
   }, [])
 
+  // Sessions end after 30 minutes without activity (see the server's session.ts). While the site
+  // is open, check in every few minutes and when the tab comes back to the front: this keeps the
+  // session alive, and signs the page out if it ended meanwhile (e.g. the computer was asleep).
+  const signedIn = !!user
+  useEffect(() => {
+    if (!signedIn) return
+    const check = () => api<{ user: User | null }>('/auth/me').then(res => setUser(res.user)).catch(() => {})
+    const timer = setInterval(check, 4 * 60_000)
+    const onVisible = () => { if (document.visibilityState === 'visible') check() }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      clearInterval(timer)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [signedIn])
+
   async function signIn(email: string, password: string) {
     const res = await api<{ user: User }>('/auth/login', { body: { email, password } })
     setUser(res.user)
