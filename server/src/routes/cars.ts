@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { requireAdmin } from '../auth/guards.js'
-import { carData, carInclude, carInput, slugBase, toCarDto } from '../cars/dto.js'
+import { carInclude, slugBase, toCarDto } from '../cars/dto.js'
 import { hostStats } from '../cars/hostStats.js'
 import { prisma } from '../db.js'
 import { HttpError } from '../http/errors.js'
@@ -20,16 +20,9 @@ export async function uniqueSlug(brand: string, model: string) {
   return slug
 }
 
-// Photos keep their credit when the admin saves a car without changing them.
+// Photos keep their credit when a car is saved without changing them.
 export const photoRows = (photos: string[], credits = new Map<string, { credit: string | null; creditUrl: string | null }>()) =>
   photos.map((url, position) => ({ url, position, ...(credits.get(url) ?? {}) }))
-
-// The host picked in the admin form.
-async function hostLink(hostId: number) {
-  const host = await prisma.host.findUnique({ where: { id: hostId }, select: { id: true } })
-  if (!host) throw new HttpError(400, 'host-not-found')
-  return { connect: { id: host.id } }
-}
 
 // One car with its host's current rating and trips.
 export async function carDto(car: Parameters<typeof toCarDto>[0]) {
@@ -55,29 +48,14 @@ export async function carRoutes(app: FastifyInstance) {
     return { car: await carDto(car) }
   })
 
-  app.post('/admin/cars', { preHandler: requireAdmin }, async (request, reply) => {
-    const input = carInput.parse(request.body)
-    const car = await prisma.car.create({
-      data: { ...carData(input), host: await hostLink(input.hostId), slug: await uniqueSlug(input.brand, input.model), photos: { create: photoRows(input.photos) } },
-      include: carInclude,
-    })
-    reply.code(201)
-    return { car: await carDto(car) }
-  })
-
-  // The slug (the car's web address) stays the same when a car is edited.
-  app.put('/admin/cars/:id', { preHandler: requireAdmin }, async request => {
+  // Only the owner of a car (its host) can change its details. Admins can only take a car off
+  // the site or put it back, e.g. when a listing breaks the rules.
+  app.patch('/admin/cars/:id/status', { preHandler: requireAdmin }, async request => {
     const { id } = idParam.parse(request.params)
-    const input = carInput.parse(request.body)
-    const current = await prisma.car.findUnique({ where: { id }, select: { photos: { select: { url: true, credit: true, creditUrl: true } } } })
-    if (!current) throw new HttpError(404, 'car-not-found')
-    const credits = new Map(current.photos.map(p => [p.url, { credit: p.credit, creditUrl: p.creditUrl }]))
-    const car = await prisma.car.update({
-      where: { id },
-      data: { ...carData(input), host: await hostLink(input.hostId), photos: { deleteMany: {}, create: photoRows(input.photos, credits) } },
-      include: carInclude,
-    })
-    return { car: await carDto(car) }
+    const { status } = z.object({ status: z.enum(['ACTIVE', 'HIDDEN']) }).parse(request.body)
+    const done = await prisma.car.updateMany({ where: { id, status: { not: 'REMOVED' } }, data: { status } })
+    if (!done.count) throw new HttpError(404, 'car-not-found')
+    return { ok: true }
   })
 
   // Cars with bookings are kept for the booking history; hide them instead.

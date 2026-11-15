@@ -67,20 +67,16 @@ export function useFreshCatalog() {
   return fresh
 }
 
-// What the car forms send; the server fills in id and slug. Admins also choose the host
-// (hostId); a host's own cars are always theirs.
+// What the host's car form sends; the server fills in id and slug, and the car is the host's.
 export type CarInput = Omit<Car, 'id' | 'slug' | 'location' | 'host' | 'status'> & {
   city: string
-  hostId?: number
-  status: 'ACTIVE' | 'HIDDEN' | 'REMOVED'
+  status: 'ACTIVE' | 'HIDDEN'
 }
 
-export async function saveCar(input: CarInput, id?: number) {
-  const res = id
-    ? await api<{ car: Car }>(`/admin/cars/${id}`, { method: 'PUT', body: input })
-    : await api<{ car: Car }>('/admin/cars', { body: input })
+// Admins can't change a car's details (only its owner can), but can take it off the site or put it back.
+export async function setCarStatus(id: number, status: 'ACTIVE' | 'HIDDEN') {
+  await api(`/admin/cars/${id}/status`, { method: 'PATCH', body: { status } })
   await reloadCars()
-  return res.car
 }
 
 export async function deleteCar(id: number) {

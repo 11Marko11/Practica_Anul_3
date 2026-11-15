@@ -9,7 +9,7 @@ import { Login } from '../pages/Login'
 import { Terms } from '../pages/Terms'
 import { Privacy } from '../pages/Privacy'
 import { AdminCars } from '../pages/admin/AdminCars'
-import { AdminCarForm, HostCarForm } from '../pages/admin/AdminCarForm'
+import { HostCarForm } from '../pages/HostCarForm'
 import { AdminBookings } from '../pages/admin/AdminBookings'
 import { AdminPages } from '../pages/admin/AdminPages'
 import { AdminDashboard } from '../pages/admin/AdminDashboard'
@@ -53,8 +53,6 @@ export const router = createBrowserRouter([
       { path: 'admin/reviews', Component: AdminReviews },
       { path: 'admin/promotions', Component: AdminPromotions },
       { path: 'admin/promotions/:id', Component: AdminPromotions },
-      { path: 'admin/cars/new', Component: AdminCarForm },
-      { path: 'admin/cars/:slug', Component: AdminCarForm },
     ],
   },
 ])

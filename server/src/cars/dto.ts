@@ -43,7 +43,7 @@ export function toCarDto(car: CarRow, host: HostStats) {
 const text = (max: number) => z.string().trim().min(1).max(max)
 const optionalText = (max: number) => z.string().trim().max(max).optional().transform(v => v || null)
 
-// What the car forms send when creating or updating a car (admins and hosts).
+// What the host's car form sends when creating or updating a car.
 const carFields = z.object({
   brand: text(60),
   model: text(80),
@@ -70,16 +70,11 @@ const carFields = z.object({
   defects: z.array(text(300)).max(30).default([]),
   photos: z.array(text(2000)).min(1).max(20),
 })
-// Admins choose the car's host and may bring back a car its host removed.
-export const carInput = carFields.extend({
-  hostId: z.int().positive(),
-  status: z.enum(['ACTIVE', 'HIDDEN', 'REMOVED']).default('ACTIVE'),
-})
-// Hosts save their own cars; removing one goes through DELETE.
+// Only hosts save cars (their own); removing one goes through DELETE.
 export const hostCarInput = carFields.extend({ status: z.enum(['ACTIVE', 'HIDDEN']).default('ACTIVE') })
-export type CarInput = z.infer<typeof hostCarInput> | z.infer<typeof carInput>
+export type CarInput = z.infer<typeof hostCarInput>
 
-// The database columns for a car, from the admin form (photos and the host are handled separately).
+// The database columns for a car, from the host's form (photos and the host are handled separately).
 export function carData(input: CarInput) {
   return {
     brand: input.brand,

@@ -158,11 +158,10 @@ function HostRow({ host, onChanged }: { host: AdminHost; onChanged: () => Promis
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10 }}>
               {host.cars.length === 0 && <span style={{ fontSize: 13, color: '#86868b' }}>{h.noCars}</span>}
               {host.cars.map(car => (
-                <Link key={car.id} to={`/admin/cars/${car.slug}`} style={{ fontSize: 12, padding: '4px 10px', borderRadius: 980, background: '#f5f5f7', color: car.status === 'ACTIVE' ? '#1d1d1f' : '#86868b', textDecoration: car.status === 'REMOVED' ? 'line-through' : 'none' }}>
+                <Link key={car.id} to={`/cars/${car.slug}`} style={{ fontSize: 12, padding: '4px 10px', borderRadius: 980, background: '#f5f5f7', color: car.status === 'ACTIVE' ? '#1d1d1f' : '#86868b', textDecoration: car.status === 'REMOVED' ? 'line-through' : 'none' }}>
                   {car.brand} {car.model} {car.year}{car.status === 'HIDDEN' && ` · ${h.hidden}`}{car.status === 'REMOVED' && ` · ${t.admin.removed}`}
                 </Link>
               ))}
-              <Link to={`/admin/cars/new?host=${host.id}`} style={{ fontSize: 12, padding: '4px 10px', color: '#0071e3', textDecoration: 'none' }}>{h.addCar}</Link>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 16, fontSize: 14, flexShrink: 0 }}>

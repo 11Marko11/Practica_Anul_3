@@ -152,7 +152,7 @@ function DashboardContent() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 28, minWidth: 0 }}>
             <Panel title={d.quick}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <QuickLink to="/admin/cars/new" primary>{d.addCar}</QuickLink>
+                <QuickLink to="/admin/hosts" primary>{t.adminHosts.title}</QuickLink>
                 <QuickLink to="/admin/pages">{d.editPages}</QuickLink>
                 <QuickLink to="/" external>{d.viewSite}</QuickLink>
               </div>

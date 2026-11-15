@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
 import { carImage } from '../../data/cars'
-import { deleteCar, useAllCars, useFreshCatalog } from '../../lib/carStore'
+import { deleteCar, setCarStatus, useAllCars, useFreshCatalog } from '../../lib/carStore'
 import { ApiError } from '../../lib/api'
 import { fmt } from '../../lib/rental'
 import { useI18n } from '../../i18n/I18nContext'
@@ -86,11 +86,8 @@ function AdminCarsContent() {
         <div style={{ maxWidth: 1000, margin: '0 auto', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
           <div>
             <h1 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#f5f5f7', margin: 0, lineHeight: 1.05 }}>{t.admin.title}</h1>
-            <p style={{ fontSize: 14, color: '#a1a1a6', margin: '10px 0 0' }}>{t.admin.count(allCars.length)}</p>
+            <p style={{ fontSize: 14, color: '#a1a1a6', margin: '10px 0 0' }}>{t.admin.count(allCars.length)} · {t.admin.carsByHosts}</p>
           </div>
-          <Link to="/admin/cars/new" state={{ listSearch: params.toString() }} style={{ fontSize: 15, fontWeight: 500, padding: '12px 24px', borderRadius: 980, background: '#f5f5f7', color: '#1c1c1e', textDecoration: 'none' }}>
-            + {t.admin.add}
-          </Link>
         </div>
       </div>
 
@@ -157,7 +154,14 @@ function AdminCarsContent() {
                 </div>
                 <div style={{ display: 'flex', gap: 16, fontSize: 14, flexShrink: 0 }}>
                   <Link to={`/cars/${car.slug}`} style={{ color: '#6e6e73', textDecoration: 'none' }}>{t.admin.view}</Link>
-                  <Link to={`/admin/cars/${car.slug}`} state={{ listSearch: params.toString() }} style={{ color: '#0071e3', textDecoration: 'none', fontWeight: 500 }}>{t.admin.edit}</Link>
+                  {car.status !== 'REMOVED' && (
+                    <button
+                      onClick={() => setCarStatus(car.id, car.status === 'HIDDEN' ? 'ACTIVE' : 'HIDDEN').catch(() => alert(t.admin.saveError))}
+                      style={{ fontSize: 14, color: '#0071e3', fontWeight: 500, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                    >
+                      {car.status === 'HIDDEN' ? t.admin.showCar : t.admin.hideCar}
+                    </button>
+                  )}
                   <button
                     onClick={() => remove(car.id, name)}
                     style={{ fontSize: 14, color: '#d70015', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}

@@ -1,57 +1,15 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
-import { useAuth } from '../../auth/AuthContext'
-import { CITIES, photoUrl, type Car } from '../../data/cars'
-import { saveCar, useAllCars, useFreshCatalog, type CarInput } from '../../lib/carStore'
-import { api, ApiError } from '../../lib/api'
-import { searchAddress, type Place } from '../../lib/delivery'
-import { useAdminHosts } from '../../lib/hosts'
-import { uploadPhoto } from '../../lib/photos'
-import { useI18n } from '../../i18n/I18nContext'
-import { AdminGuard } from './AdminGuard'
+import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router'
+import { useAuth } from '../auth/AuthContext'
+import { CITIES, photoUrl, type Car } from '../data/cars'
+import type { CarInput } from '../lib/carStore'
+import { api, ApiError } from '../lib/api'
+import { searchAddress, type Place } from '../lib/delivery'
+import { uploadPhoto } from '../lib/photos'
+import { useI18n } from '../i18n/I18nContext'
 
-// /admin/cars/new adds a car; /admin/cars/:slug edits one.
-export function AdminCarForm() {
-  const { slug } = useParams()
-  return (
-    <AdminGuard>
-      <FreshCatalog>
-        <AdminCarFormContent key={slug ?? 'new'} slug={slug} />
-      </FreshCatalog>
-    </AdminGuard>
-  )
-}
-
-// The form takes its starting values from the catalogue, so wait for the admin's full list.
-function FreshCatalog({ children }: { children: ReactNode }) {
-  return useFreshCatalog() ? <>{children}</> : <div style={{ minHeight: '80vh' }} />
-}
-
-function AdminCarFormContent({ slug }: { slug?: string }) {
-  const existing = useAllCars().find(c => c.slug === slug)
-  const location = useLocation()
-  const { t } = useI18n()
-  // Back to the car list as it was left (sorting, filters), when we came from it.
-  const listSearch = (location.state as { listSearch?: string } | null)?.listSearch
-  const listUrl = `/admin/cars${listSearch ? `?${listSearch}` : ''}`
-  // "Add a car for this host" on the Hosts page opens the form with the host already chosen (?host=12).
-  const [search] = useSearchParams()
-
-  if (slug && !existing) return <NotFound backUrl={listUrl} backLabel={t.admin.back} />
-  return (
-    <CarForm
-      mode="admin"
-      existing={existing}
-      initialHostId={search.get('host') ?? ''}
-      backUrl={listUrl}
-      backLabel={t.admin.back}
-      title={existing ? t.admin.editTitle : t.admin.newTitle}
-      save={input => saveCar(input, existing?.id)}
-    />
-  )
-}
-
-// /host/cars/new and /host/cars/:id: a host adds or edits one of their own cars.
+// /host/cars/new and /host/cars/:id: a host adds or edits one of their own cars. Only the owner
+// of a car can change it; admins can hide or delete cars from the admin list.
 export function HostCarForm() {
   const { id } = useParams()
   const { user, loading } = useAuth()
@@ -74,7 +32,6 @@ function HostCarFormContent({ id }: { id?: string }) {
   if (id && !existing) return <NotFound backUrl="/host" backLabel={h.back} />
   return (
     <CarForm
-      mode="host"
       existing={existing ?? undefined}
       backUrl="/host"
       backLabel={h.back}
@@ -95,7 +52,7 @@ function NotFound({ backUrl, backLabel }: { backUrl: string; backLabel: string }
 }
 
 type Pickup = { address: string; lat: number; lng: number }
-type Status = 'ACTIVE' | 'HIDDEN' | 'REMOVED'
+type Status = 'ACTIVE' | 'HIDDEN'
 
 // Number fields are kept as text while typing and checked on save.
 type FormState = {
@@ -112,7 +69,6 @@ type FormState = {
   drive: Car['drive']
   status: Status
   range: string
-  hostId: string
   city: string
   address: string
   pickup: Pickup | null
@@ -126,7 +82,7 @@ type FormState = {
 
 const EMPTY: FormState = {
   brand: '', model: '', year: String(new Date().getFullYear()), price: '', fuel: 'Petrol', seats: '4',
-  horsepower: '', acceleration: '', topSpeed: '', transmission: '', drive: 'FWD', status: 'ACTIVE', range: '', hostId: '',
+  horsepower: '', acceleration: '', topSpeed: '', transmission: '', drive: 'FWD', status: 'ACTIVE', range: '',
   city: CITIES[0], address: '', pickup: null, photos: [], descriptionEn: '', descriptionRo: '', descriptionRu: '', features: '', defects: '',
 }
 
@@ -134,7 +90,7 @@ function fromCar(car: Car): FormState {
   return {
     brand: car.brand, model: car.model, year: String(car.year), price: String(car.pricePerDay), fuel: car.fuel, seats: String(car.seats),
     horsepower: String(car.horsepower), acceleration: String(car.acceleration), topSpeed: String(car.topSpeed), transmission: car.transmission,
-    drive: car.drive, status: car.status ?? 'ACTIVE', range: car.range ? String(car.range) : '', hostId: car.host.id ? String(car.host.id) : '',
+    drive: car.drive, status: car.status === 'HIDDEN' ? 'HIDDEN' : 'ACTIVE', range: car.range ? String(car.range) : '',
     city: car.location.split(',')[0], address: car.pickup.address, pickup: car.pickup,
     photos: car.photos, descriptionEn: car.description, descriptionRo: car.translations?.ro?.description ?? '', descriptionRu: car.translations?.ru?.description ?? '',
     features: car.features.join('\n'), defects: (car.defects ?? []).join('\n'),
@@ -144,11 +100,9 @@ function fromCar(car: Car): FormState {
 const lines = (text: string) => text.split('\n').map(l => l.trim()).filter(Boolean)
 const positive = (text: string) => Number(text.replace(',', '.')) > 0
 
-// The car form shared by admins (who also pick the host) and hosts (their own cars).
-function CarForm({ mode, existing, initialHostId = '', backUrl, backLabel, title, save }: {
-  mode: 'admin' | 'host'
+// The form for a host's own car.
+function CarForm({ existing, backUrl, backLabel, title, save }: {
   existing?: Car
-  initialHostId?: string
   backUrl: string
   backLabel: string
   title: string
@@ -156,9 +110,7 @@ function CarForm({ mode, existing, initialHostId = '', backUrl, backLabel, title
 }) {
   const navigate = useNavigate()
   const { t } = useI18n()
-  const isAdmin = mode === 'admin'
-  const { hosts } = useAdminHosts(isAdmin)
-  const [form, setForm] = useState<FormState>(() => (existing ? fromCar(existing) : { ...EMPTY, hostId: initialHostId }))
+  const [form, setForm] = useState<FormState>(() => (existing ? fromCar(existing) : EMPTY))
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -170,7 +122,7 @@ function CarForm({ mode, existing, initialHostId = '', backUrl, backLabel, title
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     const f = form
-    const required = [f.brand, f.model, f.transmission, f.descriptionEn, isAdmin ? f.hostId : 'host'].every(v => v.trim())
+    const required = [f.brand, f.model, f.transmission, f.descriptionEn].every(v => v.trim())
     const numbers = [f.year, f.price, f.seats, f.horsepower, f.acceleration, f.topSpeed].every(positive)
     if (!required || !numbers) return setError(t.admin.errors.required)
     if (!f.pickup) return setError(t.admin.errors.address)
@@ -197,7 +149,6 @@ function CarForm({ mode, existing, initialHostId = '', backUrl, backLabel, title
       range: (f.fuel === 'Electric' || f.fuel === 'Hybrid') && positive(f.range) ? Math.round(num(f.range)) : undefined,
       city: f.city,
       pickup: f.pickup,
-      ...(isAdmin ? { hostId: Number(f.hostId) } : {}),
       description: f.descriptionEn.trim(),
       features: lines(f.features),
       defects: lines(f.defects),
@@ -231,23 +182,10 @@ function CarForm({ mode, existing, initialHostId = '', backUrl, backLabel, title
               <Field label={t.admin.fields.model} required><input value={form.model} onChange={e => set('model', e.target.value)} style={inputStyle} /></Field>
               <Field label={t.admin.fields.year} required><input inputMode="numeric" value={form.year} onChange={e => set('year', e.target.value)} style={inputStyle} /></Field>
               <Field label={t.admin.fields.price} required><input inputMode="numeric" value={form.price} onChange={e => set('price', e.target.value)} style={inputStyle} /></Field>
-              {isAdmin && (
-                <Field label={t.admin.fields.host} required>
-                  <select value={form.hostId} onChange={e => set('hostId', e.target.value)} style={inputStyle}>
-                    <option value="" disabled>{hosts ? t.admin.fields.hostChoose : '…'}</option>
-                    {(hosts ?? []).map(h => (
-                      <option key={h.id} value={h.id}>
-                        {h.name} — {t.admin.fields.hostSummary(h.rating?.toFixed(1) ?? null, t.common.trips(h.trips), t.adminHosts.cars(h.cars.length))}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-              )}
               <Field label={t.admin.status}>
                 <select value={form.status} onChange={e => set('status', e.target.value as Status)} style={inputStyle}>
                   <option value="ACTIVE">{t.admin.statusActive}</option>
                   <option value="HIDDEN">{t.admin.statusHidden}</option>
-                  {isAdmin && existing?.status === 'REMOVED' && <option value="REMOVED">{t.admin.statusRemoved}</option>}
                 </select>
               </Field>
             </div>
