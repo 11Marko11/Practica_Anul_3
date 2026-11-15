@@ -164,10 +164,10 @@ function HostRow({ host, onChanged }: { host: AdminHost; onChanged: () => Promis
               ))}
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 16, fontSize: 14, flexShrink: 0 }}>
-            <button onClick={() => setEditing('details')} style={{ ...linkButton, color: '#0071e3', fontWeight: 500 }}>{h.edit}</button>
-            <button onClick={() => setEditing('account')} style={{ ...linkButton, color: '#0071e3' }}>{h.accountEdit}</button>
-            <button onClick={remove} style={{ ...linkButton, color: '#d70015' }}>{h.delete}</button>
+          <div className="row-actions">
+            <button onClick={() => setEditing('details')} className="btn-action btn-action--primary">{h.edit}</button>
+            <button onClick={() => setEditing('account')} className="btn-action btn-action--neutral">{h.accountEdit}</button>
+            <button onClick={remove} className="btn-action btn-action--danger">{h.delete}</button>
           </div>
         </div>
       )}
@@ -219,7 +219,7 @@ function HostEditor({ host, withAccount = false, onSave, onCancel }: {
       <button type="submit" disabled={busy || !ready} style={{ fontSize: 14, fontWeight: 500, padding: '10px 20px', borderRadius: 980, background: '#1d1d1f', color: '#fff', border: 'none', cursor: 'pointer', opacity: busy || !ready ? 0.5 : 1 }}>
         {h.save}
       </button>
-      <button type="button" onClick={onCancel} style={{ ...linkButton, color: '#6e6e73', padding: '10px 4px' }}>{h.cancel}</button>
+      <button type="button" onClick={onCancel} className="btn-action btn-action--neutral" style={{ height: 38 }}>{h.cancel}</button>
       {error && <p style={{ flexBasis: '100%', fontSize: 13, color: '#d70015', margin: 0 }}>{error}</p>}
     </form>
   )
@@ -255,7 +255,7 @@ function AccountEditor({ host, onSave, onCancel }: { host: AdminHost; onSave: (i
       <button type="submit" disabled={busy || !ready} style={{ fontSize: 14, fontWeight: 500, padding: '10px 20px', borderRadius: 980, background: '#1d1d1f', color: '#fff', border: 'none', cursor: 'pointer', opacity: busy || !ready ? 0.5 : 1 }}>
         {h.save}
       </button>
-      <button type="button" onClick={onCancel} style={{ ...linkButton, color: '#6e6e73', padding: '10px 4px' }}>{h.cancel}</button>
+      <button type="button" onClick={onCancel} className="btn-action btn-action--neutral" style={{ height: 38 }}>{h.cancel}</button>
       {error && <p style={{ flexBasis: '100%', fontSize: 13, color: '#d70015', margin: 0 }}>{error}</p>}
     </form>
   )
@@ -287,4 +287,3 @@ function AccountFields({ email, password, onEmail, onPassword, passwordLabel }: 
 
 const control: React.CSSProperties = { fontSize: 14, padding: '9px 14px', borderRadius: 980, border: '1px solid #d2d2d7', background: '#fff', color: '#1d1d1f', fontFamily: 'inherit', outline: 'none' }
 const field: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, color: '#6e6e73', flex: '1 1 200px' }
-const linkButton: React.CSSProperties = { fontSize: 14, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit' }

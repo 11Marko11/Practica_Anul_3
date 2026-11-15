@@ -196,7 +196,7 @@ function Verification({ profile, documents, onChange, onDocuments, errorText, la
               <div style={{ fontSize: 12, color: '#86868b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {d.fileName} · {fileSize(d.size)} · {new Date(d.createdAt).toLocaleDateString(lang)}
               </div>
-              <button onClick={() => remove(d.id)} style={{ marginTop: 6, fontSize: 13, color: '#d70015', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+              <button onClick={() => remove(d.id)} className="btn-action btn-action--danger" style={{ marginTop: 10, height: 28, padding: '0 12px' }}>
                 {p.remove}
               </button>
             </div>

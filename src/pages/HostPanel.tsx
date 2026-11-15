@@ -163,10 +163,10 @@ function HostPanelContent() {
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
                       <span style={{ fontSize: 12, color: '#86868b' }}>{h.earned}</span>
                       <strong style={{ fontSize: 16, color: '#1d1d1f' }}><Money value={car.earned} /></strong>
-                      <div style={{ display: 'flex', gap: 14, fontSize: 13 }}>
-                        {car.status === 'ACTIVE' && <Link to={`/cars/${car.slug}`} style={{ color: '#6e6e73', textDecoration: 'none' }}>{h.view}</Link>}
-                        <Link to={`/host/cars/${car.id}`} style={{ color: '#0071e3', textDecoration: 'none', fontWeight: 500 }}>{h.edit}</Link>
-                        <button onClick={() => remove(car)} style={{ fontSize: 13, color: '#d70015', background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit' }}>{h.delete}</button>
+                      <div className="row-actions" style={{ justifyContent: 'flex-end', marginTop: 4 }}>
+                        {car.status === 'ACTIVE' && <Link to={`/cars/${car.slug}`} className="btn-action btn-action--neutral">{h.view}</Link>}
+                        <Link to={`/host/cars/${car.id}`} className="btn-action btn-action--primary">{h.edit}</Link>
+                        <button onClick={() => remove(car)} className="btn-action btn-action--danger">{h.delete}</button>
                       </div>
                     </div>
                   </li>

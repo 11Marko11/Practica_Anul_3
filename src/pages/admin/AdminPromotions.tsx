@@ -99,10 +99,10 @@ function PromotionList() {
                       <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 2 }}>{dates(p)} · #{p.position} · {a.clicks(p.clicks ?? 0)}</div>
                       {p.linkUrl && <div style={{ fontSize: 12, color: '#86868b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.linkUrl}</div>}
                     </div>
-                    <div style={{ display: 'flex', gap: 16, fontSize: 14, flexShrink: 0 }}>
-                      <button onClick={() => toggle(p)} style={linkButton('#6e6e73')}>{p.active ? a.turnOff : a.turnOn}</button>
-                      <Link to={`/admin/promotions/${p.id}`} style={{ color: '#0071e3', textDecoration: 'none', fontWeight: 500 }}>{a.edit}</Link>
-                      <button onClick={() => remove(p)} style={linkButton('#d70015')}>{a.delete}</button>
+                    <div className="row-actions">
+                      <button onClick={() => toggle(p)} className="btn-action btn-action--neutral">{p.active ? a.turnOff : a.turnOn}</button>
+                      <Link to={`/admin/promotions/${p.id}`} className="btn-action btn-action--primary">{a.edit}</Link>
+                      <button onClick={() => remove(p)} className="btn-action btn-action--danger">{a.delete}</button>
                     </div>
                   </div>
                 )
@@ -247,4 +247,3 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
 }
 
 const input: React.CSSProperties = { width: '100%', padding: '11px 14px', fontSize: 15, border: '1px solid #d2d2d7', borderRadius: 12, background: '#fff', color: '#1d1d1f', fontFamily: 'inherit', outline: 'none' }
-const linkButton = (color: string): React.CSSProperties => ({ fontSize: 14, color, background: 'none', border: 'none', padding: 0, cursor: 'pointer' })

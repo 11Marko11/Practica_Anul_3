@@ -111,7 +111,7 @@ function ReviewsContent() {
                   </div>
                   <p style={{ fontSize: 14, color: '#424245', margin: '4px 0 0', whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>{rv.text}</p>
                 </div>
-                <button onClick={() => remove(rv.id)} style={{ flexShrink: 0, fontSize: 13, color: '#d70015', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                <button onClick={() => remove(rv.id)} className="btn-action btn-action--danger" style={{ flexShrink: 0 }}>
                   {r.delete}
                 </button>
               </div>

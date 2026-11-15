@@ -66,7 +66,7 @@ export function CarReviews({ data }: { data: ReturnType<typeof useReviews> }) {
                 </div>
               </div>
               {(r.mine || user?.role === 'ADMIN') && (
-                <button onClick={() => confirm(t.reviews.deleteConfirm) && remove(r.id).catch(() => alert(t.reviews.error))} style={{ fontSize: 13, color: '#d70015', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                <button onClick={() => confirm(t.reviews.deleteConfirm) && remove(r.id).catch(() => alert(t.reviews.error))} className="btn-action btn-action--danger" style={{ height: 28, padding: '0 12px', flexShrink: 0 }}>
                   {t.reviews.delete}
                 </button>
               )}

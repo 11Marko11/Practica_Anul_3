@@ -202,3 +202,32 @@ body {
   .pagination { gap: 4px; }
   .pagination-word { display: none; }
 }
+
+/* Action buttons in lists and cards (View, Edit, Hide, Delete…): small rounded buttons in the
+   site's style. Variants: primary (main action), neutral, danger (deleting). */
+.row-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex-shrink: 0; }
+.btn-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 980px;
+  border: 1px solid transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+.btn-action:focus-visible { outline: 2px solid #0071e3; outline-offset: 2px; }
+.btn-action:disabled { opacity: 0.5; cursor: default; }
+.btn-action--primary { background: #1d1d1f; color: #fff; }
+.btn-action--primary:hover:not(:disabled) { background: #3a3a3c; }
+.btn-action--neutral { background: #f5f5f7; color: #1d1d1f; border-color: #e5e5ea; }
+.btn-action--neutral:hover:not(:disabled) { background: #e8e8ed; }
+.btn-action--danger { background: #fff; color: #d70015; border-color: #f5c6cb; }
+.btn-action--danger:hover:not(:disabled) { background: #fdecec; border-color: #ef9aa3; }

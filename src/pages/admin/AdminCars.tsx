@@ -152,20 +152,15 @@ function AdminCarsContent() {
                     {car.createdAt && <span style={{ color: '#86868b' }}> · {t.adminCarsList.added(new Date(car.createdAt).toLocaleDateString(lang))}</span>}
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 16, fontSize: 14, flexShrink: 0 }}>
-                  <Link to={`/cars/${car.slug}`} style={{ color: '#6e6e73', textDecoration: 'none' }}>{t.admin.view}</Link>
+                <div className="row-actions">
+                  <Link to={`/cars/${car.slug}`} className="btn-action btn-action--neutral">{t.admin.view}</Link>
                   <button
                     onClick={() => setCarStatus(car.id, car.status === 'HIDDEN' ? 'ACTIVE' : 'HIDDEN').catch(() => alert(t.admin.saveError))}
-                    style={{ fontSize: 14, color: '#0071e3', fontWeight: 500, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                    className={`btn-action ${car.status === 'HIDDEN' ? 'btn-action--primary' : 'btn-action--neutral'}`}
                   >
                     {car.status === 'HIDDEN' ? t.admin.showCar : t.admin.hideCar}
                   </button>
-                  <button
-                    onClick={() => remove(car.id, name)}
-                    style={{ fontSize: 14, color: '#d70015', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
-                  >
-                    {t.admin.delete}
-                  </button>
+                  <button onClick={() => remove(car.id, name)} className="btn-action btn-action--danger">{t.admin.delete}</button>
                 </div>
               </li>
             )
