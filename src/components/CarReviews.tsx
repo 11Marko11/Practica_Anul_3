@@ -164,7 +164,7 @@ function ReviewForm({ onSubmit }: { onSubmit: (rating: number, text: string) => 
 }
 
 // Five stars, filled up to `rating` (rounded to the nearest half star).
-function Stars({ rating, size }: { rating: number; size: number }) {
+export function Stars({ rating, size }: { rating: number; size: number }) {
   const filled = Math.round(rating * 2) / 2
   return (
     <span aria-hidden style={{ display: 'inline-flex', fontSize: size, letterSpacing: 1, lineHeight: 1.4 }}>

@@ -220,7 +220,7 @@ function Select({ label, value, active, onChange, children }: { label: string; v
   )
 }
 
-function CarCard({ car, days, query }: { car: Car; days: number; query: string }) {
+export function CarCard({ car, days, query }: { car: Car; days: number; query: string }) {
   const [hov, setHov] = useState(false)
   const { t } = useI18n()
 

@@ -247,3 +247,15 @@ select:not([multiple]):not([size]) {
   padding-right: 36px !important;
   cursor: pointer;
 }
+
+/* Host profile page: the numbers under the name and the grid of reviews. */
+.host-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 32px; max-width: 720px; }
+.host-reviews { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 640px) {
+  .host-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .host-reviews { grid-template-columns: 1fr; }
+}
+/* The "Your host" card on a car's page links to the host's profile. */
+.host-card-link { transition: background-color 0.15s; }
+.host-card-link:hover { background-color: #2a2a2d !important; }
+@media (max-width: 640px) { .host-card-cta { display: none; } }

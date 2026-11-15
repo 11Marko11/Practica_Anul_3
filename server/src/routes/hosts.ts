@@ -3,6 +3,7 @@ import { randomBytes } from 'node:crypto'
 import { z } from 'zod'
 import { requireAdmin } from '../auth/guards.js'
 import { hashPassword } from '../auth/password.js'
+import { carInclude, toCarDto } from '../cars/dto.js'
 import { hostStats } from '../cars/hostStats.js'
 import { prisma } from '../db.js'
 import { HttpError } from '../http/errors.js'
@@ -24,6 +25,37 @@ async function emailFree(address: string, exceptUserId?: string | null) {
 
 // Rating and trips are not edited by hand: they are calculated from reviews and completed rentals.
 export async function hostRoutes(app: FastifyInstance) {
+  // Public profile of a host: their cars on the site and the reviews of all their cars.
+  // Contact details and the account stay private.
+  app.get('/hosts/:id', async request => {
+    const { id } = idParam.parse(request.params)
+    const host = await prisma.host.findUnique({
+      where: { id },
+      include: {
+        cars: { where: { status: 'ACTIVE' }, include: carInclude, orderBy: [{ brand: 'asc' }, { model: 'asc' }] },
+      },
+    })
+    if (!host) throw new HttpError(404, 'host-not-found')
+    const [stats, reviews] = await Promise.all([
+      hostStats([host.id]),
+      prisma.review.findMany({
+        where: { car: { hostId: host.id } },
+        include: { car: { select: { slug: true, brand: true, model: true, status: true } } },
+        orderBy: { createdAt: 'desc' },
+        take: 100,
+      }),
+    ])
+    const hostStatsNow = stats(host.id)
+    return {
+      host: { id: host.id, name: host.name, since: host.createdAt.toISOString().slice(0, 10), ...hostStatsNow, cars: host.cars.length },
+      cars: host.cars.map(c => toCarDto(c, hostStatsNow)),
+      reviews: reviews.map(r => ({
+        id: r.id, name: r.authorName, rating: r.rating, text: r.text, date: r.createdAt.toISOString().slice(0, 10),
+        car: r.car.status === 'ACTIVE' ? { slug: r.car.slug, name: `${r.car.brand} ${r.car.model}` } : { slug: null, name: `${r.car.brand} ${r.car.model}` },
+      })),
+    }
+  })
+
   app.get('/admin/hosts', { preHandler: requireAdmin }, async () => {
     const hosts = await prisma.host.findMany({
       orderBy: { name: 'asc' },

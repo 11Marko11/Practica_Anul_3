@@ -141,7 +141,7 @@ function HostRow({ host, onChanged }: { host: AdminHost; onChanged: () => Promis
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f' }}>{host.name}</span>
+              <Link to={`/hosts/${host.id}`} style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f', textDecoration: 'none' }}>{host.name}</Link>
               {host.phone && <a href={`tel:${host.phone}`} style={{ fontSize: 13, color: '#0071e3', textDecoration: 'none' }}>{host.phone}</a>}
               {host.account ? (
                 <Link to={`/admin/customers/${host.account.id}`} style={{ fontSize: 12, padding: '2px 9px', borderRadius: 980, background: '#e8f1fd', color: '#0071e3', textDecoration: 'none' }}>

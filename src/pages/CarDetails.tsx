@@ -191,17 +191,24 @@ function CarDetailsContent({ car }: { car: Car }) {
             </Section>
 
             <Section title={t.car.host}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16, background: '#1c1c1e', borderRadius: 18, padding: '20px 22px' }}>
+              <Link
+                to={`/hosts/${car.host.id}`}
+                className="host-card-link"
+                style={{ display: 'flex', alignItems: 'center', gap: 16, background: '#1c1c1e', borderRadius: 18, padding: '20px 22px', textDecoration: 'none' }}
+              >
                 <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#3a3a3d', color: '#f5f5f7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 600, flexShrink: 0 }}>
                   {car.host.name.charAt(0)}
                 </div>
-                <div>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 16, fontWeight: 600, color: '#f5f5f7' }}>{car.host.name}</div>
                   <div style={{ fontSize: 14, color: '#a1a1a6', marginTop: 2 }}>
                     {car.host.rating !== null ? `★ ${car.host.rating.toFixed(1)} (${t.car.hostReviews(car.host.reviews ?? 0)})` : t.car.hostNoReviews} · {t.common.trips(car.host.trips)} · {t.car.verifiedHost}
                   </div>
                 </div>
-              </div>
+                <span style={{ fontSize: 14, fontWeight: 500, color: '#6cb4ff', flexShrink: 0 }}>
+                  <span className="host-card-cta">{t.hostPage.viewProfile} </span>→
+                </span>
+              </Link>
             </Section>
 
             <Section title={t.reviews.title} id="reviews">
