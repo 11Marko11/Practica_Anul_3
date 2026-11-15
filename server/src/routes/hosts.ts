@@ -1,5 +1,4 @@
 import type { FastifyInstance } from 'fastify'
-import { randomBytes } from 'node:crypto'
 import { z } from 'zod'
 import { requireAdmin } from '../auth/guards.js'
 import { hashPassword } from '../auth/password.js'
@@ -7,6 +6,7 @@ import { carInclude, isListed, LISTED, toCarDto } from '../cars/dto.js'
 import { hostStats } from '../cars/hostStats.js'
 import { prisma } from '../db.js'
 import { HttpError } from '../http/errors.js'
+import { removeHost } from '../hosts/removeHost.js'
 
 const idParam = z.object({ id: z.coerce.number().int().positive() })
 const hostInput = z.object({
@@ -131,52 +131,9 @@ export async function hostRoutes(app: FastifyInstance) {
     return { ok: true }
   })
 
-  // Deletes the host and everything about them: their cars with the cars' photos, reviews and
-  // booking history, the photos they uploaded and their account. Refused while a booking of
-  // one of their cars is still going on (money is held or was charged for it).
+  // Deletes the host and everything about them, their account included (see removeHost).
   app.delete('/admin/hosts/:id', { preHandler: requireAdmin }, async request => {
     const { id } = idParam.parse(request.params)
-    const host = await prisma.host.findUnique({
-      where: { id },
-      select: { userId: true, cars: { select: { id: true, photos: { select: { url: true } } } } },
-    })
-    if (!host) throw new HttpError(404, 'host-not-found')
-    const carIds = host.cars.map(c => c.id)
-    const active = await prisma.booking.count({
-      where: {
-        carId: { in: carIds },
-        OR: [{ status: { in: ['AWAITING_CONFIRMATION', 'CONFIRMED'] } }, { status: 'PENDING_PAYMENT', paymentExpiresAt: { gt: new Date() } }],
-      },
-    })
-    if (active > 0) throw new HttpError(409, 'host-has-active-bookings')
-
-    // Photos uploaded to our server are addressed /api/photos/<id>.
-    const photoIds = host.cars.flatMap(c => c.photos.map(p => p.url.match(/^\/api\/photos\/([0-9a-f-]{36})$/)?.[1])).filter((x): x is string => !!x)
-    const userId = host.userId
-    const ownBookings = userId ? await prisma.booking.count({ where: { userId } }) : 0
-    const placeholderPassword = userId && ownBookings ? await hashPassword(randomBytes(32).toString('hex')) : ''
-
-    await prisma.$transaction(async tx => {
-      await tx.booking.deleteMany({ where: { carId: { in: carIds } } })
-      await tx.car.deleteMany({ where: { id: { in: carIds } } }) // photos and reviews go with the cars
-      await tx.uploadedPhoto.deleteMany({ where: { OR: [{ id: { in: photoIds } }, ...(userId ? [{ uploadedBy: userId }] : [])] } })
-      await tx.host.delete({ where: { id } })
-      if (!userId) return
-      if (!ownBookings) {
-        await tx.user.delete({ where: { id: userId } }) // sessions, documents and their reviews go with it
-      } else {
-        // The host also rented cars as a customer: keep those bookings, close the account like a
-        // customer deleting it (see account.ts).
-        const user = await tx.user.findUniqueOrThrow({ where: { id: userId }, select: { email: true } })
-        await tx.user.update({
-          where: { id: userId },
-          data: { deletedAt: new Date(), deletedEmail: user.email, email: `deleted-${userId}@deleted.invalid`, passwordHash: placeholderPassword },
-        })
-        await tx.session.deleteMany({ where: { userId } })
-        await tx.identityDocument.deleteMany({ where: { userId } })
-        await tx.hostDocument.deleteMany({ where: { userId } })
-      }
-    })
-    return { ok: true, cars: carIds.length }
+    return { ok: true, ...(await removeHost(id, 'delete')) }
   })
 }

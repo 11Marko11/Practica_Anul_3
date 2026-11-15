@@ -5,6 +5,7 @@ import { hashPassword } from '../auth/password.js'
 import { normalizePhone } from '../auth/phone.js'
 import { phoneInUse, uniqueViolation } from './auth.js'
 import { documentDto, hostDocumentMeta } from './hostApplication.js'
+import { removeHost } from '../hosts/removeHost.js'
 import { bookingInclude, toBookingDto } from '../bookings/dto.js'
 import { prisma } from '../db.js'
 import { HttpError } from '../http/errors.js'
@@ -169,15 +170,14 @@ export async function adminPeopleRoutes(app: FastifyInstance) {
     return { ok: true }
   })
 
-  // Takes the host role away; the host profile and its cars stay. The user may ask again later.
+  // Takes the host role away: the host profile and its cars are deleted for good and the user
+  // is a plain customer again (they may ask to become a host later).
   app.delete('/admin/customers/:id/host', async request => {
     const { id } = z.object({ id: z.uuid() }).parse(request.params)
     await customer(id)
-    await prisma.$transaction([
-      prisma.host.updateMany({ where: { userId: id }, data: { userId: null } }),
-      prisma.user.update({ where: { id }, data: { hostApplicationStatus: null, hostApplicationSubmittedAt: null } }),
-    ])
-    return { ok: true }
+    const host = await prisma.host.findUnique({ where: { userId: id }, select: { id: true } })
+    if (!host) throw new HttpError(404, 'host-not-found')
+    return { ok: true, ...(await removeHost(host.id, 'keep')) }
   })
 
   // Every car with its reviews, the most reviewed first. Cars without reviews are included.

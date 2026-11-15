@@ -307,7 +307,7 @@ function UserDetail({ id }: { id: string }) {
               <HostCard
                 host={host}
                 onDeleted={() => navigate('/admin/users', { replace: true })}
-                extra={<HostRolePanel customer={data.customer} onChange={reloadAll} />}
+                extra={<HostRolePanel customer={data.customer} cars={host.cars.length} onChange={reloadAll} />}
               />
             ) : (
               !data.customer.host && <HostApplicationPanel data={data} onChange={reloadAll} />
@@ -637,8 +637,8 @@ function CustomerBadge() {
   return <span style={{ fontSize: 12, fontWeight: 500, padding: '3px 10px', borderRadius: 980, background: '#f2f2f4', color: '#424245', whiteSpace: 'nowrap' }}>{t.users.customerBadge}</span>
 }
 
-// Takes the host role away from a user; the host profile and its cars stay on the site.
-function HostRolePanel({ customer, onChange }: { customer: Detail['customer']; onChange: () => unknown }) {
+// Takes the host role away: the host profile and its cars are deleted, the user stays a customer.
+function HostRolePanel({ customer, cars, onChange }: { customer: Detail['customer']; cars: number; onChange: () => unknown }) {
   const { t } = useI18n()
   const r = t.hostRole
   const [busy, setBusy] = useState(false)
@@ -646,13 +646,13 @@ function HostRolePanel({ customer, onChange }: { customer: Detail['customer']; o
   const host = customer.host
 
   async function remove() {
-    if (!confirm(r.removeAsk)) return
+    if (!confirm(r.removeAsk(t.adminHosts.cars(cars)))) return
     setBusy(true)
     try {
       await api(`/admin/customers/${customer.id}/host`, { method: 'DELETE' })
       onChange()
-    } catch {
-      alert(r.error)
+    } catch (err) {
+      alert(err instanceof ApiError && err.code === 'host-has-active-bookings' ? r.hasActiveBookings : r.error)
     }
     setBusy(false)
   }
