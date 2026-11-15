@@ -216,9 +216,6 @@ function Select({ label, value, active, onChange, children }: { label: string; v
       >
         {children}
       </select>
-      <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-        <path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="#1d1d1f" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
     </span>
   )
 }
