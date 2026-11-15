@@ -119,12 +119,12 @@ function HostRow({ host, onChanged }: { host: AdminHost; onChanged: () => Promis
   }
 
   async function remove() {
-    if (!confirm(h.deleteAsk(host.name))) return
+    if (!confirm(h.deleteAsk(host.name, h.cars(host.cars.length)))) return
     try {
       await deleteHost(host.id)
       await onChanged()
     } catch (err) {
-      alert(err instanceof ApiError && err.code === 'host-has-cars' ? h.hasCars : h.error)
+      alert(err instanceof ApiError && err.code === 'host-has-active-bookings' ? h.hasCars : h.error)
     }
   }
 
