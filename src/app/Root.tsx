@@ -67,7 +67,6 @@ export function Root() {
 
   const navBorder = transparent ? 'transparent' : '#2c2c2e'
   const linkColor = 'rgba(255,255,255,0.7)'
-  const logoColor = '#fff'
   const btnStyle = transparent
     ? { background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }
     : { background: '#f5f5f7', color: '#1c1c1e', border: 'none' }
@@ -83,8 +82,8 @@ export function Root() {
         transition: 'transform 0.3s ease, background 0.3s ease, border-color 0.3s ease',
       }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', height: NAV_HEIGHT, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <NavLink to="/" style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.02em', color: logoColor, textDecoration: 'none', transition: 'color 0.3s' }}>
-            Rent Motors
+          <NavLink to="/" aria-label="Rent Motors" style={{ display: 'flex', alignItems: 'center', height: NAV_HEIGHT }}>
+            <img src="/brand/logo-white.png" alt="Rent Motors" width={92} height={40} style={{ height: 40, width: 'auto', display: 'block' }} />
           </NavLink>
           <div className="nav-links" style={{ gap: 28, alignItems: 'center' }}>
             {NAV_LINKS.map(([path, key]) => (
@@ -131,7 +130,7 @@ export function Root() {
 
       <footer style={{ background: '#161618', padding: '28px 24px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-          <span style={{ fontSize: 14, fontWeight: 600, color: '#f5f5f7', letterSpacing: '-0.02em' }}>Rent Motors</span>
+          <img src="/brand/logo-white.png" alt="Rent Motors" width={74} height={32} style={{ height: 32, width: 'auto', display: 'block' }} />
           <p style={{ fontSize: 13, color: '#86868b', margin: 0 }}>{t.footer.rights}</p>
           <div style={{ display: 'flex', gap: 20 }}>
             {(['privacy', 'terms', 'contact'] as const).map(path => (
