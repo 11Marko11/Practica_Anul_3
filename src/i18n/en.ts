@@ -469,7 +469,6 @@ export const en = {
       unknown: 'Could not save. Please try again.',
     },
     hostSection: 'Host profile',
-    editHost: 'Edit host profile',
     publicProfile: 'View public profile',
     deleteHost: 'Delete host',
     noAccount: 'This host has no account, so they cannot sign in. Create one with an email and password.',

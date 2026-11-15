@@ -469,7 +469,6 @@ export const ro: Dict = {
       unknown: 'Nu s-a putut salva. Încearcă din nou.',
     },
     hostSection: 'Profilul de gazdă',
-    editHost: 'Editează profilul de gazdă',
     publicProfile: 'Vezi profilul public',
     deleteHost: 'Șterge gazda',
     noAccount: 'Această gazdă nu are cont, deci nu se poate conecta. Creează-i unul cu email și parolă.',

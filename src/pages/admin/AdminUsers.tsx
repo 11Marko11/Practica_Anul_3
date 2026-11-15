@@ -10,7 +10,7 @@ import { Money } from '../../components/Money'
 import { pageFrom, Pagination } from '../../components/Pagination'
 import { useI18n } from '../../i18n/I18nContext'
 import { api, ApiError } from '../../lib/api'
-import { createHostWithAccount, deleteHost, updateHost, updateHostAccount, useAdminHosts, type AccountInput, type AdminHost, type HostInput } from '../../lib/hosts'
+import { createHostWithAccount, deleteHost, updateHostAccount, useAdminHosts, type AccountInput, type AdminHost, type HostInput } from '../../lib/hosts'
 import type { Booking } from '../../lib/bookings'
 import { formatDate } from '../../lib/rental'
 import { useUrlParams } from '../../lib/useUrlParams'
@@ -300,7 +300,6 @@ function UserDetail({ id }: { id: string }) {
             {host ? (
               <HostCard
                 host={host}
-                onChanged={reloadAll}
                 onDeleted={() => navigate('/admin/users', { replace: true })}
                 extra={<HostRolePanel customer={data.customer} onChange={reloadAll} bare />}
               />
@@ -371,7 +370,7 @@ function HostOnlyDetail({ hostId }: { hostId: number }) {
             <div style={{ padding: 20, borderRadius: 16, background: '#f5f5f7' }}>
               <AccountEditor host={host} onSave={createAccount} onCancel={() => navigate('/admin/users')} />
             </div>
-            <HostCard host={host} onChanged={reload} onDeleted={() => navigate('/admin/users', { replace: true })} />
+            <HostCard host={host} onDeleted={() => navigate('/admin/users', { replace: true })} />
           </>
         )}
       </main>
@@ -470,18 +469,10 @@ function AccountPanel({ data, onChange }: { data: Detail; onChange: () => Promis
 
 // The host profile tied to a user (or a host without an account): public name and phone,
 // rating, trips and cars, with edit and delete.
-function HostCard({ host, onChanged, onDeleted, extra }: { host: AdminHost; onChanged: () => Promise<unknown>; onDeleted: () => void; extra?: React.ReactNode }) {
+function HostCard({ host, onDeleted, extra }: { host: AdminHost; onDeleted: () => void; extra?: React.ReactNode }) {
   const { t } = useI18n()
   const h = t.adminHosts
   const u = t.users
-  const [editing, setEditing] = useState(false)
-
-  async function save(input: HostInput) {
-    await updateHost(host.id, input)
-    setEditing(false)
-    await onChanged()
-  }
-
   async function remove() {
     if (!confirm(h.deleteAsk(host.name, h.cars(host.cars.length)))) return
     try {
@@ -496,10 +487,7 @@ function HostCard({ host, onChanged, onDeleted, extra }: { host: AdminHost; onCh
     <>
       <h2 style={sectionTitle}>{u.hostSection}</h2>
       <div style={{ padding: 20, borderRadius: 16, border: '1px solid #e5e5ea' }}>
-        {editing ? (
-          <HostEditor host={host} onSave={save} onCancel={() => setEditing(false)} />
-        ) : (
-          <>
+        <>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
               <Link to={`/hosts/${host.id}`} style={{ fontSize: 17, fontWeight: 600, color: '#1d1d1f', textDecoration: 'none' }}>{host.name}</Link>
               {host.phone && <a href={`tel:${host.phone}`} style={{ fontSize: 13, color: '#0071e3', textDecoration: 'none' }}>{host.phone}</a>}
@@ -516,12 +504,10 @@ function HostCard({ host, onChanged, onDeleted, extra }: { host: AdminHost; onCh
               ))}
             </div>
             <div className="row-actions" style={{ marginTop: 16 }}>
-              <button onClick={() => setEditing(true)} className="btn-action btn-action--primary">{u.editHost}</button>
               <Link to={`/hosts/${host.id}`} className="btn-action btn-action--neutral">{u.publicProfile}</Link>
               <button onClick={remove} className="btn-action btn-action--danger">{u.deleteHost}</button>
             </div>
-          </>
-        )}
+        </>
         {extra}
       </div>
     </>
