@@ -20,6 +20,7 @@ type Dashboard = {
   reviews: { count: number; average: number | null }
   awaiting: Booking[]
   verifications: { id: string; name: string; email: string; verificationSubmittedAt: string | null }[]
+  hostApplications: { id: string; name: string; email: string; hostApplicationSubmittedAt: string | null }[]
   upcoming: Booking[]
   recent: Booking[]
 }
@@ -104,7 +105,7 @@ function DashboardContent() {
         <div className="dashboard-columns">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 28, minWidth: 0 }}>
             <Panel title={d.attention} link="/admin/bookings">
-              {data?.awaiting.length === 0 && data.verifications.length === 0 && <Empty>✓ {d.allClear}</Empty>}
+              {data?.awaiting.length === 0 && data.verifications.length === 0 && data.hostApplications.length === 0 && <Empty>✓ {d.allClear}</Empty>}
               {data?.verifications.map(u => (
                 <Row key={u.id}>
                   <div style={{ minWidth: 0, flex: 1 }}>
@@ -114,6 +115,18 @@ function DashboardContent() {
                   </div>
                   <Link to={`/admin/users/${u.id}`} style={{ fontSize: 13, fontWeight: 500, padding: '8px 14px', borderRadius: 980, background: '#1d1d1f', color: '#fff', textDecoration: 'none' }}>
                     {t.verificationAdmin.section} →
+                  </Link>
+                </Row>
+              ))}
+              {data?.hostApplications.map(u => (
+                <Row key={`host-${u.id}`}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <RowTitle>{u.name}</RowTitle>
+                    <RowText>{u.email}</RowText>
+                    {u.hostApplicationSubmittedAt && <RowText color="#9a5b00">{t.hostApply.admin.badge} · {time(u.hostApplicationSubmittedAt)}</RowText>}
+                  </div>
+                  <Link to={`/admin/users/${u.id}`} style={{ fontSize: 13, fontWeight: 500, padding: '8px 14px', borderRadius: 980, background: '#1d1d1f', color: '#fff', textDecoration: 'none' }}>
+                    {t.hostApply.admin.open} →
                   </Link>
                 </Row>
               ))}

@@ -17,6 +17,8 @@ import { useUrlParams } from '../../lib/useUrlParams'
 import { AdminGuard } from './AdminGuard'
 import { AdminTabs } from './AdminTabs'
 import { AccountEditor, control, field, HostEditor } from './HostForms'
+import { DocumentCards } from '../../components/PrivateDocuments'
+import { hostDocumentUrl, type HostApplicationStatus, type HostDocumentType, type PrivateDocument } from '../../lib/privateDocuments'
 
 type Customer = {
   id: string
@@ -33,6 +35,7 @@ type Customer = {
   lastBookingAt: string | null
   reviews: number
   host: { id: number; name: string } | null
+  hostApplicationStatus: HostApplicationStatus | null
 }
 type Detail = {
   customer: Pick<Customer, 'id' | 'name' | 'email' | 'active' | 'createdAt' | 'deletedAt' | 'spent' | 'verificationStatus' | 'verificationSubmittedAt' | 'host'> & {
@@ -44,6 +47,7 @@ type Detail = {
     hasPassword: boolean
   }
   documents: IdentityDocument[]
+  hostApplication: { status: HostApplicationStatus | null; message: string | null; note: string | null; submittedAt: string | null; documents: PrivateDocument<HostDocumentType>[] }
   bookings: Booking[]
   reviews: { id: string; rating: number; text: string; date: string; car: { slug: string; brand: string; model: string } }[]
 }
@@ -53,7 +57,7 @@ type Detail = {
 type Entry = { key: string; to: string; name: string; email: string; phone: string; createdAt: string; customer: Customer | null; host: AdminHost | null }
 
 const ROLES = ['all', 'customer', 'host'] as const
-const STATUSES = ['all', 'pending', 'active', 'deleted'] as const
+const STATUSES = ['all', 'pending', 'hostRequests', 'active', 'deleted'] as const
 type Role = (typeof ROLES)[number]
 type Status = (typeof STATUSES)[number]
 const PAGE_SIZE = 20
@@ -63,6 +67,7 @@ const statusMatches = (s: Status, e: Entry) => {
   const active = e.customer ? e.customer.active : true
   if (s === 'all') return true
   if (s === 'pending') return active && e.customer?.verificationStatus === 'PENDING'
+  if (s === 'hostRequests') return active && e.customer?.hostApplicationStatus === 'PENDING'
   return (s === 'active') === active
 }
 
@@ -197,7 +202,7 @@ function UserList() {
             <span className="user-filter-label">{u.statusLabel}</span>
             {STATUSES.map(s => (
               <Chip key={s} on={status === s} onClick={() => set('status', s)}>
-                {s === 'pending' ? t.verificationAdmin.filter : c.filters[s]} {loaded && <span style={{ opacity: 0.7 }}>({searched.filter(e => statusMatches(s, e) && roleMatches(role, e)).length})</span>}
+                {s === 'pending' ? t.verificationAdmin.filter : s === 'hostRequests' ? t.hostApply.admin.filter : c.filters[s]} {loaded && <span style={{ opacity: 0.7 }}>({searched.filter(e => statusMatches(s, e) && roleMatches(role, e)).length})</span>}
               </Chip>
             ))}
           </div>
@@ -219,6 +224,7 @@ function UserList() {
                     {e.host ? <HostBadge /> : <CustomerBadge />}
                     {x && !x.active && <StatusPill active={false} />}
                     {x?.active && <VerificationBadge status={x.verificationStatus} />}
+                    {x?.active && x.hostApplicationStatus === 'PENDING' && !e.host && <RequestBadge />}
                   </div>
                   <div style={{ fontSize: 13, color: '#6e6e73', overflowWrap: 'anywhere' }}>
                     {e.email || <span style={{ color: '#b25000' }}>{t.adminHosts.noAccount}</span>}
@@ -301,10 +307,10 @@ function UserDetail({ id }: { id: string }) {
               <HostCard
                 host={host}
                 onDeleted={() => navigate('/admin/users', { replace: true })}
-                extra={<HostRolePanel customer={data.customer} onChange={reloadAll} bare />}
+                extra={<HostRolePanel customer={data.customer} onChange={reloadAll} />}
               />
             ) : (
-              <HostRolePanel customer={data.customer} onChange={reloadAll} />
+              !data.customer.host && <HostApplicationPanel data={data} onChange={reloadAll} />
             )}
 
             <VerificationPanel data={data} onChange={load} />
@@ -631,55 +637,109 @@ function CustomerBadge() {
   return <span style={{ fontSize: 12, fontWeight: 500, padding: '3px 10px', borderRadius: 980, background: '#f2f2f4', color: '#424245', whiteSpace: 'nowrap' }}>{t.users.customerBadge}</span>
 }
 
-// Host role: the admin ties the customer to a host (a new profile from their account, or an
-// existing host without an account) or takes the role away. The host keeps their cars either way.
-function HostRolePanel({ customer, onChange, bare = false }: { customer: Detail['customer']; onChange: () => unknown; bare?: boolean }) {
+// Takes the host role away from a user; the host profile and its cars stay on the site.
+function HostRolePanel({ customer, onChange }: { customer: Detail['customer']; onChange: () => unknown }) {
   const { t } = useI18n()
   const r = t.hostRole
-  const { hosts } = useAdminHosts()
-  const [choice, setChoice] = useState('new')
   const [busy, setBusy] = useState(false)
-  const free = (hosts ?? []).filter(h => !h.account)
+  if (!customer.host) return null
+  const host = customer.host
 
-  async function run(action: () => Promise<unknown>, question: string) {
-    if (!confirm(question)) return
+  async function remove() {
+    if (!confirm(r.removeAsk)) return
     setBusy(true)
     try {
-      await action()
+      await api(`/admin/customers/${customer.id}/host`, { method: 'DELETE' })
       onChange()
-    } catch (err) {
-      alert(err instanceof ApiError && err.code === 'account-deleted' ? r.deleted : r.error)
+    } catch {
+      alert(r.error)
     }
     setBusy(false)
   }
-  const assign = () => api(`/admin/customers/${customer.id}/host`, { body: choice === 'new' ? {} : { hostId: Number(choice) } })
-  const remove = () => api(`/admin/customers/${customer.id}/host`, { method: 'DELETE' })
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginTop: 18, paddingTop: 16, borderTop: '1px solid #f0f0f0' }}>
+      <p style={{ fontSize: 14, color: '#424245', margin: 0, flex: '1 1 300px' }}>{r.is(host.name)}</p>
+      <button onClick={remove} disabled={busy} className="btn-action btn-action--neutral">{r.remove}</button>
+    </div>
+  )
+}
+
+function RequestBadge() {
+  const { t } = useI18n()
+  return <span style={{ fontSize: 12, fontWeight: 500, padding: '3px 10px', borderRadius: 980, background: '#fff4e0', color: '#9a5b00', whiteSpace: 'nowrap' }}>{t.hostApply.admin.badge}</span>
+}
+
+// A customer's request to become a host: their message and documents, approve or reject with a reason.
+function HostApplicationPanel({ data, onChange }: { data: Detail; onChange: () => Promise<unknown> }) {
+  const { lang, t } = useI18n()
+  const a = t.hostApply.admin
+  const app = data.hostApplication
+  const c = data.customer
+  const [rejecting, setRejecting] = useState(false)
+  const [note, setNote] = useState('')
+  const [busy, setBusy] = useState(false)
+  const time = (iso: string) => new Date(iso).toLocaleString(lang, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })
+
+  async function decide(action: 'approve' | 'reject') {
+    if (action === 'approve' && !confirm(a.approveAsk)) return
+    setBusy(true)
+    try {
+      await api(`/admin/customers/${c.id}/host-application/${action}`, action === 'reject' ? { body: { note: note.trim() } } : { method: 'POST' })
+      setRejecting(false)
+      setNote('')
+      await onChange()
+      refreshAwaitingCount()
+    } catch {
+      alert(a.error)
+    }
+    setBusy(false)
+  }
 
   return (
     <>
-      {!bare && <h2 style={sectionTitle}>{r.section}</h2>}
-      {customer.host ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', ...(bare ? { marginTop: 18, paddingTop: 16, borderTop: '1px solid #f0f0f0' } : {}) }}>
-          {!bare && <HostBadge />}
-          <p style={{ fontSize: 14, color: '#424245', margin: 0, flex: '1 1 300px' }}>{r.is(customer.host.name)}</p>
-          <button onClick={() => run(remove, r.removeAsk)} disabled={busy} className="btn-action btn-action--neutral">{r.remove}</button>
-        </div>
-      ) : !customer.active ? (
-        <p style={{ fontSize: 14, color: '#6e6e73', margin: 0 }}>{r.deleted}</p>
+      <h2 style={sectionTitle}>{a.section}</h2>
+      {!app.status || app.status === 'APPROVED' ? (
+        <p style={{ fontSize: 14, color: '#6e6e73', margin: 0 }}>{a.none}</p>
       ) : (
         <>
-          <p style={{ fontSize: 14, color: '#6e6e73', margin: '0 0 12px' }}>{r.none}</p>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <select value={choice} onChange={e => setChoice(e.target.value)} style={{ fontSize: 14, padding: '9px 14px', borderRadius: 980, border: '1px solid #d2d2d7', background: '#fff', fontFamily: 'inherit', maxWidth: '100%' }}>
-              <option value="new">{r.newProfile}</option>
-              {free.length > 0 && (
-                <optgroup label={r.existing}>
-                  {free.map(h => <option key={h.id} value={h.id}>{h.name} · {t.adminHosts.cars(h.cars.length)}</option>)}
-                </optgroup>
-              )}
-            </select>
-            <button onClick={() => run(assign, r.assignAsk)} disabled={busy} style={{ ...actionButton, background: '#1d1d1f', color: '#fff' }}>{r.assign}</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            {app.status === 'PENDING' ? <RequestBadge /> : <span style={{ fontSize: 12, fontWeight: 500, padding: '3px 10px', borderRadius: 980, background: '#fdeaea', color: '#b3261e' }}>{a.rejected}</span>}
+            {app.submittedAt && <span style={{ fontSize: 13, color: '#6e6e73' }}>{t.hostApply.submittedOn(time(app.submittedAt))}</span>}
           </div>
+          {app.status === 'REJECTED' && app.note && <p style={{ fontSize: 14, color: '#b3261e', margin: '8px 0 0' }}>{app.note}</p>}
+          <p style={{ fontSize: 14, color: '#424245', margin: '10px 0 0' }}>
+            {a.identity}: <strong style={{ fontWeight: 600, color: c.verificationStatus === 'VERIFIED' ? '#1b7a35' : '#b25000' }}>{c.verificationStatus === 'VERIFIED' ? a.identityOk : a.identityNot}</strong>
+          </p>
+          {app.message && (
+            <p style={{ fontSize: 14, color: '#424245', margin: '8px 0 0', whiteSpace: 'pre-line' }}>
+              <strong style={{ fontWeight: 600 }}>{a.message}:</strong> {app.message}
+            </p>
+          )}
+          <div style={{ marginTop: 14 }}>
+            <DocumentCards documents={app.documents} label={type => t.hostApply.docTypes[type]} url={hostDocumentUrl} />
+          </div>
+          {app.status === 'PENDING' && c.active && (
+            <div style={{ marginTop: 16 }}>
+              {rejecting ? (
+                <form onSubmit={e => { e.preventDefault(); decide('reject') }} style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 560 }}>
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, color: '#6e6e73' }}>
+                    {a.rejectNote}
+                    <textarea required minLength={3} rows={3} value={note} onChange={e => setNote(e.target.value)} autoFocus style={{ fontSize: 15, padding: '10px 12px', border: '1px solid #d2d2d7', borderRadius: 12, fontFamily: 'inherit', resize: 'vertical' }} />
+                  </label>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button type="submit" disabled={busy} style={{ ...actionButton, background: '#d70015', color: '#fff' }}>{a.rejectSubmit}</button>
+                    <button type="button" onClick={() => setRejecting(false)} style={{ ...actionButton, background: '#f5f5f7', color: '#1d1d1f' }}>{a.cancel}</button>
+                  </div>
+                </form>
+              ) : (
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <button onClick={() => decide('approve')} disabled={busy} style={{ ...actionButton, background: '#1b7a35', color: '#fff' }}>✓ {a.approve}</button>
+                  <button onClick={() => setRejecting(true)} style={{ ...actionButton, background: '#fff', color: '#d70015', border: '1px solid #f0c4c4' }}>{a.reject}</button>
+                </div>
+              )}
+            </div>
+          )}
         </>
       )}
     </>

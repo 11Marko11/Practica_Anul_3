@@ -22,7 +22,7 @@ export function AdminTabs() {
         {t.adminBookings.tabBookings} <CountBadge n={counts.bookings} />
       </NavLink>
       <NavLink to="/admin/transactions" style={tab}>{t.transactions.tab}</NavLink>
-      <NavLink to="/admin/users" style={tab}>{t.users.tab} <CountBadge n={counts.verifications} /></NavLink>
+      <NavLink to="/admin/users" style={tab}>{t.users.tab} <CountBadge n={counts.verifications + counts.hostRequests} /></NavLink>
       <NavLink to="/admin/reviews" style={tab}>{t.reviewsAdmin.tab}</NavLink>
       <NavLink to="/admin/promotions" style={tab}>{t.adminPromos.tab}</NavLink>
       <NavLink to="/admin/pages" style={tab}>{t.adminPages.tab}</NavLink>

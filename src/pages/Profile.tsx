@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router'
 import { useAuth, type VerificationStatus } from '../auth/AuthContext'
 import { DeleteAccount } from '../components/DeleteAccount'
+import { HostApplicationSection } from '../components/HostApplicationSection'
 import { useI18n } from '../i18n/I18nContext'
 import { ApiError } from '../lib/api'
 import { formatPhone } from '../lib/phone'
@@ -98,6 +99,7 @@ function ProfileContent() {
         ) : (
           <>
             <Verification profile={profile} documents={documents} onChange={apply} onDocuments={setDocuments} errorText={errorText} lang={lang} />
+            <HostApplicationSection identityVerified={profile.verificationStatus === 'VERIFIED'} />
             <PersonalDetails profile={profile} onSaved={apply} errorText={errorText} />
             <PasswordForm errorText={errorText} />
             {user?.role !== 'ADMIN' && <DeleteAccount />}
