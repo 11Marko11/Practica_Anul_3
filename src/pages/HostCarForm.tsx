@@ -7,6 +7,19 @@ import { api, ApiError } from '../lib/api'
 import { searchAddress, type Place } from '../lib/delivery'
 import { uploadPhoto } from '../lib/photos'
 import { useI18n } from '../i18n/I18nContext'
+import { DocumentCards, DocumentUploadForm } from '../components/PrivateDocuments'
+import {
+  CAR_DOCUMENT_TYPES,
+  hostDocumentUrl,
+  REQUIRED_CAR_DOCUMENTS,
+  uploadCarDocument,
+  type CarDocumentType,
+  type CarReviewStatus,
+  type PrivateDocument,
+} from '../lib/privateDocuments'
+
+type CarDocument = PrivateDocument<CarDocumentType>
+type Review = { status: CarReviewStatus; note: string | null }
 
 // /host/cars/new and /host/cars/:id: a host adds or edits one of their own cars. Only the owner
 // of a car can change it; admins can hide or delete cars from the admin list.
@@ -23,20 +36,22 @@ export function HostCarForm() {
 function HostCarFormContent({ id }: { id?: string }) {
   const { t } = useI18n()
   const h = t.hostPortal
-  const [existing, setExisting] = useState<Car | null | undefined>(id ? undefined : null)
+  const [existing, setExisting] = useState<{ car: Car; review: Review; documents: CarDocument[] } | null | undefined>(id ? undefined : null)
   useEffect(() => {
-    if (id) api<{ car: Car }>(`/host/cars/${id}`).then(r => setExisting(r.car)).catch(() => setExisting(null))
+    if (id) api<{ car: Car; review: Review; documents: CarDocument[] }>(`/host/cars/${id}`).then(setExisting).catch(() => setExisting(null))
   }, [id])
 
   if (existing === undefined) return <div style={{ minHeight: '80vh' }} />
   if (id && !existing) return <NotFound backUrl="/host" backLabel={h.back} />
   return (
     <CarForm
-      existing={existing ?? undefined}
+      existing={existing?.car}
+      review={existing?.review}
+      initialDocuments={existing?.documents ?? []}
       backUrl="/host"
       backLabel={h.back}
       title={existing ? h.editTitle : h.newTitle}
-      save={input => (existing ? api(`/host/cars/${existing.id}`, { method: 'PUT', body: input }) : api('/host/cars', { body: input }))}
+      save={input => (existing ? api(`/host/cars/${existing.car.id}`, { method: 'PUT', body: input }) : api('/host/cars', { body: input }))}
     />
   )
 }
@@ -101,8 +116,10 @@ const lines = (text: string) => text.split('\n').map(l => l.trim()).filter(Boole
 const positive = (text: string) => Number(text.replace(',', '.')) > 0
 
 // The form for a host's own car.
-function CarForm({ existing, backUrl, backLabel, title, save }: {
+function CarForm({ existing, review, initialDocuments, backUrl, backLabel, title, save }: {
   existing?: Car
+  review?: Review
+  initialDocuments: CarDocument[]
   backUrl: string
   backLabel: string
   title: string
@@ -113,6 +130,9 @@ function CarForm({ existing, backUrl, backLabel, title, save }: {
   const [form, setForm] = useState<FormState>(() => (existing ? fromCar(existing) : EMPTY))
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [documents, setDocuments] = useState<CarDocument[]>(initialDocuments)
+  const papers = t.carPapers
+  const hasPapers = REQUIRED_CAR_DOCUMENTS.every(type => documents.some(d => d.type === type))
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm(f => ({ ...f, [key]: value }))
@@ -127,6 +147,7 @@ function CarForm({ existing, backUrl, backLabel, title, save }: {
     if (!required || !numbers) return setError(t.admin.errors.required)
     if (!f.pickup) return setError(t.admin.errors.address)
     if (!f.photos.length) return setError(t.admin.errors.photos)
+    if (!hasPapers) return setError(papers.missing)
 
     const num = (text: string) => Number(text.replace(',', '.'))
     const translations: Car['translations'] = {}
@@ -154,6 +175,7 @@ function CarForm({ existing, backUrl, backLabel, title, save }: {
       defects: lines(f.defects),
       translations,
       status: f.status,
+      documentIds: documents.map(d => d.id),
     }
     setBusy(true)
     try {
@@ -161,7 +183,7 @@ function CarForm({ existing, backUrl, backLabel, title, save }: {
       await save(input)
       navigate(backUrl)
     } catch (err) {
-      setError(err instanceof ApiError && err.code === 'validation' ? t.admin.errors.required : t.admin.saveError)
+      setError(err instanceof ApiError && err.code === 'validation' ? t.admin.errors.required : err instanceof ApiError && err.code === 'car-documents-missing' ? papers.missing : t.admin.saveError)
       setBusy(false)
     }
   }
@@ -174,6 +196,13 @@ function CarForm({ existing, backUrl, backLabel, title, save }: {
         <Link to={backUrl} className="btn-action btn-action--neutral btn-back">{backLabel}</Link>
         <h1 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#1d1d1f', margin: '16px 0 8px' }}>{title}</h1>
         {existing && <p style={{ fontSize: 15, color: '#6e6e73', margin: 0 }}>{existing.brand} {existing.model}</p>}
+        {review && review.status !== 'APPROVED' && (
+          <div style={{ marginTop: 16, padding: '14px 18px', borderRadius: 16, background: review.status === 'PENDING' ? '#fff4e0' : '#fdeaea' }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: review.status === 'PENDING' ? '#9a5b00' : '#b3261e' }}>{papers.status[review.status]}</div>
+            <div style={{ fontSize: 14, color: '#1d1d1f', marginTop: 4, lineHeight: 1.5 }}>{review.status === 'PENDING' ? papers.pendingText : papers.rejectedText}</div>
+            {review.status === 'REJECTED' && review.note && <div style={{ fontSize: 14, color: '#1d1d1f', marginTop: 6 }}><strong style={{ fontWeight: 600 }}>{papers.reason}:</strong> {review.note}</div>}
+          </div>
+        )}
 
         <form onSubmit={submit} noValidate>
           <FormSection title={t.admin.sections.basics}>
@@ -249,6 +278,30 @@ function CarForm({ existing, backUrl, backLabel, title, save }: {
             <Field label={t.admin.defectsLabel} hint={t.admin.defectsHint}>
               <textarea rows={4} value={form.defects} onChange={e => set('defects', e.target.value)} style={{ ...inputStyle, resize: 'vertical' }} />
             </Field>
+          </FormSection>
+
+          <FormSection title={papers.section}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <p style={{ fontSize: 14, color: '#424245', lineHeight: 1.6, margin: 0 }}>{papers.intro}</p>
+            {documents.length === 0 ? (
+              <p style={{ fontSize: 14, color: '#6e6e73', margin: 0 }}>{papers.noDocuments}</p>
+            ) : (
+              <DocumentCards documents={documents} label={type => papers.docTypes[type]} url={hostDocumentUrl} onRemove={id => setDocuments(docs => docs.filter(d => d.id !== id))} />
+            )}
+            <DocumentUploadForm
+              key={documents.length} // after an upload, start again on the next missing type
+              types={CAR_DOCUMENT_TYPES}
+              label={type => papers.docTypes[type]}
+              initialType={CAR_DOCUMENT_TYPES.find(type => !documents.some(d => d.type === type))}
+              errorText={err => (err instanceof ApiError && err.code in t.profile.errors ? t.profile.errors[err.code as keyof typeof t.profile.errors] : t.profile.errors.unknown)}
+              onUpload={async (type, file) => {
+                const doc = await uploadCarDocument(type, file)
+                setDocuments(docs => [...docs, doc])
+                setError('')
+              }}
+            />
+            <p style={{ fontSize: 12, color: '#86868b', margin: 0 }}>{papers.required} {existing ? papers.recheck : papers.newNote}</p>
+            </div>
           </FormSection>
 
           {error && <p role="alert" style={{ fontSize: 14, color: '#d70015', margin: '24px 0 0' }}>{error}</p>}

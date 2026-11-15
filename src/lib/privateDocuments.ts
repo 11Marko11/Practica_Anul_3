@@ -41,3 +41,12 @@ export const uploadHostDocument = (type: HostDocumentType, file: File) => upload
 export const removeHostDocument = (id: string) => api<ApplicationResponse>(`/host-application/documents/${id}`, { method: 'DELETE' })
 export const sendHostApplication = (message: string) => api<ApplicationResponse>('/host-application', { body: { message } })
 export const withdrawHostApplication = () => api<ApplicationResponse>('/host-application', { method: 'DELETE' })
+
+export type CarDocumentType = 'CAR_REGISTRATION' | 'CAR_INSURANCE' | 'CAR_OWNERSHIP'
+export const CAR_DOCUMENT_TYPES: CarDocumentType[] = ['CAR_REGISTRATION', 'CAR_INSURANCE', 'CAR_OWNERSHIP']
+// Same rule as the server: the registration certificate and the RCA insurance.
+export const REQUIRED_CAR_DOCUMENTS: CarDocumentType[] = ['CAR_REGISTRATION', 'CAR_INSURANCE']
+export const uploadCarDocument = (type: CarDocumentType, file: File) => uploadPrivateDocument('/host/documents', type, file)
+
+// The admin's check of a car's papers.
+export type CarReviewStatus = 'PENDING' | 'APPROVED' | 'REJECTED'

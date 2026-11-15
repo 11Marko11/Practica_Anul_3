@@ -19,6 +19,8 @@ type HostData = {
     pricePerDay: number
     city: string
     status: 'ACTIVE' | 'HIDDEN'
+    reviewStatus: 'PENDING' | 'APPROVED' | 'REJECTED' // the admin's check of the car's papers
+    reviewNote: string | null
     rating: number | null
     reviews: number
     trips: number
@@ -152,7 +154,15 @@ function HostPanelContent() {
                       <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f' }}>
                         {car.brand} {car.model} <span style={{ fontWeight: 400, color: '#6e6e73' }}>· {car.year}</span>
                         {car.status === 'HIDDEN' && <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 500, color: '#6e6e73', background: '#f0f0f0', padding: '2px 8px', borderRadius: 980 }}>{h.hidden}</span>}
+                        {car.reviewStatus !== 'APPROVED' && (
+                          <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 980, ...(car.reviewStatus === 'PENDING' ? { color: '#9a5b00', background: '#fff4e0' } : { color: '#b3261e', background: '#fdeaea' }) }}>
+                            {t.carPapers.status[car.reviewStatus]}
+                          </span>
+                        )}
                       </div>
+                      {car.reviewStatus === 'REJECTED' && car.reviewNote && (
+                        <div style={{ fontSize: 13, color: '#b3261e', marginTop: 2 }}>{t.carPapers.reason}: {car.reviewNote}</div>
+                      )}
                       <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 2 }}>
                         <Money value={car.pricePerDay} />{t.common.perDay} · {car.city} · {car.rating !== null ? `★ ${car.rating.toFixed(1)} (${h.reviewsCount(car.reviews)})` : t.car.hostNoReviews} · {t.common.trips(car.trips)}
                       </div>
@@ -164,7 +174,7 @@ function HostPanelContent() {
                       <span style={{ fontSize: 12, color: '#86868b' }}>{h.earned}</span>
                       <strong style={{ fontSize: 16, color: '#1d1d1f' }}><Money value={car.earned} /></strong>
                       <div className="row-actions" style={{ justifyContent: 'flex-end', marginTop: 4 }}>
-                        {car.status === 'ACTIVE' && <Link to={`/cars/${car.slug}`} className="btn-action btn-action--neutral">{h.view}</Link>}
+                        {car.status === 'ACTIVE' && car.reviewStatus === 'APPROVED' && <Link to={`/cars/${car.slug}`} className="btn-action btn-action--neutral">{h.view}</Link>}
                         <Link to={`/host/cars/${car.id}`} className="btn-action btn-action--primary">{h.edit}</Link>
                         <button onClick={() => remove(car)} className="btn-action btn-action--danger">{h.delete}</button>
                       </div>

@@ -1,6 +1,7 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { carImage } from '../../data/cars'
-import { deleteCar, setCarStatus, useAllCars, useFreshCatalog } from '../../lib/carStore'
+import { deleteCar, reloadCars, setCarStatus, useAllCars, useFreshCatalog } from '../../lib/carStore'
 import { ApiError } from '../../lib/api'
 import { fmt } from '../../lib/rental'
 import { useI18n } from '../../i18n/I18nContext'
@@ -10,11 +11,19 @@ import { AdminTabs } from './AdminTabs'
 import { useUrlParams } from '../../lib/useUrlParams'
 import { pageFrom, Pagination } from '../../components/Pagination'
 import type { Car } from '../../data/cars'
+import { api } from '../../lib/api'
+import { refreshAwaitingCount } from '../../lib/adminNotifications'
+import { DocumentCards } from '../../components/PrivateDocuments'
+import { hostDocumentUrl, type CarDocumentType, type CarReviewStatus, type PrivateDocument } from '../../lib/privateDocuments'
 
 const SORTS = ['recent', 'oldest', 'name', 'price-asc', 'price-desc', 'year', 'power'] as const
 type Sort = (typeof SORTS)[number]
-const STATUS_FILTERS = ['all', 'ACTIVE', 'HIDDEN'] as const
+const STATUS_FILTERS = ['all', 'REVIEW', 'ACTIVE', 'HIDDEN'] as const
 const PAGE_SIZE = 20
+
+// "To check": cars whose papers wait for the admin.
+const statusMatches = (f: (typeof STATUS_FILTERS)[number], c: Car) =>
+  f === 'all' || (f === 'REVIEW' ? c.reviewStatus === 'PENDING' : (c.status ?? 'ACTIVE') === f)
 
 const name = (c: Car) => `${c.brand} ${c.model}`
 const added = (c: Car) => c.createdAt ?? ''
@@ -55,7 +64,7 @@ function AdminCarsContent() {
   const brands = [...new Set(allCars.map(c => c.brand))].sort((a, b) => a.localeCompare(b))
   const q = query.trim().toLowerCase()
   const cars = allCars
-    .filter(c => (status === 'all' || (c.status ?? 'ACTIVE') === status) && (!brand || c.brand === brand))
+    .filter(c => statusMatches(status, c) && (!brand || c.brand === brand))
     .filter(c => !q || `${name(c)} ${c.location} ${c.host.name}`.toLowerCase().includes(q))
     .sort(COMPARE[sort])
   const pages = Math.ceil(cars.length / PAGE_SIZE)
@@ -65,7 +74,8 @@ function AdminCarsContent() {
     edit(p => (n > 1 ? p.set('page', String(n)) : p.delete('page')), { push: true })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
-  const count = (f: (typeof STATUS_FILTERS)[number]) => allCars.filter(c => f === 'all' || (c.status ?? 'ACTIVE') === f).length
+  const count = (f: (typeof STATUS_FILTERS)[number]) => allCars.filter(c => statusMatches(f, c)).length
+  const [reviewing, setReviewing] = useState<number | null>(null)
 
   async function remove(id: number, name: string) {
     if (!confirm(t.admin.deleteConfirm(name))) return
@@ -121,7 +131,7 @@ function AdminCarsContent() {
               aria-pressed={status === f}
               style={{ fontSize: 13, padding: '7px 14px', borderRadius: 980, border: '1px solid', borderColor: status === f ? '#1d1d1f' : '#d2d2d7', background: status === f ? '#1d1d1f' : 'transparent', color: status === f ? '#fff' : '#6e6e73', cursor: 'pointer' }}
             >
-              {s.status[f]} ({count(f)})
+              {f === 'REVIEW' ? t.carPapers.admin.filter : s.status[f]} ({count(f)})
             </button>
           ))}
           {(q || brand || status !== 'all') && (
@@ -145,6 +155,11 @@ function AdminCarsContent() {
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f' }}>{name} <span style={{ fontWeight: 400, color: '#6e6e73' }}>· {car.year}</span>
                     {car.status === 'HIDDEN' && <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 500, color: '#6e6e73', background: '#f0f0f0', padding: '2px 8px', borderRadius: 980 }}>{t.admin.hidden}</span>}
+                    {car.reviewStatus && car.reviewStatus !== 'APPROVED' && (
+                      <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 980, ...(car.reviewStatus === 'PENDING' ? { color: '#9a5b00', background: '#fff4e0' } : { color: '#b3261e', background: '#fdeaea' }) }}>
+                        {t.carPapers.status[car.reviewStatus]}
+                      </span>
+                    )}
                     <span style={{ marginLeft: 8, fontSize: 12, fontWeight: 400, color: '#86868b' }}>· {car.host.name}</span>
                   </div>
                   <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 2 }}>
@@ -153,6 +168,9 @@ function AdminCarsContent() {
                   </div>
                 </div>
                 <div className="row-actions">
+                  <button onClick={() => setReviewing(reviewing === car.id ? null : car.id)} className={`btn-action ${car.reviewStatus === 'PENDING' ? 'btn-action--primary' : 'btn-action--neutral'}`}>
+                    {reviewing === car.id ? t.carPapers.admin.hide : t.carPapers.admin.review}
+                  </button>
                   <Link to={`/cars/${car.slug}`} className="btn-action btn-action--neutral">{t.admin.view}</Link>
                   <button
                     onClick={() => setCarStatus(car.id, car.status === 'HIDDEN' ? 'ACTIVE' : 'HIDDEN').catch(() => alert(t.admin.saveError))}
@@ -162,6 +180,7 @@ function AdminCarsContent() {
                   </button>
                   <button onClick={() => remove(car.id, name)} className="btn-action btn-action--danger">{t.admin.delete}</button>
                 </div>
+                {reviewing === car.id && <CarReview carId={car.id} onDone={() => setReviewing(null)} />}
               </li>
             )
           })}
@@ -174,3 +193,67 @@ function AdminCarsContent() {
 }
 
 const control: React.CSSProperties = { fontSize: 14, padding: '9px 14px', borderRadius: 980, border: '1px solid #d2d2d7', background: '#fff', color: '#1d1d1f', fontFamily: 'inherit', outline: 'none' }
+
+type Review = { status: CarReviewStatus; note: string | null; submittedAt: string | null; documents: PrivateDocument<CarDocumentType>[] }
+
+// The papers of one car (registration, RCA insurance, contract) and the admin's decision.
+function CarReview({ carId, onDone }: { carId: number; onDone: () => void }) {
+  const { lang, t } = useI18n()
+  const a = t.carPapers.admin
+  const [review, setReview] = useState<Review | null>(null)
+  const [rejecting, setRejecting] = useState(false)
+  const [note, setNote] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    api<Review>(`/admin/cars/${carId}/review`).then(setReview).catch(() => alert(a.error))
+  }, [carId])
+
+  async function decide(decision: 'approve' | 'reject') {
+    setBusy(true)
+    try {
+      await api(`/admin/cars/${carId}/review`, { body: decision === 'reject' ? { decision, note: note.trim() } : { decision } })
+      await reloadCars()
+      refreshAwaitingCount()
+      onDone()
+    } catch {
+      alert(a.error)
+      setBusy(false)
+    }
+  }
+
+  if (!review) return <div style={{ flexBasis: '100%', fontSize: 14, color: '#6e6e73' }}>{t.bookings.loading}</div>
+  const button: React.CSSProperties = { fontSize: 14, fontWeight: 500, padding: '10px 18px', borderRadius: 980, border: 'none', cursor: 'pointer' }
+
+  return (
+    <div style={{ flexBasis: '100%', padding: 18, borderRadius: 16, background: '#f5f5f7', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', fontSize: 13, color: '#6e6e73' }}>
+        <strong style={{ fontSize: 14, color: review.status === 'APPROVED' ? '#1b7a35' : review.status === 'PENDING' ? '#9a5b00' : '#b3261e' }}>{t.carPapers.status[review.status]}</strong>
+        {review.submittedAt && <span>{a.submitted(new Date(review.submittedAt).toLocaleString(lang, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }))}</span>}
+      </div>
+      {review.status === 'REJECTED' && review.note && <p style={{ fontSize: 14, color: '#b3261e', margin: 0 }}>{t.carPapers.reason}: {review.note}</p>}
+      {review.documents.length === 0 ? (
+        <p style={{ fontSize: 14, color: '#6e6e73', margin: 0 }}>{a.noDocuments}</p>
+      ) : (
+        <DocumentCards documents={review.documents} label={type => t.carPapers.docTypes[type]} url={hostDocumentUrl} />
+      )}
+      {rejecting ? (
+        <form onSubmit={e => { e.preventDefault(); decide('reject') }} style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 560 }}>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, color: '#6e6e73' }}>
+            {a.rejectNote}
+            <textarea required minLength={3} rows={3} value={note} onChange={e => setNote(e.target.value)} autoFocus style={{ fontSize: 15, padding: '10px 12px', border: '1px solid #d2d2d7', borderRadius: 12, fontFamily: 'inherit', resize: 'vertical' }} />
+          </label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button type="submit" disabled={busy} style={{ ...button, background: '#d70015', color: '#fff' }}>{a.rejectSubmit}</button>
+            <button type="button" onClick={() => setRejecting(false)} style={{ ...button, background: '#fff', color: '#1d1d1f' }}>{a.cancel}</button>
+          </div>
+        </form>
+      ) : (
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {review.status !== 'APPROVED' && <button onClick={() => decide('approve')} disabled={busy} style={{ ...button, background: '#1b7a35', color: '#fff' }}>✓ {a.approve}</button>}
+          {review.status !== 'REJECTED' && <button onClick={() => setRejecting(true)} style={{ ...button, background: '#fff', color: '#d70015', border: '1px solid #f0c4c4' }}>{a.reject}</button>}
+        </div>
+      )}
+    </div>
+  )
+}

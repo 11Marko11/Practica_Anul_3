@@ -24,6 +24,7 @@ export type Car = {
   translations?: Partial<Record<'ro' | 'ru', { description: string }>>
   photoCredits?: ({ text: string; url: string | null } | null)[] // author and licence, same order as photos
   status?: 'ACTIVE' | 'HIDDEN' | 'REMOVED' // hidden and removed cars are only sent to admins
+  reviewStatus?: 'PENDING' | 'APPROVED' | 'REJECTED' // the admin's check of the car's papers
   createdAt?: string // when the car was added
 }
 

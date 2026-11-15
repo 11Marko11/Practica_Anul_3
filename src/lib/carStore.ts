@@ -36,7 +36,7 @@ function useStore() {
   return useSyncExternalStore(subscribe, () => state)
 }
 
-const active = (cars: Car[]) => cars.filter(c => (c.status ?? 'ACTIVE') === 'ACTIVE')
+const active = (cars: Car[]) => cars.filter(c => (c.status ?? 'ACTIVE') === 'ACTIVE' && (c.reviewStatus ?? 'APPROVED') === 'APPROVED')
 
 // Active cars, for the public pages.
 export function useCars() {
@@ -68,9 +68,10 @@ export function useFreshCatalog() {
 }
 
 // What the host's car form sends; the server fills in id and slug, and the car is the host's.
-export type CarInput = Omit<Car, 'id' | 'slug' | 'location' | 'host' | 'status'> & {
+export type CarInput = Omit<Car, 'id' | 'slug' | 'location' | 'host' | 'status' | 'reviewStatus'> & {
   city: string
   status: 'ACTIVE' | 'HIDDEN'
+  documentIds: string[] // the car's papers, uploaded first (see uploadCarDocument)
 }
 
 // Admins can't change a car's details (only its owner can), but can take it off the site or put it back.
