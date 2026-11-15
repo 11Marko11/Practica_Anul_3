@@ -46,7 +46,7 @@ function NotFound({ backUrl, backLabel }: { backUrl: string; backLabel: string }
   return (
     <div style={{ paddingTop: 52, textAlign: 'center', padding: '140px 24px' }}>
       <h1 style={{ fontSize: 28, fontWeight: 600, color: '#1d1d1f', margin: '0 0 20px' }}>{t.car.notFound}</h1>
-      <Link to={backUrl} style={{ color: '#0071e3', textDecoration: 'none' }}>{backLabel}</Link>
+      <Link to={backUrl} className="btn-action btn-action--neutral btn-back">{backLabel}</Link>
     </div>
   )
 }
@@ -171,7 +171,7 @@ function CarForm({ existing, backUrl, backLabel, title, save }: {
   return (
     <div style={{ paddingTop: 52 }}>
       <main style={{ maxWidth: 820, margin: '0 auto', padding: '32px 24px 96px' }}>
-        <Link to={backUrl} style={{ fontSize: 14, color: '#0071e3', textDecoration: 'none' }}>{backLabel}</Link>
+        <Link to={backUrl} className="btn-action btn-action--neutral btn-back">{backLabel}</Link>
         <h1 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#1d1d1f', margin: '16px 0 8px' }}>{title}</h1>
         {existing && <p style={{ fontSize: 15, color: '#6e6e73', margin: 0 }}>{existing.brand} {existing.model}</p>}
 

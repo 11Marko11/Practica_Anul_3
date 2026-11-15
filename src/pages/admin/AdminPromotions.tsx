@@ -168,7 +168,7 @@ function PromotionEditor({ id }: { id: string }) {
     <div style={{ paddingTop: 52 }}>
       <Header title={isNew ? a.newTitle : a.editTitle} />
       <main style={{ maxWidth: 900, margin: '0 auto', padding: '24px 24px 96px' }}>
-        <Link to="/admin/promotions" style={{ fontSize: 14, color: '#0071e3', textDecoration: 'none' }}>{a.back}</Link>
+        <Link to="/admin/promotions" className="btn-action btn-action--neutral btn-back">{a.back}</Link>
 
         <h2 style={{ fontSize: 15, fontWeight: 600, color: '#6e6e73', margin: '24px 0 10px' }}>{a.preview} · {LANGS.find(l => l.code === lang)?.label}</h2>
         <Slide promotion={preview} preview lang={lang} />

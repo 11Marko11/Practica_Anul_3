@@ -231,3 +231,5 @@ body {
 .btn-action--neutral:hover:not(:disabled) { background: #e8e8ed; }
 .btn-action--danger { background: #fff; color: #d70015; border-color: #f5c6cb; }
 .btn-action--danger:hover:not(:disabled) { background: #fdecec; border-color: #ef9aa3; }
+/* "← All cars"-style links back to the previous list. */
+.btn-back { height: 36px; padding: 0 16px; font-size: 14px; }

@@ -80,7 +80,7 @@ export function BookingDetails() {
   return (
     <div style={{ paddingTop: 52 }}>
       <main style={{ maxWidth: 760, margin: '0 auto', padding: '32px 24px 96px' }}>
-        <Link to="/bookings" style={{ fontSize: 14, color: '#0071e3', textDecoration: 'none' }}>{t.bookings.back}</Link>
+        <Link to="/bookings" className="btn-action btn-action--neutral btn-back">{t.bookings.back}</Link>
 
         {notFound && <h1 style={{ fontSize: 28, fontWeight: 600, color: '#1d1d1f', margin: '24px 0' }}>{t.bookings.notFound}</h1>}
         {!booking && !notFound && <p style={{ fontSize: 15, color: '#6e6e73', margin: '24px 0' }}>{t.bookings.loading}</p>}

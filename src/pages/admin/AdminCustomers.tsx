@@ -166,7 +166,7 @@ function CustomerDetail({ id }: { id: string }) {
     <div style={{ paddingTop: 52 }}>
       <Header title={data?.customer.name ?? (missing ? c.notFound : '…')} />
       <main style={{ maxWidth: 900, margin: '0 auto', padding: '24px 24px 96px' }}>
-        <Link to="/admin/customers" style={{ fontSize: 14, color: '#0071e3', textDecoration: 'none' }}>{c.back}</Link>
+        <Link to="/admin/customers" className="btn-action btn-action--neutral btn-back">{c.back}</Link>
 
         {data && (
           <>
