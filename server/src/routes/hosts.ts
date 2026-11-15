@@ -174,6 +174,7 @@ export async function hostRoutes(app: FastifyInstance) {
         })
         await tx.session.deleteMany({ where: { userId } })
         await tx.identityDocument.deleteMany({ where: { userId } })
+        await tx.hostDocument.deleteMany({ where: { userId } })
       }
     })
     return { ok: true, cars: carIds.length }

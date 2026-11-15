@@ -4,6 +4,7 @@ import { requireAdmin } from '../auth/guards.js'
 import { hashPassword } from '../auth/password.js'
 import { normalizePhone } from '../auth/phone.js'
 import { phoneInUse, uniqueViolation } from './auth.js'
+import { documentDto, hostDocumentMeta } from './hostApplication.js'
 import { bookingInclude, toBookingDto } from '../bookings/dto.js'
 import { prisma } from '../db.js'
 import { HttpError } from '../http/errors.js'
@@ -51,6 +52,8 @@ export async function adminPeopleRoutes(app: FastifyInstance) {
         lastBookingAt: u.bookings.map(b => b.createdAt).sort((a, b) => b.getTime() - a.getTime())[0]?.toISOString() ?? null,
         reviews: u._count.reviews,
         host: u.host,
+        hostApplicationStatus: u.hostApplicationStatus,
+        hostApplicationSubmittedAt: u.hostApplicationSubmittedAt?.toISOString() ?? null,
       })),
     }
   })
@@ -59,7 +62,7 @@ export async function adminPeopleRoutes(app: FastifyInstance) {
     const { id } = z.object({ id: z.uuid() }).parse(request.params)
     const u = await prisma.user.findUnique({ where: { id }, include: { host: { select: { id: true, name: true } } } })
     if (!u || u.role !== 'CUSTOMER') throw new HttpError(404, 'customer-not-found')
-    const [bookings, reviews, documents] = await Promise.all([
+    const [bookings, reviews, documents, hostDocuments] = await Promise.all([
       prisma.booking.findMany({ where: { userId: id }, include: bookingInclude, orderBy: { createdAt: 'desc' } }),
       prisma.review.findMany({ where: { userId: id }, include: { car: { select: { slug: true, brand: true, model: true } } }, orderBy: { createdAt: 'desc' } }),
       prisma.identityDocument.findMany({
@@ -67,6 +70,7 @@ export async function adminPeopleRoutes(app: FastifyInstance) {
         select: { id: true, type: true, fileName: true, mimeType: true, size: true, createdAt: true },
         orderBy: { createdAt: 'asc' },
       }),
+      prisma.hostDocument.findMany({ where: { userId: id }, select: hostDocumentMeta, orderBy: { createdAt: 'asc' } }),
     ])
     return {
       customer: {
@@ -83,6 +87,13 @@ export async function adminPeopleRoutes(app: FastifyInstance) {
       bookings: bookings.map(b => toBookingDto(b, { forAdmin: true })),
       reviews: reviews.map(r => ({ ...reviewDto(r), car: r.car })),
       documents: documents.map(d => ({ ...d, createdAt: d.createdAt.toISOString() })),
+      hostApplication: {
+        status: u.hostApplicationStatus,
+        message: u.hostApplicationMessage,
+        note: u.hostApplicationNote,
+        submittedAt: u.hostApplicationSubmittedAt?.toISOString() ?? null,
+        documents: hostDocuments.map(documentDto),
+      },
     }
   })
 
@@ -131,34 +142,41 @@ export async function adminPeopleRoutes(app: FastifyInstance) {
     return { ok: true }
   })
 
-  // Host role: tie the customer to an existing host without an account (hostId), or create a
-  // host profile from their name and phone. They then see that host's cars, bookings and reviews.
-  app.post('/admin/customers/:id/host', async (request, reply) => {
+  // Approves a request to become a host: a host profile is made from the customer's name and
+  // phone, and they get the host pages to add their cars.
+  app.post('/admin/customers/:id/host-application/approve', async (request, reply) => {
     const { id } = z.object({ id: z.uuid() }).parse(request.params)
-    const { hostId } = z.object({ hostId: z.int().positive().optional() }).parse(request.body ?? {})
     const user = await customer(id)
     if (user.deletedAt) throw new HttpError(409, 'account-deleted')
-    if (await prisma.host.findUnique({ where: { userId: id }, select: { id: true } })) throw new HttpError(409, 'already-host')
-    let host
-    if (hostId) {
-      const existing = await prisma.host.findUnique({ where: { id: hostId }, select: { id: true, name: true } })
-      if (!existing) throw new HttpError(404, 'host-not-found')
-      // Only a host without an account; checked in the update so two admins can't both take it.
-      const done = await prisma.host.updateMany({ where: { id: hostId, userId: null }, data: { userId: id } })
-      if (!done.count) throw new HttpError(409, 'host-taken')
-      host = existing
-    } else {
-      host = await prisma.host.create({ data: { name: user.name, phone: user.phone, userId: id }, select: { id: true, name: true } })
-      reply.code(201)
-    }
+    if (user.hostApplicationStatus !== 'PENDING') throw new HttpError(409, 'no-pending-application')
+    const host = await prisma.$transaction(async tx => {
+      if (await tx.host.findUnique({ where: { userId: id }, select: { id: true } })) throw new HttpError(409, 'already-host')
+      const created = await tx.host.create({ data: { name: user.name, phone: user.phone, userId: id }, select: { id: true, name: true } })
+      await tx.user.update({ where: { id }, data: { hostApplicationStatus: 'APPROVED', hostApplicationNote: null } })
+      return created
+    })
+    reply.code(201)
     return { host }
   })
 
-  // Takes the host role away; the host profile and its cars stay.
+  // Rejects the request with a reason the customer sees; they can fix it and ask again.
+  app.post('/admin/customers/:id/host-application/reject', async request => {
+    const { id } = z.object({ id: z.uuid() }).parse(request.params)
+    const { note } = z.object({ note: z.string().trim().min(3).max(1000) }).parse(request.body)
+    await customer(id)
+    const done = await prisma.user.updateMany({ where: { id, hostApplicationStatus: 'PENDING' }, data: { hostApplicationStatus: 'REJECTED', hostApplicationNote: note } })
+    if (!done.count) throw new HttpError(409, 'no-pending-application')
+    return { ok: true }
+  })
+
+  // Takes the host role away; the host profile and its cars stay. The user may ask again later.
   app.delete('/admin/customers/:id/host', async request => {
     const { id } = z.object({ id: z.uuid() }).parse(request.params)
     await customer(id)
-    await prisma.host.updateMany({ where: { userId: id }, data: { userId: null } })
+    await prisma.$transaction([
+      prisma.host.updateMany({ where: { userId: id }, data: { userId: null } }),
+      prisma.user.update({ where: { id }, data: { hostApplicationStatus: null, hostApplicationSubmittedAt: null } }),
+    ])
     return { ok: true }
   })
 

@@ -29,6 +29,7 @@ export async function adminBookingRoutes(app: FastifyInstance) {
   app.get('/admin/bookings/summary', async () => ({
     awaitingConfirmation: await prisma.booking.count({ where: { status: 'AWAITING_CONFIRMATION' } }),
     pendingVerifications: await prisma.user.count({ where: { verificationStatus: 'PENDING', deletedAt: null } }),
+    pendingHostApplications: await prisma.user.count({ where: { hostApplicationStatus: 'PENDING', deletedAt: null } }),
   }))
 
   app.get('/admin/bookings', async request => {

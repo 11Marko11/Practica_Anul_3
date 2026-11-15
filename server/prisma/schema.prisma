@@ -86,6 +86,19 @@ model User {
   messages  ContactMessage[]
   documents IdentityDocument[]
   host      Host? // set when the admin gave this user the host role
+
+  // A customer's request to become a host, with extra documents (HostDocument) checked by the admin.
+  hostApplicationStatus      HostApplicationStatus? // null: never asked
+  hostApplicationMessage     String? // what the customer wrote to the admin
+  hostApplicationNote        String? // why the admin rejected the request, shown to the customer
+  hostApplicationSubmittedAt DateTime?
+  hostDocuments              HostDocument[]
+}
+
+enum HostApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 // UNVERIFIED: nothing sent yet · PENDING: sent, waiting for the admin · VERIFIED: may book ·
@@ -115,6 +128,28 @@ model IdentityDocument {
   size      Int
   data      Bytes
   createdAt DateTime     @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+enum HostDocumentType {
+  BUSINESS_REGISTRATION // certificate of registration (individual entrepreneur, IDNO, patent)
+  BANK_DETAILS // bank account details for the payouts
+}
+
+// Private documents a host (or a customer asking to become one) uploads for the admin.
+// Served only to their owner and to admins; deleted with the account.
+model HostDocument {
+  id        String           @id @default(uuid())
+  userId    String
+  type      HostDocumentType
+  fileName  String
+  mimeType  String
+  size      Int
+  data      Bytes
+  createdAt DateTime         @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

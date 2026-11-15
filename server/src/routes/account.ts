@@ -32,6 +32,7 @@ export async function accountRoutes(app: FastifyInstance) {
       prisma.session.deleteMany({ where: { userId: user.id } }),
       // Identity documents are not kept after the account is gone.
       prisma.identityDocument.deleteMany({ where: { userId: user.id } }),
+      prisma.hostDocument.deleteMany({ where: { userId: user.id } }),
       // A host's cars stay listed; the host profile is just no longer tied to an account.
       prisma.host.updateMany({ where: { userId: user.id }, data: { userId: null } }),
     ])
