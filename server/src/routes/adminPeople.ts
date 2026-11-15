@@ -1,6 +1,9 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { requireAdmin } from '../auth/guards.js'
+import { hashPassword } from '../auth/password.js'
+import { normalizePhone } from '../auth/phone.js'
+import { phoneInUse, uniqueViolation } from './auth.js'
 import { bookingInclude, toBookingDto } from '../bookings/dto.js'
 import { prisma } from '../db.js'
 import { HttpError } from '../http/errors.js'
@@ -75,11 +78,39 @@ export async function adminPeopleRoutes(app: FastifyInstance) {
         spent: bookings.reduce((s, b) => s + kept(b), 0),
         refunded: bookings.reduce((s, b) => s + b.refundedAmount, 0),
         host: u.host,
+        hasPassword: u.passwordHash !== '!',
       },
       bookings: bookings.map(b => toBookingDto(b, { forAdmin: true })),
       reviews: reviews.map(r => ({ ...reviewDto(r), car: r.car })),
       documents: documents.map(d => ({ ...d, createdAt: d.createdAt.toISOString() })),
     }
+  })
+
+  // The admin edits a user's account: name, email, phone and (optionally) a new password.
+  // A new password signs the user out everywhere. The public name of a host is edited separately.
+  app.put('/admin/customers/:id', async request => {
+    const { id } = z.object({ id: z.uuid() }).parse(request.params)
+    const body = z.object({
+      name: z.string().trim().min(2).max(100),
+      email: z.string().trim().toLowerCase().max(254).pipe(z.email()),
+      phone: z.string().trim().max(40),
+      password: z.string().min(8).max(200).optional(),
+    }).parse(request.body)
+    const user = await customer(id)
+    if (user.deletedAt) throw new HttpError(409, 'account-deleted')
+    const phone = body.phone ? normalizePhone(body.phone) : null
+    if (body.phone && !phone) throw new HttpError(422, 'invalid-phone')
+    if (phone && (await phoneInUse(phone, id))) throw new HttpError(409, 'phone-taken')
+    const other = await prisma.user.findUnique({ where: { email: body.email }, select: { id: true } })
+    if (other && other.id !== id) throw new HttpError(409, 'email-taken')
+    const passwordHash = body.password ? await hashPassword(body.password) : undefined
+    await prisma
+      .$transaction([
+        prisma.user.update({ where: { id }, data: { name: body.name, email: body.email, phone, ...(passwordHash ? { passwordHash } : {}) } }),
+        ...(passwordHash ? [prisma.session.deleteMany({ where: { userId: id } })] : []),
+      ])
+      .catch(err => { throw uniqueViolation(err) ?? err })
+    return { ok: true }
   })
 
   // The admin checked the documents: the customer may now book.

@@ -106,7 +106,7 @@ function ReviewsContent() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 14, color: '#1d1d1f' }}>
                     <span style={{ letterSpacing: 1 }}>{stars(rv.rating)}</span> · {r.by}{' '}
-                    {rv.customerId ? <Link to={`/admin/customers/${rv.customerId}`} style={{ color: '#0071e3', textDecoration: 'none' }}>{rv.name}</Link> : rv.name}
+                    {rv.customerId ? <Link to={`/admin/users/${rv.customerId}`} style={{ color: '#0071e3', textDecoration: 'none' }}>{rv.name}</Link> : rv.name}
                     <span style={{ color: '#86868b' }}> · {formatDate(rv.date, lang)}</span>
                   </div>
                   <p style={{ fontSize: 14, color: '#424245', margin: '4px 0 0', whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>{rv.text}</p>

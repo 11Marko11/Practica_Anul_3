@@ -1,4 +1,5 @@
-import { createBrowserRouter } from 'react-router'
+import { createBrowserRouter, Navigate, useParams } from 'react-router'
+import { createElement } from 'react'
 import { Root } from './Root'
 import { Home } from '../pages/Home'
 import { Marketplace } from '../pages/Marketplace'
@@ -14,10 +15,9 @@ import { AdminBookings } from '../pages/admin/AdminBookings'
 import { AdminPages } from '../pages/admin/AdminPages'
 import { AdminDashboard } from '../pages/admin/AdminDashboard'
 import { AdminTransactions } from '../pages/admin/AdminTransactions'
-import { AdminCustomers } from '../pages/admin/AdminCustomers'
+import { AdminUsers } from '../pages/admin/AdminUsers'
 import { AdminReviews } from '../pages/admin/AdminReviews'
 import { AdminPromotions } from '../pages/admin/AdminPromotions'
-import { AdminHosts } from '../pages/admin/AdminHosts'
 import { HostPanel } from '../pages/HostPanel'
 import { HostProfile } from '../pages/HostProfile'
 import { MyBookings } from '../pages/MyBookings'
@@ -42,7 +42,10 @@ export const router = createBrowserRouter([
       { path: 'bookings/:id', Component: BookingDetails },
       { path: 'admin', Component: AdminDashboard },
       { path: 'admin/cars', Component: AdminCars },
-      { path: 'admin/hosts', Component: AdminHosts },
+      { path: 'admin/users', Component: AdminUsers },
+      { path: 'admin/users/host/:hostId', Component: AdminUsers },
+      { path: 'admin/users/:id', Component: AdminUsers },
+      { path: 'admin/hosts', Component: () => createElement(Navigate, { to: '/admin/users?role=host', replace: true }) },
       { path: 'host', Component: HostPanel },
       { path: 'hosts/:id', Component: HostProfile },
       { path: 'host/cars/new', Component: HostCarForm },
@@ -50,11 +53,17 @@ export const router = createBrowserRouter([
       { path: 'admin/bookings', Component: AdminBookings },
       { path: 'admin/pages', Component: AdminPages },
       { path: 'admin/transactions', Component: AdminTransactions },
-      { path: 'admin/customers', Component: AdminCustomers },
-      { path: 'admin/customers/:id', Component: AdminCustomers },
+      { path: 'admin/customers', Component: () => createElement(Navigate, { to: '/admin/users', replace: true }) },
+      { path: 'admin/customers/:id', Component: OldCustomerLink },
       { path: 'admin/reviews', Component: AdminReviews },
       { path: 'admin/promotions', Component: AdminPromotions },
       { path: 'admin/promotions/:id', Component: AdminPromotions },
     ],
   },
 ])
+
+// Old addresses of a customer's page now open the same user under /admin/users.
+function OldCustomerLink() {
+  const { id } = useParams()
+  return createElement(Navigate, { to: `/admin/users/${id}`, replace: true })
+}

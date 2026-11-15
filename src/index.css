@@ -105,6 +105,22 @@ body {
 .customer-row:hover { background: #f8f8fa; }
 .customer-avatar { width: 40px; height: 40px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; }
 
+/* Users list: role and status filters; each row opens the user, with its own "Edit" button. */
+.user-filters { display: flex; gap: 10px 24px; flex-wrap: wrap; margin-top: 14px; }
+.user-filter-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.user-filter-label { font-size: 12px; font-weight: 500; color: #86868b; text-transform: uppercase; letter-spacing: 0.04em; margin-right: 4px; }
+.user-row { position: relative; }
+.user-row-link::after { content: ''; position: absolute; inset: 0; border-radius: 10px; }
+.user-row-side { display: flex; align-items: center; gap: 16px; }
+.account-facts { display: grid; grid-template-columns: max-content 1fr; gap: 8px 20px; margin: 0; font-size: 14px; }
+.account-facts dt { color: #6e6e73; }
+.account-facts dd { margin: 0; color: #1d1d1f; overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+  .user-row { grid-template-columns: 40px 1fr; }
+  .user-row-side { grid-column: 2; justify-content: space-between; }
+  .user-row-side > div { text-align: left !important; }
+}
+
 /* Transactions: type | booking | date | amount; stacked on phones. */
 .transaction-row { display: grid; grid-template-columns: 1.1fr 1.6fr 1fr 150px; gap: 16px; align-items: center; padding: 14px 0; border-bottom: 1px solid #f0f0f0; }
 .transaction-amount { font-size: 16px; font-weight: 600; text-align: right; white-space: nowrap; }

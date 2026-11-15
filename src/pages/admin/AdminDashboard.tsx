@@ -92,7 +92,7 @@ function DashboardContent() {
           <Tile to="/admin/bookings" label={d.tiles.awaiting} value={data ? String(data.awaiting.length) : '—'} highlight={!!data?.awaiting.length} />
           <Tile wide to="/admin/transactions" label={d.tiles.revenue} value={data ? <Money value={data.revenueThisMonth} /> : '—'} sub={data ? `${d.tiles.revenueSub(data.bookingsThisMonth)} · ${t.transactions.seeAll}` : undefined} />
           <Tile to="/admin/cars" label={d.tiles.cars} value={data ? String(data.cars.active) : '—'} sub={data ? d.tiles.carsSub(data.cars.hidden) : undefined} />
-          <Tile to="/admin/customers" label={d.tiles.customers} value={data ? String(data.customers) : '—'} />
+          <Tile to="/admin/users?role=customer" label={d.tiles.customers} value={data ? String(data.customers) : '—'} />
           <Tile
             to="/admin/reviews"
             label={d.tiles.reviews}
@@ -112,7 +112,7 @@ function DashboardContent() {
                     <RowText>{u.email}</RowText>
                     {u.verificationSubmittedAt && <RowText color="#9a5b00">{t.verificationAdmin.submitted(time(u.verificationSubmittedAt))}</RowText>}
                   </div>
-                  <Link to={`/admin/customers/${u.id}`} style={{ fontSize: 13, fontWeight: 500, padding: '8px 14px', borderRadius: 980, background: '#1d1d1f', color: '#fff', textDecoration: 'none' }}>
+                  <Link to={`/admin/users/${u.id}`} style={{ fontSize: 13, fontWeight: 500, padding: '8px 14px', borderRadius: 980, background: '#1d1d1f', color: '#fff', textDecoration: 'none' }}>
                     {t.verificationAdmin.section} →
                   </Link>
                 </Row>
@@ -152,7 +152,7 @@ function DashboardContent() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 28, minWidth: 0 }}>
             <Panel title={d.quick}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <QuickLink to="/admin/hosts" primary>{t.adminHosts.title}</QuickLink>
+                <QuickLink to="/admin/users?role=host" primary>{t.adminHosts.title}</QuickLink>
                 <QuickLink to="/admin/pages">{d.editPages}</QuickLink>
                 <QuickLink to="/" external>{d.viewSite}</QuickLink>
               </div>

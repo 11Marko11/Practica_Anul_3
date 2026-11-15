@@ -18,12 +18,11 @@ export function AdminTabs() {
     <nav style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 20 }}>
       <NavLink to="/admin" end style={tab}>{t.dashboard.tab}</NavLink>
       <NavLink to="/admin/cars" style={tab}>{t.adminBookings.tabCars}</NavLink>
-      <NavLink to="/admin/hosts" style={tab}>{t.adminHosts.tab}</NavLink>
       <NavLink to="/admin/bookings" style={tab}>
         {t.adminBookings.tabBookings} <CountBadge n={counts.bookings} />
       </NavLink>
       <NavLink to="/admin/transactions" style={tab}>{t.transactions.tab}</NavLink>
-      <NavLink to="/admin/customers" style={tab}>{t.customers.tab} <CountBadge n={counts.verifications} /></NavLink>
+      <NavLink to="/admin/users" style={tab}>{t.users.tab} <CountBadge n={counts.verifications} /></NavLink>
       <NavLink to="/admin/reviews" style={tab}>{t.reviewsAdmin.tab}</NavLink>
       <NavLink to="/admin/promotions" style={tab}>{t.adminPromos.tab}</NavLink>
       <NavLink to="/admin/pages" style={tab}>{t.adminPages.tab}</NavLink>

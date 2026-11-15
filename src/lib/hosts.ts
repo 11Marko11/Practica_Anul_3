@@ -20,7 +20,10 @@ export type AccountInput = { email: string; password?: string }
 // e.g. in a host's own car form). `reload` after a change.
 export function useAdminHosts(enabled = true) {
   const [hosts, setHosts] = useState<AdminHost[] | null>(null)
-  const reload = () => api<{ hosts: AdminHost[] }>('/admin/hosts').then(r => setHosts(r.hosts)).catch(() => setHosts([]))
+  const reload = () =>
+    api<{ hosts: AdminHost[] }>('/admin/hosts')
+      .then(r => { setHosts(r.hosts); return r.hosts })
+      .catch(() => { setHosts([]); return [] as AdminHost[] })
   useEffect(() => {
     if (enabled) reload()
   }, [enabled])
