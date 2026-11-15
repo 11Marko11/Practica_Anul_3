@@ -1,4 +1,4 @@
-import { Outlet, NavLink, useLocation } from 'react-router'
+import { Outlet, NavLink, useLocation, useNavigate } from 'react-router'
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { isAdmin } from '../auth/admin'
@@ -41,7 +41,18 @@ export function Root() {
   const { user } = useAuth()
   const awaiting = useAwaitingCount(isAdmin(user))
   const location = useLocation()
+  const navigate = useNavigate()
   const isHome = location.pathname === '/'
+
+  // Whenever the user is signed out – by "Sign out" or because the session ended – go to the home page.
+  // The current page is not shown meanwhile, so pages for signed-in users don't send them to the
+  // login page first.
+  const wasSignedIn = useRef(false)
+  const justSignedOut = wasSignedIn.current && !user
+  useEffect(() => {
+    if (justSignedOut) navigate('/', { replace: true })
+    wasSignedIn.current = !!user
+  }, [user, justSignedOut, navigate])
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -115,7 +126,7 @@ export function Root() {
       </nav>
 
       <div style={{ flex: 1 }}>
-        <Outlet />
+        {!justSignedOut && <Outlet />}
       </div>
 
       <footer style={{ background: '#161618', padding: '28px 24px' }}>
