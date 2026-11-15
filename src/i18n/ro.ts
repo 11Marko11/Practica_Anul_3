@@ -653,7 +653,7 @@ export const ro: Dict = {
     allBrands: 'Toate mărcile',
     sortBy: 'Sortează',
     sort: { recent: 'Adăugate recent', oldest: 'Adăugate primele', name: 'Nume A–Z', 'price-asc': 'Preț crescător', 'price-desc': 'Preț descrescător', year: 'An: cele mai noi', power: 'Cele mai puternice' },
-    status: { all: 'Toate', ACTIVE: 'Afișate pe site', HIDDEN: 'Ascunse', REMOVED: 'Șterse de gazde' },
+    status: { all: 'Toate', ACTIVE: 'Afișate pe site', HIDDEN: 'Ascunse' },
     reset: 'Resetează filtrele',
     noMatch: 'Nicio mașină nu corespunde filtrelor.',
     added: (date: string) => `adăugată pe ${date}`,

@@ -13,7 +13,7 @@ import type { Car } from '../../data/cars'
 
 const SORTS = ['recent', 'oldest', 'name', 'price-asc', 'price-desc', 'year', 'power'] as const
 type Sort = (typeof SORTS)[number]
-const STATUS_FILTERS = ['all', 'ACTIVE', 'HIDDEN', 'REMOVED'] as const
+const STATUS_FILTERS = ['all', 'ACTIVE', 'HIDDEN'] as const
 const PAGE_SIZE = 20
 
 const name = (c: Car) => `${c.brand} ${c.model}`
@@ -37,7 +37,8 @@ export function AdminCars() {
 }
 
 function AdminCarsContent() {
-  const allCars = useAllCars()
+  // Cars their hosts deleted are kept only for the booking history; they don't show here.
+  const allCars = useAllCars().filter(c => c.status !== 'REMOVED')
   const fresh = useFreshCatalog()
   const { lang, t } = useI18n()
   const s = t.adminCarsList
@@ -144,7 +145,6 @@ function AdminCarsContent() {
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f' }}>{name} <span style={{ fontWeight: 400, color: '#6e6e73' }}>· {car.year}</span>
                     {car.status === 'HIDDEN' && <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 500, color: '#6e6e73', background: '#f0f0f0', padding: '2px 8px', borderRadius: 980 }}>{t.admin.hidden}</span>}
-                    {car.status === 'REMOVED' && <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 500, color: '#d70015', background: '#fdecec', padding: '2px 8px', borderRadius: 980 }}>{t.admin.statusRemoved}</span>}
                     <span style={{ marginLeft: 8, fontSize: 12, fontWeight: 400, color: '#86868b' }}>· {car.host.name}</span>
                   </div>
                   <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 2 }}>
@@ -154,14 +154,12 @@ function AdminCarsContent() {
                 </div>
                 <div style={{ display: 'flex', gap: 16, fontSize: 14, flexShrink: 0 }}>
                   <Link to={`/cars/${car.slug}`} style={{ color: '#6e6e73', textDecoration: 'none' }}>{t.admin.view}</Link>
-                  {car.status !== 'REMOVED' && (
-                    <button
-                      onClick={() => setCarStatus(car.id, car.status === 'HIDDEN' ? 'ACTIVE' : 'HIDDEN').catch(() => alert(t.admin.saveError))}
-                      style={{ fontSize: 14, color: '#0071e3', fontWeight: 500, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
-                    >
-                      {car.status === 'HIDDEN' ? t.admin.showCar : t.admin.hideCar}
-                    </button>
-                  )}
+                  <button
+                    onClick={() => setCarStatus(car.id, car.status === 'HIDDEN' ? 'ACTIVE' : 'HIDDEN').catch(() => alert(t.admin.saveError))}
+                    style={{ fontSize: 14, color: '#0071e3', fontWeight: 500, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                  >
+                    {car.status === 'HIDDEN' ? t.admin.showCar : t.admin.hideCar}
+                  </button>
                   <button
                     onClick={() => remove(car.id, name)}
                     style={{ fontSize: 14, color: '#d70015', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}

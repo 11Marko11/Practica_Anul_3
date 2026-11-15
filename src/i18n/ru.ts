@@ -653,7 +653,7 @@ export const ru: Dict = {
     allBrands: 'Все марки',
     sortBy: 'Сортировка',
     sort: { recent: 'Недавно добавленные', oldest: 'Добавленные первыми', name: 'Название А–Я', 'price-asc': 'Цена по возрастанию', 'price-desc': 'Цена по убыванию', year: 'Год: сначала новые', power: 'Самые мощные' },
-    status: { all: 'Все', ACTIVE: 'Показаны на сайте', HIDDEN: 'Скрытые', REMOVED: 'Удалены владельцами' },
+    status: { all: 'Все', ACTIVE: 'Показаны на сайте', HIDDEN: 'Скрытые' },
     reset: 'Сбросить фильтры',
     noMatch: 'Нет автомобилей по этим фильтрам.',
     added: (date: string) => `добавлен ${date}`,

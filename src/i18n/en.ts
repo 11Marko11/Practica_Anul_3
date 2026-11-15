@@ -653,7 +653,7 @@ export const en = {
     allBrands: 'All brands',
     sortBy: 'Sort by',
     sort: { recent: 'Recently added', oldest: 'Added first', name: 'Name A–Z', 'price-asc': 'Price: low to high', 'price-desc': 'Price: high to low', year: 'Year: newest first', power: 'Most powerful' },
-    status: { all: 'All', ACTIVE: 'Shown on the site', HIDDEN: 'Hidden', REMOVED: 'Removed by host' },
+    status: { all: 'All', ACTIVE: 'Shown on the site', HIDDEN: 'Hidden' },
     reset: 'Reset filters',
     noMatch: 'No cars match these filters.',
     added: (date: string) => `added ${date}`,
