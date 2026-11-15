@@ -794,7 +794,7 @@ export const en = {
     upTo: (price: string) => `up to ${price}`,
     reset: 'Reset filters',
     bookedHidden: (n: number) => `${countOf('en', n, { one: 'car is', other: 'cars are' })} booked for these dates and not shown`,
-    viewDetails: 'View Details →',
+    viewDetails: 'View Details',
     loading: 'Loading cars…',
     loadError: "Couldn't load the cars. Check your connection and try again.",
     retry: 'Try again',

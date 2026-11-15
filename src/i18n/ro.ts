@@ -794,7 +794,7 @@ export const ro: Dict = {
     upTo: (price: string) => `până la ${price}`,
     reset: 'Resetează filtrele',
     bookedHidden: (n: number) => n === 1 ? '1 mașină este rezervată în această perioadă și nu este afișată' : `${countOf('ro', n, { few: 'mașini sunt rezervate', other: 'de mașini sunt rezervate' })} în această perioadă și nu sunt afișate`,
-    viewDetails: 'Vezi detalii →',
+    viewDetails: 'Vezi detalii',
     loading: 'Se încarcă mașinile…',
     loadError: 'Mașinile nu au putut fi încărcate. Verifică conexiunea și încearcă din nou.',
     retry: 'Încearcă din nou',

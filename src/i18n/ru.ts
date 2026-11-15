@@ -794,7 +794,7 @@ export const ru: Dict = {
     upTo: (price: string) => `до ${price}`,
     reset: 'Сбросить фильтры',
     bookedHidden: (n: number) => `Забронировано на эти даты и скрыто: ${n}`,
-    viewDetails: 'Подробнее →',
+    viewDetails: 'Подробнее',
     loading: 'Загружаем автомобили…',
     loadError: 'Не удалось загрузить автомобили. Проверьте подключение и попробуйте снова.',
     retry: 'Повторить',

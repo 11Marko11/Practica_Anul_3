@@ -251,8 +251,11 @@ export function CarCard({ car, days, query }: { car: Car; days: number; query: s
         <p style={{ fontSize: 13, color: '#6e6e73', margin: '8px 0 0' }}>
           {t.marketplace.totalFor(fmt(car.pricePerDay * days), days)}
         </p>
-        <span style={{ display: 'block', marginTop: 14, padding: '10px 0', fontSize: 14, fontWeight: 500, color: '#0071e3', textAlign: 'center' }}>
+        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, height: 40, marginTop: 16, borderRadius: 980, fontSize: 14, fontWeight: 500, color: '#fff', background: hov ? '#3a3a3c' : '#1d1d1f', transition: 'background-color 0.15s' }}>
           {t.marketplace.viewDetails}
+          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden>
+            <path d="M3 7h8M7.5 3.5 11 7l-3.5 3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </span>
       </div>
     </Link>
