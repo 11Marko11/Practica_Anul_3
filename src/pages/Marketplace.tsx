@@ -8,6 +8,7 @@ import { DateField } from '../components/DateField'
 import { PromoBanner } from '../components/PromoBanner'
 import { pageFrom, Pagination } from '../components/Pagination'
 import { useI18n } from '../i18n/I18nContext'
+import { ResetButton } from '../components/ResetButton'
 import { applyFilters, FUELS, POWER_OPTIONS, SEAT_OPTIONS, SORTS, useCarFilters, useUnavailableCars, type Filters, type Sort } from '../lib/carFilters'
 
 const PAGE_SIZE = 12
@@ -142,9 +143,7 @@ export function Marketplace() {
             <p style={{ fontSize: 13, color: '#6e6e73', margin: 0 }}>{t.marketplace.available(list.length)}</p>
             {hiddenBooked > 0 && <p style={{ fontSize: 13, color: '#86868b', margin: 0 }}>{t.marketplace.bookedHidden(hiddenBooked)}</p>}
             {active > 0 && (
-              <button onClick={reset} style={{ fontSize: 13, color: '#0071e3', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
-                {t.marketplace.reset}
-              </button>
+              <ResetButton onClick={reset}>{t.marketplace.reset}</ResetButton>
             )}
             <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#6e6e73', marginLeft: 'auto' }}>
               {t.marketplace.sortBy}

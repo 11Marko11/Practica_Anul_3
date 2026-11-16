@@ -9,6 +9,7 @@ import { useCars } from '../lib/carStore'
 import { recommendCars, useUnavailableCars } from '../lib/carFilters'
 import { useRentalDates } from '../lib/useRentalDates'
 import { useUrlParams } from '../lib/useUrlParams'
+import { ResetButton } from '../components/ResetButton'
 import { same, useLivePoll } from '../lib/livePoll'
 import { formatDate } from '../lib/rental'
 import { Money } from '../components/Money'
@@ -168,9 +169,7 @@ export function MyBookings() {
                 </button>
               ))}
               {filtering && (
-                <button onClick={() => edit(p => { ['show', 'period', 'from', 'to', 'q', 'page'].forEach(k => p.delete(k)) })} style={{ fontSize: 13, color: '#0071e3', background: 'none', border: 'none', cursor: 'pointer', marginLeft: 6 }}>
-                  {mb.reset}
-                </button>
+                <ResetButton onClick={() => edit(p => { ['show', 'period', 'from', 'to', 'q', 'page'].forEach(k => p.delete(k)) })}>{mb.reset}</ResetButton>
               )}
             </div>
             {list.length === 0 && <p style={{ fontSize: 15, color: '#6e6e73', padding: '24px 0' }}>{mb.noMatch}</p>}

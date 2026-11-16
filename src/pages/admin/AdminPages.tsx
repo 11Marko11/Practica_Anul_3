@@ -259,7 +259,7 @@ function EditorLayout({ d, path, validate, children }: { d: EditorControls; path
         {d.dirty && d.status !== 'error' && <span style={{ fontSize: 13, color: '#9a5b00' }}>● {t.adminPages.unsaved}</span>}
         {d.status === 'saved' && <span role="status" style={{ fontSize: 13, color: '#1b7a35' }}>✓ {t.adminPages.saved}</span>}
         {d.status === 'error' && <span role="alert" style={{ fontSize: 13, color: '#d70015' }}>{d.error || t.adminPages.error}</span>}
-        <button onClick={() => d.reset(t.adminPages.resetConfirm)} style={{ marginLeft: 'auto', fontSize: 13, color: '#6e6e73', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+        <button onClick={() => d.reset(t.adminPages.resetConfirm)} className="btn-action btn-action--neutral" style={{ marginLeft: 'auto' }}>
           {t.adminPages.reset}
         </button>
       </div>

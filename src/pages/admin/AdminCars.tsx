@@ -8,6 +8,7 @@ import { useI18n } from '../../i18n/I18nContext'
 import { carText } from '../../i18n/cars'
 import { AdminGuard } from './AdminGuard'
 import { AdminTabs } from './AdminTabs'
+import { ResetButton } from '../../components/ResetButton'
 import { useUrlParams } from '../../lib/useUrlParams'
 import { pageFrom, Pagination } from '../../components/Pagination'
 import type { Car } from '../../data/cars'
@@ -135,9 +136,7 @@ function AdminCarsContent() {
             </button>
           ))}
           {(q || brand || status !== 'all') && (
-            <button onClick={() => edit(p => { p.delete('q'); p.delete('brand'); p.delete('status'); p.delete('page') })} style={{ fontSize: 13, color: '#0071e3', background: 'none', border: 'none', cursor: 'pointer', marginLeft: 6 }}>
-              {s.reset}
-            </button>
+            <ResetButton onClick={() => edit(p => { p.delete('q'); p.delete('brand'); p.delete('status'); p.delete('page') })}>{s.reset}</ResetButton>
           )}
         </div>
 
