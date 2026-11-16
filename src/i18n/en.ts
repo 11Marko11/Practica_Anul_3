@@ -89,6 +89,7 @@ export const en = {
     privacy: 'Privacy Policy',
   },
   admin: {
+    exportExcel: 'Export to Excel',
     link: 'Admin',
     noAccess: 'No access',
     noAccessText: 'This page is only for administrators.',

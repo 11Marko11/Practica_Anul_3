@@ -113,6 +113,11 @@ function AdminCarsContent() {
             <h1 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#f5f5f7', margin: 0, lineHeight: 1.05 }}>{t.admin.title}</h1>
             <p style={{ fontSize: 14, color: '#a1a1a6', margin: '10px 0 0' }}>{t.admin.count(allCars.length)} · {t.admin.carsByHosts}</p>
           </div>
+          {/* Every car with all its details, photos and hosts, as an Excel file. */}
+          <a href="/api/admin/export/cars.xlsx" download style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 15, fontWeight: 500, padding: '12px 24px', borderRadius: 980, background: '#f5f5f7', color: '#1c1c1e', textDecoration: 'none' }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden><path d="M7 2v7M3.5 6 7 9.5 10.5 6M2.5 12h9" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            {t.admin.exportExcel}
+          </a>
         </div>
       </div>
 

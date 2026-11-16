@@ -89,6 +89,7 @@ export const ru: Dict = {
     privacy: 'Политика конфиденциальности',
   },
   admin: {
+    exportExcel: 'Экспорт в Excel',
     link: 'Админка',
     noAccess: 'Нет доступа',
     noAccessText: 'Эта страница доступна только администраторам.',

@@ -89,6 +89,7 @@ export const ro: Dict = {
     privacy: 'Politica de confidențialitate',
   },
   admin: {
+    exportExcel: 'Exportă în Excel',
     link: 'Admin',
     noAccess: 'Acces interzis',
     noAccessText: 'Această pagină este doar pentru administratori.',

@@ -19,6 +19,7 @@ import { healthRoutes } from './routes/health.js'
 import { hostRoutes } from './routes/hosts.js'
 import { hostPortalRoutes } from './routes/hostPortal.js'
 import { hostApplicationRoutes } from './routes/hostApplication.js'
+import { exportRoutes } from './routes/export.js'
 import { photoRoutes } from './routes/photos.js'
 import { reviewRoutes } from './routes/reviews.js'
 import { statsRoutes } from './routes/stats.js'
@@ -77,6 +78,7 @@ export function buildApp() {
       await api.register(adminPeopleRoutes)
       await api.register(profileRoutes)
       await api.register(hostApplicationRoutes)
+      await api.register(exportRoutes)
       await api.register(stripeWebhookRoutes)
     },
     { prefix: '/api' },
