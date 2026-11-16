@@ -9,6 +9,7 @@ import { useCars } from '../lib/carStore'
 import { recommendCars, useUnavailableCars } from '../lib/carFilters'
 import { useRentalDates } from '../lib/useRentalDates'
 import { useUrlParams } from '../lib/useUrlParams'
+import { same, useLivePoll } from '../lib/livePoll'
 import { formatDate } from '../lib/rental'
 import { Money } from '../components/Money'
 import { pageFrom, Pagination } from '../components/Pagination'
@@ -64,9 +65,12 @@ export function MyBookings() {
   const { pickup, dropoff, query } = useRentalDates()
   const unavailable = useUnavailableCars(pickup, dropoff)
 
+  const signedIn = !!user
   useEffect(() => {
-    if (user) myBookings().then(setBookings).catch(() => setFailed(true))
-  }, [user])
+    if (signedIn) myBookings().then(setBookings).catch(() => setFailed(true))
+  }, [signedIn])
+  // Status changes (confirmed, completed, refunded) show without a refresh.
+  useLivePoll(() => { myBookings().then(next => setBookings(prev => (same(prev, next) ? prev : next))).catch(() => {}) }, 30_000, signedIn)
 
   // Recommendations wait for both the bookings and today's availability, so a booked car never flashes in.
   const history = (bookings ?? []).map(b => cars.find(c => c.slug === b.car.slug)).filter(c => !!c)

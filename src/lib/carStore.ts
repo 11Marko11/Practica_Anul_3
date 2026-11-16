@@ -1,6 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import type { Car } from '../data/cars'
 import { api } from './api'
+import { same, startLivePoll } from './livePoll'
 
 // The car catalogue, loaded from the API once and shared by every page.
 // Admins also receive hidden cars; public pages only show active ones.
@@ -20,16 +21,27 @@ export async function reloadCars() {
   if (state.status === 'error') set({ ...state, status: 'loading' })
   try {
     const res = await api<{ cars: Car[] }>('/cars')
-    set({ cars: res.cars, status: 'ready' })
+    if (!(state.status === 'ready' && same(state.cars, res.cars))) set({ cars: res.cars, status: 'ready' })
   } catch {
     set({ ...state, status: state.status === 'ready' ? 'ready' : 'error' })
   }
 }
 
+// While a page shows cars, the catalogue is checked every minute (and when the tab comes back),
+// so new, edited or hidden cars appear without a refresh.
+let stopPoll: (() => void) | null = null
+
 function subscribe(listener: () => void) {
   listeners.add(listener)
   if (!started) reloadCars()
-  return () => listeners.delete(listener)
+  if (!stopPoll) stopPoll = startLivePoll(reloadCars, 60_000)
+  return () => {
+    listeners.delete(listener)
+    if (listeners.size === 0 && stopPoll) {
+      stopPoll()
+      stopPoll = null
+    }
+  }
 }
 
 function useStore() {

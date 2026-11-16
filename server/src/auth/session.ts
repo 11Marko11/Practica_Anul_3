@@ -14,7 +14,7 @@ const REFRESH_MS = 2 * 60_000
 
 // What the website gets about the signed-in user.
 // `host` is set for users the admin gave the host role.
-export type PublicUser = { id: string; name: string; email: string; role: Role; verificationStatus: VerificationStatus; host: { id: number; name: string } | null }
+export type PublicUser = { id: string; name: string; email: string; role: Role; verificationStatus: VerificationStatus; avatarUrl: string | null; host: { id: number; name: string } | null }
 export const publicUserSelect = { id: true, name: true, email: true, role: true, verificationStatus: true, avatarUrl: true, host: { select: { id: true, name: true } } } as const
 
 export const sessionCookieOptions: CookieSerializeOptions = {

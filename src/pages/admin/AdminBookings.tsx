@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { same, useLivePoll } from '../../lib/livePoll'
 import { BookingCard } from '../../components/BookingCard'
 import { useI18n } from '../../i18n/I18nContext'
 import { ApiError } from '../../lib/api'
@@ -35,6 +36,10 @@ function AdminBookingsContent() {
     setBookings(null)
     load()
   }, [filter])
+  // New bookings and changes made elsewhere show without a refresh.
+  useLivePoll(() => {
+    adminBookings(filter === 'ALL' ? undefined : filter).then(next => setBookings(prev => (same(prev, next) ? prev : next))).catch(() => {})
+  }, 30_000, !busyId && !closing)
 
   async function act(b: Booking, action: 'confirm' | 'complete') {
     const question = action === 'confirm' ? t.adminBookings.confirmAsk(fmt(b.total)) : t.adminBookings.completeAsk

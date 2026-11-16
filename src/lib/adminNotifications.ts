@@ -2,7 +2,7 @@ import { useEffect, useSyncExternalStore } from 'react'
 import { api } from './api'
 
 // What waits for the admin: paid bookings to confirm, customer documents, host requests and car papers to check.
-// Checked every minute and whenever the tab regains focus, while an admin has the site open.
+// Checked every 30 seconds and whenever the tab regains focus, while an admin has the site open.
 type Counts = { bookings: number; verifications: number; hostRequests: number; carReviews: number }
 let counts: Counts = { bookings: 0, verifications: 0, hostRequests: 0, carReviews: 0 }
 const listeners = new Set<() => void>()
@@ -22,7 +22,7 @@ function subscribe(listener: () => void) {
   listeners.add(listener)
   if (!timer) {
     refreshAwaitingCount()
-    timer = setInterval(refreshAwaitingCount, 60_000)
+    timer = setInterval(() => { if (document.visibilityState === 'visible') refreshAwaitingCount() }, 30_000)
     window.addEventListener('focus', refreshAwaitingCount)
   }
   return () => {

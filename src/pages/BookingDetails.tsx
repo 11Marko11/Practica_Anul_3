@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { same, useLivePoll } from '../lib/livePoll'
 import { Link, Navigate, useLocation, useParams, useSearchParams } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
 import { BookingCard } from '../components/BookingCard'
@@ -40,6 +41,8 @@ export function BookingDetails() {
       cancelled = true
     }
   }, [id, user, payment])
+  // Confirmation, completion or a refund by the admin show without a refresh.
+  useLivePoll(() => { getBooking(id).then(next => setBooking(prev => (same(prev, next) ? prev : next))).catch(() => {}) }, 30_000, !!user && !!booking && !busy)
 
   if (loading) return <div style={{ minHeight: '80vh' }} />
   if (!user) return <Navigate to="/login" state={{ from: location.pathname + location.search }} replace />

@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { api } from '../lib/api'
+import { same, useLivePoll } from '../lib/livePoll'
 
 // The signed-in user comes from the server, which keeps the session in an httpOnly cookie.
 // Failed calls throw an ApiError whose `code` the login page translates.
@@ -40,21 +41,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false))
   }, [])
 
-  // Sessions end after 30 minutes without activity (see the server's session.ts). While the site
-  // is open, check in every few minutes and when the tab comes back to the front: this keeps the
-  // session alive, and signs the page out if it ended meanwhile (e.g. the computer was asleep).
+  // While the site is open (and in front), check the account every 30 seconds and when the tab
+  // comes back: name, photo, verification or host role changed elsewhere show at once, and the
+  // page signs out if the session ended (sessions end after 30 minutes away, see session.ts).
   const signedIn = !!user
-  useEffect(() => {
-    if (!signedIn) return
-    const check = () => api<{ user: User | null }>('/auth/me').then(res => setUser(res.user)).catch(() => {})
-    const timer = setInterval(check, 4 * 60_000)
-    const onVisible = () => { if (document.visibilityState === 'visible') check() }
-    document.addEventListener('visibilitychange', onVisible)
-    return () => {
-      clearInterval(timer)
-      document.removeEventListener('visibilitychange', onVisible)
-    }
-  }, [signedIn])
+  useLivePoll(() => {
+    api<{ user: User | null }>('/auth/me').then(res => setUser(prev => (same(prev, res.user) ? prev : res.user))).catch(() => {})
+  }, 30_000, signedIn)
 
   async function signIn(email: string, password: string) {
     const res = await api<{ user: User }>('/auth/login', { body: { email, password } })

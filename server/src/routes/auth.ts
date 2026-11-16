@@ -62,7 +62,7 @@ export async function authRoutes(app: FastifyInstance) {
     const found = await prisma.user.findUnique({ where: { email: body.email }, include: { host: { select: { id: true, name: true } } } })
     const ok = found ? await verifyPassword(found.passwordHash, body.password) : await verifyDummy(body.password)
     if (!found || !ok) throw new HttpError(401, 'invalid-credentials')
-    return startSession(reply, { id: found.id, name: found.name, email: found.email, role: found.role, verificationStatus: found.verificationStatus, host: found.host })
+    return startSession(reply, { id: found.id, name: found.name, email: found.email, role: found.role, verificationStatus: found.verificationStatus, avatarUrl: found.avatarUrl, host: found.host })
   })
 
   app.post('/auth/logout', async (request, reply) => {

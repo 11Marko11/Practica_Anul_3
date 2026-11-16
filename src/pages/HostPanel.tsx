@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { same, useLivePoll } from '../lib/livePoll'
 import { Link, Navigate, useLocation } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
 import { Money } from '../components/Money'
@@ -76,6 +77,8 @@ function HostPanelContent() {
   useEffect(() => {
     load()
   }, [])
+  // New bookings, reviews and the admin's check of the cars show without a refresh.
+  useLivePoll(() => { api<HostData>('/host').then(next => setData(prev => (same(prev, next) ? prev : next))).catch(() => {}) }, 30_000)
 
   // The car leaves the site at once; the server refuses while a booking is still going on.
   async function remove(car: CarRef) {

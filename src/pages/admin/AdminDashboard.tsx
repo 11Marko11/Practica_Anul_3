@@ -1,5 +1,6 @@
 import { ArrowIcon } from '../../components/ArrowIcon'
 import { useEffect, useState, type ReactNode } from 'react'
+import { same, useLivePoll } from '../../lib/livePoll'
 import { Link } from 'react-router'
 import { useAuth } from '../../auth/AuthContext'
 import { StatusBadge } from '../../components/BookingCard'
@@ -59,6 +60,9 @@ function DashboardContent() {
   useEffect(() => {
     load()
   }, [awaitingCount])
+  useLivePoll(() => {
+    api<Dashboard>('/admin/dashboard').then(next => setData(prev => (same(prev, next) ? prev : next))).catch(() => {})
+  }, 30_000, !busyId && !closing)
 
   async function act(b: Booking, action: 'confirm') {
     const question = t.adminBookings.confirmAsk(fmt(b.total))
