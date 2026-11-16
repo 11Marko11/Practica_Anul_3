@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useNavScroll } from '../lib/useNavScroll'
 import { CAR_REVIEW_COLORS, type CarReviewStatus } from '../lib/privateDocuments'
 import { same, useLivePoll } from '../lib/livePoll'
 import { Link, Navigate, useLocation } from 'react-router'
@@ -146,8 +147,9 @@ function HostPanelContent() {
 
   return (
     <div style={{ paddingTop: 52 }}>
-      <div style={{ padding: '48px 24px 36px', background: '#1c1c1e' }}>
+      <div style={{ padding: '40px 24px 36px', background: '#1c1c1e' }}>
         <div style={{ maxWidth: 1000, margin: '0 auto' }}>
+          <HostTabs tab={tab} onTab={x => setParam('tab', x, 'cars')} counts={counts} awaiting={data?.host.awaiting ?? 0} />
           <p style={{ fontSize: 13, color: '#a1a1a6', margin: '0 0 8px' }}>{h.eyebrow}</p>
           <h1 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#f5f5f7', margin: 0, lineHeight: 1.05 }}>{data?.host.name ?? '…'}</h1>
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
@@ -171,17 +173,7 @@ function HostPanelContent() {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', margin: '32px 0 16px' }}>
-              {TABS.map(x => (
-                <button
-                  key={x}
-                  onClick={() => setParam('tab', x, 'cars')}
-                  aria-pressed={tab === x}
-                  style={{ fontSize: 14, fontWeight: 500, padding: '8px 16px', borderRadius: 980, border: '1px solid', borderColor: tab === x ? '#1d1d1f' : '#d2d2d7', background: tab === x ? '#1d1d1f' : '#fff', color: tab === x ? '#fff' : '#1d1d1f', cursor: 'pointer', fontFamily: 'inherit' }}
-                >
-                  {h.tabs[x]}{counts[x] !== undefined && ` (${counts[x]})`} {x === 'bookings' && <CountBadge n={data.host.awaiting} />}
-                </button>
-              ))}
-              {tab !== 'cars' && data.cars.length > 1 && (
+              {(tab === 'bookings' || tab === 'reviews') && data.cars.length > 1 && (
                 <select value={carId} onChange={e => setParam('car', e.target.value, '')} aria-label={h.allCars} style={{ marginLeft: 'auto', fontSize: 14, padding: '8px 14px', borderRadius: 980, border: '1px solid #d2d2d7', background: '#fff', fontFamily: 'inherit', maxWidth: '100%' }}>
                   <option value="">{h.allCars}</option>
                   {data.cars.map(c => <option key={c.id} value={c.id}>{c.brand} {c.model} {c.year}</option>)}
@@ -340,3 +332,36 @@ function Empty({ text }: { text: string }) {
 
 const list: React.CSSProperties = { listStyle: 'none', margin: 0, padding: 0 }
 const row: React.CSSProperties = { padding: '16px 0', borderBottom: '1px solid #f0f0f0' }
+
+// The host panel's sections, centred in a bar fixed under the site menu (like the admin's).
+function HostTabs({ tab, onTab, counts, awaiting }: { tab: Tab; onTab: (tab: Tab) => void; counts: Partial<Record<Tab, number>>; awaiting: number }) {
+  const { t } = useI18n()
+  const h = t.hostPortal
+  const { hidden } = useNavScroll()
+  const bar = useRef<HTMLElement>(null)
+  // On narrow screens the bar scrolls sideways: bring the current section into view.
+  useEffect(() => {
+    const active = bar.current?.querySelector<HTMLElement>('[aria-pressed="true"]')
+    if (bar.current && active) bar.current.scrollLeft = active.offsetLeft - (bar.current.clientWidth - active.offsetWidth) / 2
+  }, [tab])
+  return (
+    <>
+      <div className="admin-tabs-space" aria-hidden />
+      <nav ref={bar} className="admin-tabs" style={{ transform: hidden ? 'translateY(-52px)' : 'none' }}>
+        <div className="admin-tabs-inner">
+          {TABS.map(x => (
+            <button
+              key={x}
+              onClick={() => onTab(x)}
+              aria-pressed={tab === x}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 500, padding: '8px 16px', borderRadius: 980, border: 'none', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', background: tab === x ? '#f5f5f7' : 'transparent', color: tab === x ? '#1c1c1e' : '#a1a1a6' }}
+            >
+              {h.tabs[x]}{counts[x] !== undefined && ` (${counts[x]})`}
+              {x === 'bookings' && <CountBadge n={awaiting} />}
+            </button>
+          ))}
+        </div>
+      </nav>
+    </>
+  )
+}
