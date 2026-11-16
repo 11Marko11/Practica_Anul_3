@@ -79,7 +79,7 @@ function DashboardContent() {
         {failed && !data && <p style={{ fontSize: 15, color: '#d70015' }}>{d.loadError}</p>}
 
         <div className="dashboard-tiles">
-          <Tile to="/admin/bookings" label={d.tiles.awaiting} value={data ? String(data.awaiting.length) : '—'} />
+          <Tile label={d.tiles.awaiting} value={data ? String(data.awaiting.length) : '—'} />
           <Tile wide to="/admin/transactions" label={d.tiles.revenue} value={data ? <Money value={data.revenueThisMonth} /> : '—'} sub={data ? `${d.tiles.revenueSub(data.bookingsThisMonth)} · ${t.transactions.seeAll}` : undefined} />
           <Tile to="/admin/cars" label={d.tiles.cars} value={data ? String(data.cars.active) : '—'} sub={data ? d.tiles.carsSub(data.cars.hidden) : undefined} />
           <Tile to="/admin/users" label={d.tiles.users} value={data ? String(data.users?.total ?? data.customers ?? 0) : '—'} sub={data?.users ? d.tiles.usersSub(data.users.customers, data.users.hosts) : undefined} />
@@ -87,7 +87,7 @@ function DashboardContent() {
 
         <div className="dashboard-columns">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 28, minWidth: 0 }}>
-            <Panel title={d.attention} link="/admin/bookings">
+            <Panel title={d.attention}>
               {data?.verifications.length === 0 && !data.hostApplications?.length && !data.carReviews?.length && <Empty>✓ {d.allClear}</Empty>}
               {data?.verifications.map(u => (
                 <Row key={u.id}>
@@ -151,7 +151,7 @@ function DashboardContent() {
               </div>
             </Panel>
 
-            <Panel title={d.recent} link="/admin/bookings">
+            <Panel title={d.recent}>
               {data?.recent.length === 0 && <Empty>{d.noRecent}</Empty>}
               {data?.recent.map(b => (
                 <Row key={b.id}>

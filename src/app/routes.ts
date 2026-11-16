@@ -11,12 +11,10 @@ import { Terms } from '../pages/Terms'
 import { Privacy } from '../pages/Privacy'
 import { AdminCars } from '../pages/admin/AdminCars'
 import { HostCarForm } from '../pages/HostCarForm'
-import { AdminBookings } from '../pages/admin/AdminBookings'
 import { AdminPages } from '../pages/admin/AdminPages'
 import { AdminDashboard } from '../pages/admin/AdminDashboard'
 import { AdminTransactions } from '../pages/admin/AdminTransactions'
 import { AdminUsers } from '../pages/admin/AdminUsers'
-import { AdminReviews } from '../pages/admin/AdminReviews'
 import { AdminPromotions } from '../pages/admin/AdminPromotions'
 import { HostPanel } from '../pages/HostPanel'
 import { HostProfile } from '../pages/HostProfile'
@@ -52,12 +50,12 @@ export const router = createBrowserRouter([
       { path: 'hosts/:id', Component: HostProfile },
       { path: 'host/cars/new', Component: HostCarForm },
       { path: 'host/cars/:id', Component: HostCarForm },
-      { path: 'admin/bookings', Component: AdminBookings },
+      { path: 'admin/bookings', Component: () => createElement(Navigate, { to: '/admin', replace: true }) },
       { path: 'admin/pages', Component: AdminPages },
       { path: 'admin/transactions', Component: AdminTransactions },
       { path: 'admin/customers', Component: () => createElement(Navigate, { to: '/admin/users', replace: true }) },
       { path: 'admin/customers/:id', Component: OldCustomerLink },
-      { path: 'admin/reviews', Component: AdminReviews },
+      { path: 'admin/reviews', Component: () => createElement(Navigate, { to: '/admin', replace: true }) },
       { path: 'admin/promotions', Component: AdminPromotions },
       { path: 'admin/promotions/:id', Component: AdminPromotions },
     ],
