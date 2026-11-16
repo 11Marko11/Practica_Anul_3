@@ -810,6 +810,7 @@ export const ru: Dict = {
     error: 'Не удалось сохранить. Попробуйте ещё раз.',
   },
   adminCarsList: {
+    allHosts: 'Все владельцы', host: 'Владелец',
     search: 'Поиск по марке, модели или городу',
     allBrands: 'Все марки',
     sortBy: 'Сортировка',

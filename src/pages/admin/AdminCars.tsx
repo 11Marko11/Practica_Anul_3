@@ -58,14 +58,20 @@ function AdminCarsContent() {
   const sort: Sort = SORTS.includes(params.get('sort') as Sort) ? (params.get('sort') as Sort) : 'recent'
   const status = STATUS_FILTERS.includes(params.get('status') as never) ? (params.get('status') as (typeof STATUS_FILTERS)[number]) : 'all'
   const brand = params.get('brand') ?? ''
+  const hostId = params.get('host') ?? ''
   const query = params.get('q') ?? ''
   // Any change of search, filter or sorting goes back to the first page.
   const set = (key: string, value: string, fallback: string) => edit(p => { if (value && value !== fallback) p.set(key, value); else p.delete(key); p.delete('page') })
 
   const brands = [...new Set(allCars.map(c => c.brand))].sort((a, b) => a.localeCompare(b))
+  // Every host with a car in the list, with how many cars they have.
+  const hosts = [...allCars.reduce((m, c) => {
+    if (c.host.id) m.set(c.host.id, { name: c.host.name, cars: (m.get(c.host.id)?.cars ?? 0) + 1 })
+    return m
+  }, new Map<number, { name: string; cars: number }>())].sort((a, b) => a[1].name.localeCompare(b[1].name))
   const q = query.trim().toLowerCase()
   const cars = allCars
-    .filter(c => statusMatches(status, c) && (!brand || c.brand === brand))
+    .filter(c => statusMatches(status, c) && (!brand || c.brand === brand) && (!hostId || String(c.host.id) === hostId))
     .filter(c => !q || `${name(c)} ${c.location} ${c.host.name}`.toLowerCase().includes(q))
     .sort(COMPARE[sort])
   const pages = Math.ceil(cars.length / PAGE_SIZE)
@@ -75,7 +81,7 @@ function AdminCarsContent() {
     edit(p => (n > 1 ? p.set('page', String(n)) : p.delete('page')), { push: true })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
-  const count = (f: (typeof STATUS_FILTERS)[number]) => allCars.filter(c => statusMatches(f, c)).length
+  const count = (f: (typeof STATUS_FILTERS)[number]) => allCars.filter(c => statusMatches(f, c) && (!hostId || String(c.host.id) === hostId)).length
   const [reviewing, setReviewing] = useState<number | null>(null)
 
   async function remove(id: number, name: string) {
@@ -117,6 +123,10 @@ function AdminCarsContent() {
             <option value="">{s.allBrands}</option>
             {brands.map(b => <option key={b} value={b}>{b}</option>)}
           </select>
+          <select value={hostId} onChange={e => set('host', e.target.value, '')} aria-label={s.host} style={control}>
+            <option value="">{s.allHosts}</option>
+            {hosts.map(([id, h]) => <option key={id} value={id}>{h.name} ({h.cars})</option>)}
+          </select>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#6e6e73' }}>
             {s.sortBy}
             <select value={sort} onChange={e => set('sort', e.target.value, 'recent')} style={control}>
@@ -135,8 +145,8 @@ function AdminCarsContent() {
               {f === 'REVIEW' ? t.carPapers.admin.filter : s.status[f]} ({count(f)})
             </button>
           ))}
-          {(q || brand || status !== 'all') && (
-            <ResetButton onClick={() => edit(p => { p.delete('q'); p.delete('brand'); p.delete('status'); p.delete('page') })}>{s.reset}</ResetButton>
+          {(q || brand || hostId || status !== 'all') && (
+            <ResetButton onClick={() => edit(p => { p.delete('q'); p.delete('brand'); p.delete('host'); p.delete('status'); p.delete('page') })}>{s.reset}</ResetButton>
           )}
         </div>
 

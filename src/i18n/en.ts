@@ -810,6 +810,7 @@ export const en = {
     error: "Couldn't save. Please try again.",
   },
   adminCarsList: {
+    allHosts: 'All hosts', host: 'Host',
     search: 'Search by brand, model or city',
     allBrands: 'All brands',
     sortBy: 'Sort by',

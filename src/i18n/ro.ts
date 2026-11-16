@@ -810,6 +810,7 @@ export const ro: Dict = {
     error: 'Nu s-a putut salva. Încearcă din nou.',
   },
   adminCarsList: {
+    allHosts: 'Toate gazdele', host: 'Gazdă',
     search: 'Caută după marcă, model sau oraș',
     allBrands: 'Toate mărcile',
     sortBy: 'Sortează',
