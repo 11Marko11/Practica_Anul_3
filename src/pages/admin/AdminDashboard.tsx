@@ -83,12 +83,6 @@ function DashboardContent() {
           <Tile wide to="/admin/transactions" label={d.tiles.revenue} value={data ? <Money value={data.revenueThisMonth} /> : '—'} sub={data ? `${d.tiles.revenueSub(data.bookingsThisMonth)} · ${t.transactions.seeAll}` : undefined} />
           <Tile to="/admin/cars" label={d.tiles.cars} value={data ? String(data.cars.active) : '—'} sub={data ? d.tiles.carsSub(data.cars.hidden) : undefined} />
           <Tile to="/admin/users" label={d.tiles.users} value={data ? String(data.users?.total ?? data.customers ?? 0) : '—'} sub={data?.users ? d.tiles.usersSub(data.users.customers, data.users.hosts) : undefined} />
-          <Tile
-            to="/admin/reviews"
-            label={d.tiles.reviews}
-            value={data?.reviews.average != null ? `★ ${data.reviews.average.toFixed(1)}` : '—'}
-            sub={data ? d.tiles.reviewsSub(data.reviews.count) : undefined}
-          />
         </div>
 
         <div className="dashboard-columns">

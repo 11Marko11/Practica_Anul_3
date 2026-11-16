@@ -64,6 +64,14 @@ const STATUSES = ['all', 'pending', 'hostRequests', 'active', 'deleted'] as cons
 type Role = (typeof ROLES)[number]
 type Status = (typeof STATUSES)[number]
 const PAGE_SIZE = 20
+const SORTS = ['newest', 'name', 'rating'] as const
+type Sort = (typeof SORTS)[number]
+// Hosts by the average rating of their cars (more reviews first on a tie); people without one last.
+const COMPARE: Record<Sort, (a: Entry, b: Entry) => number> = {
+  newest: (a, b) => b.createdAt.localeCompare(a.createdAt),
+  name: (a, b) => a.name.localeCompare(b.name),
+  rating: (a, b) => (b.host?.rating ?? -1) - (a.host?.rating ?? -1) || (b.host?.reviews ?? 0) - (a.host?.reviews ?? 0) || a.name.localeCompare(b.name),
+}
 
 const roleMatches = (r: Role, e: Entry) => r === 'all' || (r === 'host') === !!e.host
 const statusMatches = (s: Status, e: Entry) => {
@@ -133,6 +141,7 @@ function UserList() {
   const role: Role = ROLES.includes(params.get('role') as Role) ? (params.get('role') as Role) : 'all'
   const status: Status = STATUSES.includes(params.get('status') as Status) ? (params.get('status') as Status) : 'all'
   const query = params.get('q') ?? ''
+  const sort: Sort = SORTS.includes(params.get('sort') as Sort) ? (params.get('sort') as Sort) : 'newest'
   const set = (key: string, value: string) => edit(p => { if (value && value !== 'all') p.set(key, value); else p.delete(key); p.delete('page') })
 
   useEffect(() => {
@@ -153,7 +162,7 @@ function UserList() {
 
   const q = query.trim().toLowerCase()
   const searched = entries.filter(e => !q || `${e.name} ${e.email} ${e.phone} ${e.host?.name ?? ''}`.toLowerCase().includes(q))
-  const list = searched.filter(e => roleMatches(role, e) && statusMatches(status, e))
+  const list = searched.filter(e => roleMatches(role, e) && statusMatches(status, e)).sort(COMPARE[sort])
   const pages = Math.ceil(list.length / PAGE_SIZE)
   const page = pageFrom(params, pages)
   const shown = list.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
@@ -184,14 +193,22 @@ function UserList() {
           </div>
         )}
 
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
         <input
           type="search"
           value={query}
           onChange={e => set('q', e.target.value)}
           placeholder={u.search}
           aria-label={u.search}
-          style={{ width: '100%', boxSizing: 'border-box', fontSize: 15, padding: '10px 16px', borderRadius: 980, border: '1px solid #d2d2d7', fontFamily: 'inherit', outline: 'none' }}
+          style={{ flex: '1 1 260px', minWidth: 0, boxSizing: 'border-box', fontSize: 15, padding: '10px 16px', borderRadius: 980, border: '1px solid #d2d2d7', fontFamily: 'inherit', outline: 'none' }}
         />
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#6e6e73' }}>
+          {u.sortBy}
+          <select value={sort} onChange={e => set('sort', e.target.value === 'newest' ? '' : e.target.value)} style={{ ...control }}>
+            {SORTS.map(o => <option key={o} value={o}>{u.sorts[o]}</option>)}
+          </select>
+        </label>
+        </div>
         <div className="user-filters">
           <div className="user-filter-group" role="group" aria-label={u.roleLabel}>
             <span className="user-filter-label">{u.roleLabel}</span>
@@ -241,13 +258,19 @@ function UserList() {
                   </div>
                   <div style={{ fontSize: 12, color: '#86868b', marginTop: 2 }}>
                     {e.host
-                      ? `${e.host.rating !== null ? `★ ${e.host.rating.toFixed(1)}` : t.adminHosts.noRatings} · ${t.common.trips(e.host.trips)} · ${t.adminHosts.cars(e.host.cars.filter(car => car.status !== 'REMOVED').length)} · ${t.commission.label}: ${e.host.commissionRate}%`
+                      ? `${t.common.trips(e.host.trips)} · ${t.adminHosts.cars(e.host.cars.filter(car => car.status !== 'REMOVED').length)} · ${t.commission.label}: ${e.host.commissionRate}%`
                       : x && (x.active ? c.since(formatDate(x.createdAt.slice(0, 10), lang)) : c.deletedOn(formatDate(x.deletedAt!.slice(0, 10), lang)))}
                     {x?.lastBookingAt && ` · ${c.lastBooking(formatDate(x.lastBookingAt.slice(0, 10), lang))}`}
                   </div>
                 </div>
                 <div className="user-row-side">
-                  {x && (
+                  {e.host ? (
+                    // For hosts: the average rating of their cars.
+                    <div style={{ fontSize: 12, color: '#6e6e73', textAlign: 'right' }}>
+                      <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f' }}>{e.host.rating !== null ? `★ ${e.host.rating.toFixed(1)}` : '—'}</div>
+                      {u.carsRating} · {c.reviewsCount(e.host.reviews)}
+                    </div>
+                  ) : x && (
                     <div style={{ fontSize: 13, color: '#6e6e73', textAlign: 'right' }}>
                       <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f' }}><Money value={x.spent} /></div>
                       {c.bookings(x.bookings)} · {c.reviewsCount(x.reviews)}

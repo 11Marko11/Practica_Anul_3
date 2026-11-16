@@ -440,6 +440,9 @@ export const en = {
     notFound: 'Customer not found',
   },
   users: {
+    sortBy: 'Sort by',
+    sorts: { newest: 'Newest', name: 'Name', rating: 'Cars’ rating (hosts)' },
+    carsRating: 'cars’ rating',
     tab: 'Users',
     title: 'Users',
     search: 'Search by name, email or phone',

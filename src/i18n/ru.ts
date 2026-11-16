@@ -440,6 +440,9 @@ export const ru: Dict = {
     notFound: 'Клиент не найден',
   },
   users: {
+    sortBy: 'Сортировка',
+    sorts: { newest: 'Сначала новые', name: 'Имя', rating: 'Рейтинг автомобилей (владельцы)' },
+    carsRating: 'рейтинг автомобилей',
     tab: 'Пользователи',
     title: 'Пользователи',
     search: 'Поиск по имени, email или телефону',

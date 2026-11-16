@@ -440,6 +440,9 @@ export const ro: Dict = {
     notFound: 'Clientul nu a fost găsit',
   },
   users: {
+    sortBy: 'Sortează',
+    sorts: { newest: 'Cei mai noi', name: 'Nume', rating: 'Rating mașini (gazde)' },
+    carsRating: 'rating mașini',
     tab: 'Utilizatori',
     title: 'Utilizatori',
     search: 'Caută după nume, email sau telefon',
