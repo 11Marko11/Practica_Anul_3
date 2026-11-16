@@ -8,10 +8,53 @@ import { SimilarCars } from '../components/SimilarCars'
 import { useCars } from '../lib/carStore'
 import { recommendCars, useUnavailableCars } from '../lib/carFilters'
 import { useRentalDates } from '../lib/useRentalDates'
+import { useUrlParams } from '../lib/useUrlParams'
+import { formatDate } from '../lib/rental'
+import { Money } from '../components/Money'
+import { pageFrom, Pagination } from '../components/Pagination'
+
+const GROUPS = ['all', 'active', 'upcoming', 'waiting', 'completed', 'cancelled'] as const
+const PERIODS = ['all', 'month', 'last3', 'year', 'custom'] as const
+const SORTS = ['newest', 'oldest', 'priceDesc', 'priceAsc'] as const
+type Group = (typeof GROUPS)[number]
+type Period = (typeof PERIODS)[number]
+type Sort = (typeof SORTS)[number]
+const PAGE_SIZE = 10
+
+// Today in Moldova, "YYYY-MM-DD", like the dates of a booking.
+const today = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Chisinau' })
+const daysUntil = (date: string) => Math.round((Date.parse(date) - Date.parse(today())) / 86_400_000)
+
+function groupOf(b: Booking): Exclude<Group, 'all'> {
+  if (b.status === 'COMPLETED') return 'completed'
+  if (b.status === 'CANCELLED' || b.status === 'REJECTED' || b.status === 'EXPIRED') return 'cancelled'
+  if (b.status === 'CONFIRMED') return b.pickupDate <= today() ? 'active' : 'upcoming'
+  return 'waiting' // waiting for the payment or for our confirmation
+}
+
+// The first and last day of a preset period; null means no limit.
+function periodRange(period: Period, from: string, to: string): [string | null, string | null] {
+  const now = today()
+  const [y, m] = now.split('-').map(Number)
+  const iso = (year: number, month: number, day: number) => new Date(Date.UTC(year, month - 1, day)).toISOString().slice(0, 10)
+  if (period === 'month') return [iso(y, m, 1), iso(y, m + 1, 0)]
+  if (period === 'last3') return [iso(y, m - 2, 1), iso(y, m + 1, 0)]
+  if (period === 'year') return [`${y}-01-01`, `${y}-12-31`]
+  if (period === 'custom') return [from || null, to || null]
+  return [null, null]
+}
+
+const COMPARE: Record<Sort, (a: Booking, b: Booking) => number> = {
+  newest: (a, b) => b.pickupDate.localeCompare(a.pickupDate) || b.createdAt.localeCompare(a.createdAt),
+  oldest: (a, b) => a.pickupDate.localeCompare(b.pickupDate) || a.createdAt.localeCompare(b.createdAt),
+  priceDesc: (a, b) => b.total - a.total,
+  priceAsc: (a, b) => a.total - b.total,
+}
 
 export function MyBookings() {
   const { user, loading } = useAuth()
-  const { t } = useI18n()
+  const { lang, t } = useI18n()
+  const mb = t.myBookings
   const location = useLocation()
   const [bookings, setBookings] = useState<Booking[] | null>(null)
   const [failed, setFailed] = useState(false)
@@ -28,6 +71,34 @@ export function MyBookings() {
   // Recommendations wait for both the bookings and today's availability, so a booked car never flashes in.
   const history = (bookings ?? []).map(b => cars.find(c => c.slug === b.car.slug)).filter(c => !!c)
   const recommended = bookings && unavailable ? recommendCars(cars.filter(c => !unavailable.includes(c.id)), history) : []
+
+  // Filters live in the URL, so Back from a booking keeps them.
+  const { params, edit } = useUrlParams()
+  const pick = <T extends string>(key: string, list: readonly T[], fallback: T) => (list.includes(params.get(key) as T) ? (params.get(key) as T) : fallback)
+  const group = pick('show', GROUPS, 'all')
+  const period = pick('period', PERIODS, 'all')
+  const sort = pick('sort', SORTS, 'newest')
+  const from = params.get('from') ?? ''
+  const to = params.get('to') ?? ''
+  const search = params.get('q') ?? ''
+  const set = (key: string, value: string, fallback = '') => edit(p => { if (value && value !== fallback) p.set(key, value); else p.delete(key); p.delete('page') })
+
+  const all = bookings ?? []
+  const [start, end] = periodRange(period, from, to)
+  const q = search.trim().toLowerCase()
+  // A booking is in the period when its days overlap it.
+  const filtered = all.filter(b => (!start || b.returnDate >= start) && (!end || b.pickupDate <= end) && (!q || `${b.car.brand} ${b.car.model}`.toLowerCase().includes(q)))
+  const list = filtered.filter(b => group === 'all' || groupOf(b) === group).sort(COMPARE[sort])
+  const count = (g: Group) => filtered.filter(b => g === 'all' || groupOf(b) === g).length
+  const pages = Math.ceil(list.length / PAGE_SIZE)
+  const page = pageFrom(params, pages)
+  const shown = list.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  function goToPage(n: number) {
+    edit(p => (n > 1 ? p.set('page', String(n)) : p.delete('page')), { push: true })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+  const filtering = group !== 'all' || period !== 'all' || !!q
+  const spent = all.filter(b => b.status === 'CONFIRMED' || b.status === 'COMPLETED').reduce((s, b) => s + b.total - b.refundedAmount, 0)
 
   if (loading) return <div style={{ minHeight: '80vh' }} />
   if (!user) return <Navigate to="/login" state={{ from: location.pathname }} replace />
@@ -51,13 +122,71 @@ export function MyBookings() {
             </Link>
           </div>
         )}
-        {bookings?.map(b => (
-          <BookingCard key={b.id} booking={b} to={`/bookings/${b.id}`}>
-            <Link to={`/bookings/${b.id}`} style={{ display: 'inline-block', marginTop: 10, fontSize: 14, color: '#0071e3', textDecoration: 'none' }}>
-              {b.status === 'PENDING_PAYMENT' ? t.bookings.pay : t.admin.view} →
-            </Link>
-          </BookingCard>
-        ))}
+        {bookings && bookings.length > 0 && (
+          <>
+            <div className="dashboard-tiles">
+              <Tile label={mb.summary.total} value={String(all.length)} />
+              <Tile label={mb.summary.active} value={String(all.filter(b => groupOf(b) === 'active').length)} />
+              <Tile label={mb.summary.upcoming} value={String(all.filter(b => groupOf(b) === 'upcoming').length)} />
+              <Tile label={mb.summary.spent} value={<Money value={spent} />} />
+            </div>
+
+            <div className="admin-car-toolbar" style={{ marginTop: 10 }}>
+              <input type="search" value={search} onChange={e => set('q', e.target.value)} placeholder={mb.search} aria-label={mb.search} style={{ ...control, flex: '1 1 200px' }} />
+              <label style={labelStyle}>
+                {mb.period}
+                <select value={period} onChange={e => set('period', e.target.value, 'all')} style={control}>
+                  {PERIODS.map(o => <option key={o} value={o}>{mb.periods[o]}</option>)}
+                </select>
+              </label>
+              <label style={labelStyle}>
+                {mb.sortBy}
+                <select value={sort} onChange={e => set('sort', e.target.value, 'newest')} style={control}>
+                  {SORTS.map(o => <option key={o} value={o}>{mb.sorts[o]}</option>)}
+                </select>
+              </label>
+            </div>
+            {period === 'custom' && (
+              <div className="admin-car-toolbar">
+                <label style={labelStyle}>{mb.from}<input type="date" value={from} max={to || undefined} onChange={e => set('from', e.target.value)} style={control} /></label>
+                <label style={labelStyle}>{mb.to}<input type="date" value={to} min={from || undefined} onChange={e => set('to', e.target.value)} style={control} /></label>
+              </div>
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+              {GROUPS.map(g => (
+                <button
+                  key={g}
+                  onClick={() => set('show', g, 'all')}
+                  aria-pressed={group === g}
+                  style={{ fontSize: 13, padding: '7px 14px', borderRadius: 980, border: '1px solid', borderColor: group === g ? '#1d1d1f' : '#d2d2d7', background: group === g ? '#1d1d1f' : 'transparent', color: group === g ? '#fff' : '#6e6e73', cursor: 'pointer' }}
+                >
+                  {mb.groups[g]} ({count(g)})
+                </button>
+              ))}
+              {filtering && (
+                <button onClick={() => edit(p => { ['show', 'period', 'from', 'to', 'q', 'page'].forEach(k => p.delete(k)) })} style={{ fontSize: 13, color: '#0071e3', background: 'none', border: 'none', cursor: 'pointer', marginLeft: 6 }}>
+                  {mb.reset}
+                </button>
+              )}
+            </div>
+            {list.length === 0 && <p style={{ fontSize: 15, color: '#6e6e73', padding: '24px 0' }}>{mb.noMatch}</p>}
+          </>
+        )}
+
+        {shown.map(b => {
+          const g = groupOf(b)
+          const startsIn = daysUntil(b.pickupDate)
+          return (
+            <BookingCard key={b.id} booking={b} to={`/bookings/${b.id}`}>
+              {g === 'active' && <div style={{ fontSize: 13, fontWeight: 500, color: '#b25000', marginTop: 6 }}>{mb.inProgress(formatDate(b.returnDate, lang))}</div>}
+              {g === 'upcoming' && <div style={{ fontSize: 13, fontWeight: 500, color: '#1b7a35', marginTop: 6 }}>{startsIn <= 0 ? mb.startsToday : mb.startsIn(startsIn)}</div>}
+              <Link to={`/bookings/${b.id}`} style={{ display: 'inline-block', marginTop: 10, fontSize: 14, color: '#0071e3', textDecoration: 'none' }}>
+                {b.status === 'PENDING_PAYMENT' ? t.bookings.pay : t.admin.view} →
+              </Link>
+            </BookingCard>
+          )
+        })}
+        <Pagination page={page} pages={pages} total={list.length} pageSize={PAGE_SIZE} onChange={goToPage} />
         {recommended.length > 0 && (
           <SimilarCars
             cars={recommended}
@@ -70,3 +199,15 @@ export function MyBookings() {
     </div>
   )
 }
+
+function Tile({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div style={{ padding: '14px 16px', borderRadius: 16, background: '#f5f5f7', minWidth: 0, containerType: 'inline-size' }}>
+      <div style={{ fontSize: 13, color: '#6e6e73' }}>{label}</div>
+      <div className="tile-value" style={{ fontWeight: 600, letterSpacing: '-0.03em', color: '#1d1d1f', marginTop: 4, whiteSpace: 'nowrap' }}>{value}</div>
+    </div>
+  )
+}
+
+const control: React.CSSProperties = { fontSize: 14, padding: '9px 14px', borderRadius: 980, border: '1px solid #d2d2d7', background: '#fff', color: '#1d1d1f', fontFamily: 'inherit', outline: 'none' }
+const labelStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#6e6e73' }
