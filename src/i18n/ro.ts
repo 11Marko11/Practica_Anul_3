@@ -563,8 +563,8 @@ export const ro: Dict = {
     },
   },
   myBookings: {
-    summary: { total: 'Rezervări', active: 'În desfășurare', upcoming: 'Viitoare', spent: 'Plătit în total' },
-    groups: { all: 'Toate', active: 'În desfășurare', upcoming: 'Viitoare', waiting: 'În așteptare', completed: 'Încheiate', cancelled: 'Anulate' },
+    summary: { total: 'Rezervări', active: 'În desfășurare', spent: 'Plătit în total' },
+    groups: { all: 'Toate', active: 'În desfășurare', waiting: 'În așteptare', completed: 'Încheiate', cancelled: 'Anulate' },
     search: 'Caută după mașină',
     period: 'Perioada',
     periods: { all: 'Oricând', month: 'Luna aceasta', last3: 'Ultimele 3 luni', year: 'Anul acesta', custom: 'Alege datele' },
@@ -575,7 +575,6 @@ export const ro: Dict = {
     noMatch: 'Nicio rezervare nu corespunde filtrelor.',
     reset: 'Resetează filtrele',
     inProgress: (date: string) => `În desfășurare · returnare pe ${date}`,
-    startsToday: 'Începe azi',
     startsIn: (n: number) => `Începe peste ${countOf('ro', n, { one: 'zi', few: 'zile', other: 'de zile' })}`,
     found: (n: number) => countOf('ro', n, { one: 'rezervare', few: 'rezervări', other: 'de rezervări' }),
   },

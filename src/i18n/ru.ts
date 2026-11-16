@@ -563,8 +563,8 @@ export const ru: Dict = {
     },
   },
   myBookings: {
-    summary: { total: 'Бронирования', active: 'Идут сейчас', upcoming: 'Предстоящие', spent: 'Оплачено всего' },
-    groups: { all: 'Все', active: 'Идут сейчас', upcoming: 'Предстоящие', waiting: 'В ожидании', completed: 'Завершённые', cancelled: 'Отменённые' },
+    summary: { total: 'Бронирования', active: 'Идут сейчас', spent: 'Оплачено всего' },
+    groups: { all: 'Все', active: 'Идут сейчас', waiting: 'В ожидании', completed: 'Завершённые', cancelled: 'Отменённые' },
     search: 'Поиск по автомобилю',
     period: 'Период',
     periods: { all: 'За всё время', month: 'Этот месяц', last3: 'Последние 3 месяца', year: 'Этот год', custom: 'Выбрать даты' },
@@ -575,7 +575,6 @@ export const ru: Dict = {
     noMatch: 'Нет бронирований по этим фильтрам.',
     reset: 'Сбросить фильтры',
     inProgress: (date: string) => `Идёт сейчас · возврат ${date}`,
-    startsToday: 'Начинается сегодня',
     startsIn: (n: number) => `Начнётся через ${countOf('ru', n, { one: 'день', few: 'дня', many: 'дней', other: 'дня' })}`,
     found: (n: number) => countOf('ru', n, { one: 'бронирование', few: 'бронирования', many: 'бронирований', other: 'бронирования' }),
   },

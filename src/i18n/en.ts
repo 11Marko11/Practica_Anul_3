@@ -563,8 +563,8 @@ export const en = {
     },
   },
   myBookings: {
-    summary: { total: 'Bookings', active: 'In progress', upcoming: 'Upcoming', spent: 'Paid in total' },
-    groups: { all: 'All', active: 'In progress', upcoming: 'Upcoming', waiting: 'Waiting', completed: 'Completed', cancelled: 'Cancelled' },
+    summary: { total: 'Bookings', active: 'In progress', spent: 'Paid in total' },
+    groups: { all: 'All', active: 'In progress', waiting: 'Waiting', completed: 'Completed', cancelled: 'Cancelled' },
     search: 'Search by car',
     period: 'Period',
     periods: { all: 'Any time', month: 'This month', last3: 'Last 3 months', year: 'This year', custom: 'Choose dates' },
@@ -575,7 +575,6 @@ export const en = {
     noMatch: 'No bookings match the filters.',
     reset: 'Reset filters',
     inProgress: (date: string) => `In progress · return on ${date}`,
-    startsToday: 'Starts today',
     startsIn: (n: number) => `Starts in ${countOf('en', n, { one: 'day', other: 'days' })}`,
     found: (n: number) => countOf('en', n, { one: 'booking', other: 'bookings' }),
   },

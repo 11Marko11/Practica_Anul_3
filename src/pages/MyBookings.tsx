@@ -15,7 +15,7 @@ import { formatDate } from '../lib/rental'
 import { Money } from '../components/Money'
 import { pageFrom, Pagination } from '../components/Pagination'
 
-const GROUPS = ['all', 'active', 'upcoming', 'waiting', 'completed', 'cancelled'] as const
+const GROUPS = ['all', 'active', 'waiting', 'completed', 'cancelled'] as const
 const PERIODS = ['all', 'month', 'last3', 'year', 'custom'] as const
 const SORTS = ['newest', 'oldest', 'priceDesc', 'priceAsc'] as const
 type Group = (typeof GROUPS)[number]
@@ -30,7 +30,8 @@ const daysUntil = (date: string) => Math.round((Date.parse(date) - Date.parse(to
 function groupOf(b: Booking): Exclude<Group, 'all'> {
   if (b.status === 'COMPLETED') return 'completed'
   if (b.status === 'CANCELLED' || b.status === 'REJECTED' || b.status === 'EXPIRED') return 'cancelled'
-  if (b.status === 'CONFIRMED') return b.pickupDate <= today() ? 'active' : 'upcoming'
+  // Confirmed bookings count as in progress, also before the pick-up day (the card says when it starts).
+  if (b.status === 'CONFIRMED') return 'active'
   return 'waiting' // waiting for the payment or for our confirmation
 }
 
@@ -132,7 +133,6 @@ export function MyBookings() {
             <div className="dashboard-tiles">
               <Tile label={mb.summary.total} value={String(all.length)} />
               <Tile label={mb.summary.active} value={String(all.filter(b => groupOf(b) === 'active').length)} />
-              <Tile label={mb.summary.upcoming} value={String(all.filter(b => groupOf(b) === 'upcoming').length)} />
               <Tile label={mb.summary.spent} value={<Money value={spent} />} />
             </div>
 
@@ -181,8 +181,8 @@ export function MyBookings() {
           const startsIn = daysUntil(b.pickupDate)
           return (
             <BookingCard key={b.id} booking={b} to={`/bookings/${b.id}`}>
-              {g === 'active' && <div style={{ fontSize: 13, fontWeight: 500, color: '#b25000', marginTop: 6 }}>{mb.inProgress(formatDate(b.returnDate, lang))}</div>}
-              {g === 'upcoming' && <div style={{ fontSize: 13, fontWeight: 500, color: '#1b7a35', marginTop: 6 }}>{startsIn <= 0 ? mb.startsToday : mb.startsIn(startsIn)}</div>}
+              {g === 'active' && startsIn <= 0 && <div style={{ fontSize: 13, fontWeight: 500, color: '#b25000', marginTop: 6 }}>{mb.inProgress(formatDate(b.returnDate, lang))}</div>}
+              {g === 'active' && startsIn > 0 && <div style={{ fontSize: 13, fontWeight: 500, color: '#1b7a35', marginTop: 6 }}>{mb.startsIn(startsIn)}</div>}
               <div style={{ marginTop: 12 }}>
                 <Link to={`/bookings/${b.id}`} className="btn-action btn-action--primary" style={{ gap: 6 }}>
                   {b.status === 'PENDING_PAYMENT' ? t.bookings.pay : t.admin.view}
