@@ -338,13 +338,22 @@ function HostTabs({ tab, onTab, awaiting }: { tab: Tab; onTab: (tab: Tab) => voi
   const bar = useRef<HTMLElement>(null)
   // On narrow screens the bar scrolls sideways: bring the current section into view.
   useEffect(() => {
-    const active = bar.current?.querySelector<HTMLElement>('[aria-pressed="true"]')
-    if (bar.current && active) bar.current.scrollLeft = active.offsetLeft - (bar.current.clientWidth - active.offsetWidth) / 2
+    const center = () => {
+      const active = bar.current?.querySelector<HTMLElement>('[aria-pressed="true"]')
+      if (bar.current && active) bar.current.scrollLeft = active.offsetLeft - (bar.current.clientWidth - active.offsetWidth) / 2
+    }
+    center()
+    // Again whenever the tabs change width (the web font arriving, a red counter appearing).
+    const inner = bar.current?.firstElementChild
+    if (!inner) return
+    const watch = new ResizeObserver(center)
+    watch.observe(inner)
+    return () => watch.disconnect()
   }, [tab])
   return (
     <>
       <nav ref={bar} className="host-tabs">
-        <div className="admin-tabs-inner" style={{ padding: '0 0 24px' }}>
+        <div className="admin-tabs-inner" style={{ padding: '0 24px 24px' }}>
           {TABS.map(x => (
             <button
               key={x}

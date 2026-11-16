@@ -287,12 +287,8 @@ select:not([multiple]):not([size]) {
 /* Bigger call-to-action button ("See all cars" on the home page). */
 .btn-cta { height: 44px; padding: 0 22px; font-size: 15px; gap: 8px; }
 
-/* Admin sections: a bar fixed under the site menu, centred; on narrow screens it scrolls sideways. */
-.admin-tabs { position: fixed; top: 52px; left: 0; right: 0; z-index: 90; background: rgba(28, 28, 30, 0.92); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid #2c2c2e; overflow-x: auto; scrollbar-width: none; transition: transform 0.3s ease; }
-.admin-tabs::-webkit-scrollbar { display: none; }
 .admin-tabs-inner { display: flex; gap: 4px; width: max-content; margin: 0 auto; padding: 12px 16px; }
 .admin-tabs-inner a { white-space: nowrap; }
-.admin-tabs-space { height: 36px; margin-bottom: 20px; }
 
 /* Dashboard quick actions: rounded buttons with an arrow at the end. */
 .quick-link { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 14px; font-weight: 500; padding: 12px 20px; border-radius: 980px; text-decoration: none; background: #f5f5f7; color: #1d1d1f; border: 1px solid #e5e5ea; transition: background 0.15s ease; }
@@ -310,6 +306,6 @@ select:not([multiple]):not([size]) {
 .income-table .num { text-align: right; }
 .income-table tfoot td { font-weight: 600; background: #fafafa; }
 
-/* Host panel sections: centred at the top of the page header (not fixed); scroll sideways on phones. */
-.host-tabs { position: relative; overflow-x: auto; scrollbar-width: none; margin: 0 -24px; padding: 0 24px; }
+/* Admin and host panel sections: centred at the top of the page header (not fixed); scroll sideways on phones. */
+.host-tabs { position: relative; overflow-x: auto; scrollbar-width: none; margin: 0 -24px; }
 .host-tabs::-webkit-scrollbar { display: none; }
