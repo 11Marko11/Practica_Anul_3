@@ -1,3 +1,4 @@
+import { ArrowIcon } from '../../components/ArrowIcon'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useAuth } from '../../auth/AuthContext'
@@ -114,8 +115,8 @@ function DashboardContent() {
                     <RowText>{u.email}</RowText>
                     {u.verificationSubmittedAt && <RowText color="#9a5b00">{t.verificationAdmin.submitted(time(u.verificationSubmittedAt))}</RowText>}
                   </div>
-                  <Link to={`/admin/users/${u.id}`} style={{ fontSize: 13, fontWeight: 500, padding: '8px 14px', borderRadius: 980, background: '#1d1d1f', color: '#fff', textDecoration: 'none' }}>
-                    {t.verificationAdmin.section} →
+                  <Link to={`/admin/users/${u.id}`} className="btn-action btn-action--primary" style={{ gap: 6 }}>
+                    {t.verificationAdmin.section} <ArrowIcon />
                   </Link>
                 </Row>
               ))}
@@ -126,8 +127,8 @@ function DashboardContent() {
                     <RowText>{c.host}</RowText>
                     {c.reviewSubmittedAt && <RowText color="#9a5b00">{t.carPapers.admin.waiting} · {time(c.reviewSubmittedAt)}</RowText>}
                   </div>
-                  <Link to="/admin/cars?status=REVIEW" style={{ fontSize: 13, fontWeight: 500, padding: '8px 14px', borderRadius: 980, background: '#1d1d1f', color: '#fff', textDecoration: 'none' }}>
-                    {t.carPapers.admin.review} →
+                  <Link to="/admin/cars?status=REVIEW" className="btn-action btn-action--primary" style={{ gap: 6 }}>
+                    {t.carPapers.admin.review} <ArrowIcon />
                   </Link>
                 </Row>
               ))}
@@ -138,8 +139,8 @@ function DashboardContent() {
                     <RowText>{u.email}</RowText>
                     {u.hostApplicationSubmittedAt && <RowText color="#9a5b00">{t.hostApply.admin.badge} · {time(u.hostApplicationSubmittedAt)}</RowText>}
                   </div>
-                  <Link to={`/admin/users/${u.id}`} style={{ fontSize: 13, fontWeight: 500, padding: '8px 14px', borderRadius: 980, background: '#1d1d1f', color: '#fff', textDecoration: 'none' }}>
-                    {t.hostApply.admin.open} →
+                  <Link to={`/admin/users/${u.id}`} className="btn-action btn-action--primary" style={{ gap: 6 }}>
+                    {t.hostApply.admin.open} <ArrowIcon />
                   </Link>
                 </Row>
               ))}
@@ -222,9 +223,13 @@ function Panel({ title, link, children }: { title: string; link?: string; childr
   const { t } = useI18n()
   return (
     <section>
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 10 }}>
         <h2 style={{ fontSize: 19, fontWeight: 600, letterSpacing: '-0.02em', color: '#1d1d1f', margin: 0 }}>{title}</h2>
-        {link && <Link to={link} style={{ ...linkStyle, fontSize: 14 }}>{t.dashboard.seeAll}</Link>}
+        {link && (
+          <Link to={link} className="btn-action btn-action--neutral" style={{ gap: 6 }}>
+            {t.dashboard.seeAll} <ArrowIcon />
+          </Link>
+        )}
       </div>
       <div style={{ borderTop: '1px solid #f0f0f0' }}>{children}</div>
     </section>
@@ -266,9 +271,10 @@ function QuickLink({ to, primary, external, children }: { to: string; primary?: 
     <Link
       to={to}
       target={external ? '_blank' : undefined}
-      style={{ display: 'block', fontSize: 14, fontWeight: 500, padding: '12px 16px', borderRadius: 12, textDecoration: 'none', background: primary ? '#1d1d1f' : '#f5f5f7', color: primary ? '#fff' : '#1d1d1f' }}
+      className={`quick-link${primary ? ' quick-link--primary' : ''}`}
     >
       {children}
+      <ArrowIcon external={external} size={13} />
     </Link>
   )
 }

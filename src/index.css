@@ -291,3 +291,9 @@ select:not([multiple]):not([size]) {
 .admin-tabs-inner { display: flex; gap: 4px; width: max-content; margin: 0 auto; padding: 12px 16px; }
 .admin-tabs-inner a { white-space: nowrap; }
 .admin-tabs-space { height: 36px; margin-bottom: 20px; }
+
+/* Dashboard quick actions: rounded buttons with an arrow at the end. */
+.quick-link { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 14px; font-weight: 500; padding: 12px 20px; border-radius: 980px; text-decoration: none; background: #f5f5f7; color: #1d1d1f; border: 1px solid #e5e5ea; transition: background 0.15s ease; }
+.quick-link:hover { background: #ebebef; }
+.quick-link--primary { background: #1d1d1f; color: #fff; border-color: #1d1d1f; }
+.quick-link--primary:hover { background: #3a3a3c; }
