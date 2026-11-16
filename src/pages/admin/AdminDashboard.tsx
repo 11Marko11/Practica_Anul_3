@@ -1,15 +1,12 @@
-import { ArrowIcon } from '../../components/ArrowIcon'
 import { useEffect, useState, type ReactNode } from 'react'
 import { same, useLivePoll } from '../../lib/livePoll'
 import { Link } from 'react-router'
 import { useAuth } from '../../auth/AuthContext'
-import { StatusBadge } from '../../components/BookingCard'
 import { Money } from '../../components/Money'
 import { useI18n } from '../../i18n/I18nContext'
 import { api } from '../../lib/api'
 import { useAwaitingCount } from '../../lib/adminNotifications'
 import type { Booking } from '../../lib/bookings'
-import { fmt, formatDate } from '../../lib/rental'
 import { AdminGuard } from './AdminGuard'
 import { AdminTabs } from './AdminTabs'
 
@@ -39,7 +36,7 @@ export function AdminDashboard() {
 
 function DashboardContent() {
   const { user } = useAuth()
-  const { lang, t } = useI18n()
+  const { t } = useI18n()
   const [data, setData] = useState<Dashboard | null>(null)
   const [failed, setFailed] = useState(false)
   // Reload when a new paid booking arrives (the notification count changes).
@@ -61,9 +58,7 @@ function DashboardContent() {
     api<Dashboard>('/admin/dashboard').then(next => setData(prev => (same(prev, next) ? prev : next))).catch(() => {})
   }, 30_000)
 
-
   const d = t.dashboard
-  const time = (iso: string) => new Date(iso).toLocaleString(lang, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })
 
   return (
     <div style={{ paddingTop: 52 }}>
@@ -85,86 +80,6 @@ function DashboardContent() {
           <Tile to="/admin/users" label={d.tiles.users} value={data ? String(data.users?.total ?? data.customers ?? 0) : '—'} sub={data?.users ? d.tiles.usersSub(data.users.customers, data.users.hosts) : undefined} />
         </div>
 
-        <div className="dashboard-columns">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 28, minWidth: 0 }}>
-            <Panel title={d.attention}>
-              {data?.verifications.length === 0 && !data.hostApplications?.length && !data.carReviews?.length && <Empty>✓ {d.allClear}</Empty>}
-              {data?.verifications.map(u => (
-                <Row key={u.id}>
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <RowTitle>{u.name}</RowTitle>
-                    <RowText>{u.email}</RowText>
-                    {u.verificationSubmittedAt && <RowText color="#9a5b00">{t.verificationAdmin.submitted(time(u.verificationSubmittedAt))}</RowText>}
-                  </div>
-                  <Link to={`/admin/users/${u.id}`} className="btn-action btn-action--primary" style={{ gap: 6 }}>
-                    {t.verificationAdmin.section} <ArrowIcon />
-                  </Link>
-                </Row>
-              ))}
-              {data?.carReviews?.map(c => (
-                <Row key={`car-${c.id}`}>
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <RowTitle>{c.brand} {c.model} · {c.year}</RowTitle>
-                    <RowText>{c.host}</RowText>
-                    {c.reviewSubmittedAt && <RowText color="#9a5b00">{t.carPapers.admin.waiting} · {time(c.reviewSubmittedAt)}</RowText>}
-                  </div>
-                  <Link to="/admin/cars?status=REVIEW" className="btn-action btn-action--primary" style={{ gap: 6 }}>
-                    {t.carPapers.admin.review} <ArrowIcon />
-                  </Link>
-                </Row>
-              ))}
-              {data?.hostApplications?.map(u => (
-                <Row key={`host-${u.id}`}>
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <RowTitle>{u.name}</RowTitle>
-                    <RowText>{u.email}</RowText>
-                    {u.hostApplicationSubmittedAt && <RowText color="#9a5b00">{t.hostApply.admin.badge} · {time(u.hostApplicationSubmittedAt)}</RowText>}
-                  </div>
-                  <Link to={`/admin/users/${u.id}`} className="btn-action btn-action--primary" style={{ gap: 6 }}>
-                    {t.hostApply.admin.open} <ArrowIcon />
-                  </Link>
-                </Row>
-              ))}
-            </Panel>
-
-            <Panel title={d.upcoming}>
-              {data?.upcoming.length === 0 && <Empty>{d.noUpcoming}</Empty>}
-              {data?.upcoming.map(b => (
-                <Row key={b.id}>
-                  <div style={{ width: 92, flexShrink: 0, fontSize: 14, fontWeight: 600, color: '#1d1d1f' }}>{formatDate(b.pickupDate, lang)}</div>
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <RowTitle>{b.car.brand} {b.car.model}</RowTitle>
-                    <RowText>{b.customer?.name} · <a href={`tel:${b.phone.replace(/[^+\d]/g, '')}`} style={linkStyle}>{b.phone}</a></RowText>
-                    <RowText>{b.handover === 'DELIVERY' ? `${d.delivery}: ${b.deliveryAddress}` : d.pickup}</RowText>
-                  </div>
-                </Row>
-              ))}
-            </Panel>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 28, minWidth: 0 }}>
-            <Panel title={d.quick}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <QuickLink to="/admin/users?role=host" primary>{t.adminHosts.title}</QuickLink>
-                <QuickLink to="/admin/pages">{d.editPages}</QuickLink>
-                <QuickLink to="/" external>{d.viewSite}</QuickLink>
-              </div>
-            </Panel>
-
-            <Panel title={d.recent}>
-              {data?.recent.length === 0 && <Empty>{d.noRecent}</Empty>}
-              {data?.recent.map(b => (
-                <Row key={b.id}>
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <RowTitle>{b.car.brand} {b.car.model}</RowTitle>
-                    <RowText>{b.customer?.name} · {fmt(b.total)}</RowText>
-                    <div style={{ marginTop: 4 }}><StatusBadge status={b.status} /></div>
-                  </div>
-                </Row>
-              ))}
-            </Panel>
-          </div>
-        </div>
       </main>
     </div>
   )
@@ -182,53 +97,4 @@ function Tile({ label, value, sub, to, highlight, wide }: { label: string; value
   const style: React.CSSProperties = { display: 'block', padding: '18px 20px', borderRadius: 18, background: highlight ? '#e6f0ff' : '#f5f5f7', textDecoration: 'none', minWidth: 0, containerType: 'inline-size' }
   const className = wide ? 'tile-wide' : undefined
   return to ? <Link to={to} className={className} style={style}>{body}</Link> : <div className={className} style={style}>{body}</div>
-}
-
-function Panel({ title, link, children }: { title: string; link?: string; children: ReactNode }) {
-  const { t } = useI18n()
-  return (
-    <section>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 10 }}>
-        <h2 style={{ fontSize: 19, fontWeight: 600, letterSpacing: '-0.02em', color: '#1d1d1f', margin: 0 }}>{title}</h2>
-        {link && (
-          <Link to={link} className="btn-action btn-action--neutral" style={{ gap: 6 }}>
-            {t.dashboard.seeAll} <ArrowIcon />
-          </Link>
-        )}
-      </div>
-      <div style={{ borderTop: '1px solid #f0f0f0' }}>{children}</div>
-    </section>
-  )
-}
-
-const linkStyle: React.CSSProperties = { color: '#0071e3', textDecoration: 'none' }
-
-function Row({ children }: { children: ReactNode }) {
-  return <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', padding: '14px 0', borderBottom: '1px solid #f0f0f0' }}>{children}</div>
-}
-
-function RowTitle({ children }: { children: ReactNode }) {
-  return <div style={{ fontSize: 15, fontWeight: 600, color: '#1d1d1f' }}>{children}</div>
-}
-
-function RowText({ children, color = '#6e6e73' }: { children: ReactNode; color?: string }) {
-  return <div style={{ fontSize: 13, color, marginTop: 2, overflowWrap: 'anywhere' }}>{children}</div>
-}
-
-function Empty({ children }: { children: ReactNode }) {
-  return <p style={{ fontSize: 14, color: '#6e6e73', margin: 0, padding: '16px 0' }}>{children}</p>
-}
-
-
-function QuickLink({ to, primary, external, children }: { to: string; primary?: boolean; external?: boolean; children: ReactNode }) {
-  return (
-    <Link
-      to={to}
-      target={external ? '_blank' : undefined}
-      className={`quick-link${primary ? ' quick-link--primary' : ''}`}
-    >
-      {children}
-      <ArrowIcon external={external} size={13} />
-    </Link>
-  )
 }
