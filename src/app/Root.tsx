@@ -63,7 +63,7 @@ export function Root() {
         transform: hidden && !menuOpen ? 'translateY(-100%)' : 'none',
         transition: 'transform 0.3s ease, background 0.3s ease, border-color 0.3s ease',
       }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', height: NAV_HEIGHT, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', height: NAV_HEIGHT, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
           <NavLink to="/" aria-label="Rent Motors" style={{ display: 'flex', alignItems: 'center', height: NAV_HEIGHT }}>
             <img src="/brand/logo-white.png" alt="Rent Motors" width={92} height={40} style={{ height: 40, width: 'auto', display: 'block' }} />
           </NavLink>

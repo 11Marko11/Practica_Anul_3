@@ -135,6 +135,8 @@ body {
 
 /* Layouts that change on phones. Inline styles can't use media queries, so they live here. */
 .nav-links, .nav-account { display: flex; }
+/* The page links sit exactly in the middle of the screen, in line with the admin and host bars below. */
+.nav-links { position: absolute; left: 50%; transform: translateX(-50%); }
 .nav-toggle { display: none; }
 
 .stats-grid {
