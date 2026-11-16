@@ -3,6 +3,7 @@ import { requireAdmin } from '../auth/guards.js'
 import { addDays, fromIsoDate, moldovaTime, todayInMoldova } from '../bookings/dates.js'
 import { bookingInclude, toBookingDto } from '../bookings/dto.js'
 import { ledger, netBetween } from '../bookings/ledger.js'
+import { hostMonths, moldovaMonth } from '../finance/hostIncome.js'
 import { LISTED } from '../cars/dto.js'
 import { prisma } from '../db.js'
 
@@ -22,8 +23,12 @@ export async function dashboardRoutes(app: FastifyInstance) {
         orderBy: { pickupDate: 'asc' },
       }),
       prisma.booking.findMany({ where: { status: { not: 'PENDING_PAYMENT' } }, include: bookingInclude, orderBy: { createdAt: 'desc' }, take: 6 }),
-      // Charged this month minus refunded this month, the same numbers as the Transactions page.
-      ledger().then(entries => netBetween(entries, monthStart)),
+      // This month: what the hosts' cars brought in, and Rent Motors' income (the commission).
+      ledger().then(async entries => {
+        const month = moldovaMonth(new Date())
+        const commission = (await hostMonths(entries)).filter(m => m.month === month).reduce((s, m) => s + m.commission, 0)
+        return { ...netBetween(entries, monthStart), commission }
+      }),
       prisma.car.count({ where: LISTED }),
       prisma.car.count({ where: { status: 'HIDDEN' } }),
       prisma.user.count({ where: { role: 'CUSTOMER', deletedAt: null } }),
@@ -46,7 +51,8 @@ export async function dashboardRoutes(app: FastifyInstance) {
     ])
 
     return {
-      revenueThisMonth: charged.net,
+      revenueThisMonth: charged.commission, // Rent Motors' income: the hosts' commission
+      hostsRevenueThisMonth: charged.net,
       bookingsThisMonth: charged.charges,
       cars: { active: activeCars, hidden: hiddenCars },
       customers,

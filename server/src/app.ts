@@ -25,7 +25,7 @@ import { photoRoutes } from './routes/photos.js'
 import { reviewRoutes } from './routes/reviews.js'
 import { statsRoutes } from './routes/stats.js'
 import { stripeWebhookRoutes } from './routes/stripeWebhook.js'
-import { transactionRoutes } from './routes/transactions.js'
+import { financeRoutes, transactionRoutes } from './routes/transactions.js'
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -75,6 +75,7 @@ export function buildApp() {
       await api.register(promotionRoutes)
       await api.register(dashboardRoutes)
       await api.register(transactionRoutes)
+      await api.register(financeRoutes)
       await api.register(accountRoutes)
       await api.register(adminPeopleRoutes)
       await api.register(profileRoutes)

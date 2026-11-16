@@ -7,6 +7,7 @@ import type { BookingStatus } from '../../lib/bookings'
 import { fmt } from '../../lib/rental'
 import { AdminGuard } from './AdminGuard'
 import { AdminTabs } from './AdminTabs'
+import { CompanyIncome } from './CompanyIncome'
 
 type EntryType = 'hold' | 'charge' | 'refund' | 'release'
 type Entry = {
@@ -77,7 +78,8 @@ function TransactionsContent() {
       </div>
 
       <main style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 24px 96px' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        <CompanyIncome />
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginTop: 16 }}>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, color: '#6e6e73' }}>
             {tr.month}
             <select value={month} onChange={e => setMonth(e.target.value)} style={{ fontSize: 14, padding: '9px 14px', borderRadius: 980, border: '1px solid #d2d2d7', background: '#fff', fontFamily: 'inherit' }}>
