@@ -143,13 +143,12 @@ function HostPanelContent() {
     .filter(b => !carId || String(b.car.id) === carId)
     .sort((a, b) => Number(b.status === 'AWAITING_CONFIRMATION') - Number(a.status === 'AWAITING_CONFIRMATION'))
   const reviews = (data?.reviews ?? []).filter(r => !carId || String(r.car.id) === carId)
-  const counts: Partial<Record<Tab, number>> = { cars: data?.cars.length ?? 0, bookings: data?.bookings.length ?? 0, reviews: data?.reviews.length ?? 0 }
 
   return (
     <div style={{ paddingTop: 52 }}>
       <div style={{ padding: '40px 24px 36px', background: '#1c1c1e' }}>
         <div style={{ maxWidth: 1000, margin: '0 auto' }}>
-          <HostTabs tab={tab} onTab={x => setParam('tab', x, 'cars')} counts={counts} awaiting={data?.host.awaiting ?? 0} />
+          <HostTabs tab={tab} onTab={x => setParam('tab', x, 'cars')} awaiting={data?.host.awaiting ?? 0} />
           <p style={{ fontSize: 13, color: '#a1a1a6', margin: '0 0 8px' }}>{h.eyebrow}</p>
           <h1 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#f5f5f7', margin: 0, lineHeight: 1.05 }}>{data?.host.name ?? '…'}</h1>
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
@@ -334,7 +333,7 @@ const list: React.CSSProperties = { listStyle: 'none', margin: 0, padding: 0 }
 const row: React.CSSProperties = { padding: '16px 0', borderBottom: '1px solid #f0f0f0' }
 
 // The host panel's sections, centred in a bar fixed under the site menu (like the admin's).
-function HostTabs({ tab, onTab, counts, awaiting }: { tab: Tab; onTab: (tab: Tab) => void; counts: Partial<Record<Tab, number>>; awaiting: number }) {
+function HostTabs({ tab, onTab, awaiting }: { tab: Tab; onTab: (tab: Tab) => void; awaiting: number }) {
   const { t } = useI18n()
   const h = t.hostPortal
   const { hidden } = useNavScroll()
@@ -356,7 +355,7 @@ function HostTabs({ tab, onTab, counts, awaiting }: { tab: Tab; onTab: (tab: Tab
               aria-pressed={tab === x}
               style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 500, padding: '8px 16px', borderRadius: 980, border: 'none', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', background: tab === x ? '#f5f5f7' : 'transparent', color: tab === x ? '#1c1c1e' : '#a1a1a6' }}
             >
-              {h.tabs[x]}{counts[x] !== undefined && ` (${counts[x]})`}
+              {h.tabs[x]}
               {x === 'bookings' && <CountBadge n={awaiting} />}
             </button>
           ))}
