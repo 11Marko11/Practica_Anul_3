@@ -8,6 +8,7 @@ import { useI18n } from '../../i18n/I18nContext'
 import { carText } from '../../i18n/cars'
 import { AdminGuard } from './AdminGuard'
 import { AdminTabs } from './AdminTabs'
+import { CountBadge } from '../../components/CountBadge'
 import { ResetButton } from '../../components/ResetButton'
 import { useUrlParams } from '../../lib/useUrlParams'
 import { pageFrom, Pagination } from '../../components/Pagination'
@@ -146,9 +147,11 @@ function AdminCarsContent() {
               key={f}
               onClick={() => set('status', f, 'all')}
               aria-pressed={status === f}
-              style={{ fontSize: 13, padding: '7px 14px', borderRadius: 980, border: '1px solid', borderColor: status === f ? '#1d1d1f' : '#d2d2d7', background: status === f ? '#1d1d1f' : 'transparent', color: status === f ? '#fff' : '#6e6e73', cursor: 'pointer' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, padding: '7px 14px', borderRadius: 980, border: '1px solid', borderColor: status === f ? '#1d1d1f' : '#d2d2d7', background: status === f ? '#1d1d1f' : 'transparent', color: status === f ? '#fff' : '#6e6e73', cursor: 'pointer' }}
             >
-              {f === 'REVIEW' ? t.carPapers.admin.filter : f === 'NO_DOCS' ? t.carPapers.admin.noDocsFilter : s.status[f]} ({count(f)})
+              {f === 'REVIEW' ? t.carPapers.admin.filter : f === 'NO_DOCS' ? t.carPapers.admin.noDocsFilter : s.status[f]}
+              {/* Cars whose papers wait for the admin stand out with a red counter. */}
+              {f === 'REVIEW' && count(f) > 0 ? <CountBadge n={count(f)} /> : <span>({count(f)})</span>}
             </button>
           ))}
           {(q || brand || hostId || status !== 'all') && (

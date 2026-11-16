@@ -17,6 +17,7 @@ import { useUrlParams } from '../../lib/useUrlParams'
 import { AdminGuard } from './AdminGuard'
 import { AdminTabs } from './AdminTabs'
 import { Avatar } from '../../components/Avatar'
+import { CountBadge } from '../../components/CountBadge'
 import { AccountEditor, control, field, HostEditor } from './HostForms'
 import { DocumentCards } from '../../components/PrivateDocuments'
 import { hostDocumentUrl, type HostApplicationStatus, type HostDocumentType, type PrivateDocument } from '../../lib/privateDocuments'
@@ -112,7 +113,7 @@ function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; chi
     <button
       onClick={onClick}
       aria-pressed={on}
-      style={{ fontSize: 13, padding: '8px 14px', borderRadius: 980, border: '1px solid', borderColor: on ? '#1d1d1f' : '#d2d2d7', background: on ? '#1d1d1f' : 'transparent', color: on ? '#fff' : '#6e6e73', cursor: 'pointer', whiteSpace: 'nowrap' }}
+      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, padding: '8px 14px', borderRadius: 980, border: '1px solid', borderColor: on ? '#1d1d1f' : '#d2d2d7', background: on ? '#1d1d1f' : 'transparent', color: on ? '#fff' : '#6e6e73', cursor: 'pointer', whiteSpace: 'nowrap' }}
     >
       {children}
     </button>
@@ -202,11 +203,17 @@ function UserList() {
           </div>
           <div className="user-filter-group" role="group" aria-label={u.statusLabel}>
             <span className="user-filter-label">{u.statusLabel}</span>
-            {STATUSES.map(s => (
-              <Chip key={s} on={status === s} onClick={() => set('status', s)}>
-                {s === 'pending' ? t.verificationAdmin.filter : s === 'hostRequests' ? t.hostApply.admin.filter : c.filters[s]} {loaded && <span style={{ opacity: 0.7 }}>({searched.filter(e => statusMatches(s, e) && roleMatches(role, e)).length})</span>}
-              </Chip>
-            ))}
+            {STATUSES.map(s => {
+              const n = searched.filter(e => statusMatches(s, e) && roleMatches(role, e)).length
+              // What waits for the admin stands out with a red counter, like the tabs.
+              const waiting = (s === 'pending' || s === 'hostRequests') && n > 0
+              return (
+                <Chip key={s} on={status === s} onClick={() => set('status', s)}>
+                  {s === 'pending' ? t.verificationAdmin.filter : s === 'hostRequests' ? t.hostApply.admin.filter : c.filters[s]}
+                  {loaded && (waiting ? <CountBadge n={n} /> : <span style={{ opacity: 0.7 }}>({n})</span>)}
+                </Chip>
+              )
+            })}
           </div>
         </div>
 
