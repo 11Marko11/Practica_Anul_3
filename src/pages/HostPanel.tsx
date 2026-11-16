@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavScroll } from '../lib/useNavScroll'
 import { CAR_REVIEW_COLORS, type CarReviewStatus } from '../lib/privateDocuments'
 import { same, useLivePoll } from '../lib/livePoll'
 import { Link, Navigate, useLocation } from 'react-router'
@@ -336,7 +335,6 @@ const row: React.CSSProperties = { padding: '16px 0', borderBottom: '1px solid #
 function HostTabs({ tab, onTab, awaiting }: { tab: Tab; onTab: (tab: Tab) => void; awaiting: number }) {
   const { t } = useI18n()
   const h = t.hostPortal
-  const { hidden } = useNavScroll()
   const bar = useRef<HTMLElement>(null)
   // On narrow screens the bar scrolls sideways: bring the current section into view.
   useEffect(() => {
@@ -346,7 +344,7 @@ function HostTabs({ tab, onTab, awaiting }: { tab: Tab; onTab: (tab: Tab) => voi
   return (
     <>
       <div className="admin-tabs-space" aria-hidden />
-      <nav ref={bar} className="admin-tabs" style={{ transform: hidden ? 'translateY(-52px)' : 'none' }}>
+      <nav ref={bar} className="admin-tabs">
         <div className="admin-tabs-inner">
           {TABS.map(x => (
             <button
