@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { requireAdmin } from '../auth/guards.js'
-import { carInclude, isListed, LISTED, slugBase, toCarDto } from '../cars/dto.js'
+import { carInclude, isListed, LISTED, REQUIRED_CAR_DOCUMENTS, slugBase, toCarDto } from '../cars/dto.js'
 import { hostStats } from '../cars/hostStats.js'
 import { prisma } from '../db.js'
 import { HttpError } from '../http/errors.js'
@@ -75,6 +75,11 @@ export async function carRoutes(app: FastifyInstance) {
       z.object({ decision: z.literal('approve') }),
       z.object({ decision: z.literal('reject'), note: z.string().trim().min(3).max(1000) }),
     ]).parse(request.body)
+    // A car can only be approved with its registration certificate and RCA insurance.
+    if (body.decision === 'approve') {
+      const types = new Set((await prisma.hostDocument.findMany({ where: { carId: id }, select: { type: true } })).map(d => d.type))
+      if (!REQUIRED_CAR_DOCUMENTS.every(t => types.has(t))) throw new HttpError(409, 'car-documents-missing')
+    }
     const done = await prisma.car.updateMany({
       where: { id, status: { not: 'REMOVED' } },
       data: body.decision === 'approve' ? { reviewStatus: 'APPROVED', reviewNote: null } : { reviewStatus: 'REJECTED', reviewNote: body.note },

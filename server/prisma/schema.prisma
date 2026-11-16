@@ -165,6 +165,7 @@ model HostDocument {
 
 // The admin checks each car's papers (registration and RCA insurance) before it shows on the site.
 enum CarReviewStatus {
+  NO_DOCUMENTS // the host has not uploaded the registration and RCA insurance yet: not shown
   PENDING
   APPROVED
   REJECTED

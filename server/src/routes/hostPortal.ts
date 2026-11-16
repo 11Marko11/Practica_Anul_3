@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { requireHost } from '../auth/guards.js'
 import { isoDate, todayInMoldova } from '../bookings/dates.js'
-import { carData, carInclude, hostCarInput, type CarInput } from '../cars/dto.js'
+import { carData, carInclude, hostCarInput, REQUIRED_CAR_DOCUMENTS, type CarInput } from '../cars/dto.js'
 import { prisma } from '../db.js'
 import { HttpError } from '../http/errors.js'
 import { readDocumentUpload } from '../http/upload.js'
@@ -27,11 +27,10 @@ async function ownCar(request: FastifyRequest) {
 }
 
 const CAR_DOCUMENT_TYPES = ['CAR_REGISTRATION', 'CAR_INSURANCE', 'CAR_OWNERSHIP'] as const
-// Every car needs its registration certificate and its RCA insurance; the contract is optional.
-const REQUIRED_CAR_DOCUMENTS = ['CAR_REGISTRATION', 'CAR_INSURANCE'] as const
 
 // The papers sent with a car form: the host's own uploads, not yet tied to another car.
-// Returns what to save and whether the papers changed (then the admin checks the car again).
+// Returns what to save, whether the required ones are all there (a car may be saved without
+// them, but stays off the site) and whether they changed (then the admin checks the car again).
 async function carPapers(request: FastifyRequest, input: CarInput, carId?: number) {
   const ids = [...new Set(input.documentIds)]
   const docs = await prisma.hostDocument.findMany({
@@ -40,14 +39,16 @@ async function carPapers(request: FastifyRequest, input: CarInput, carId?: numbe
   })
   if (docs.length !== ids.length) throw new HttpError(400, 'invalid-documents')
   const types = new Set(docs.map(d => d.type))
-  if (!REQUIRED_CAR_DOCUMENTS.every(t => types.has(t))) throw new HttpError(422, 'car-documents-missing')
+  const complete = REQUIRED_CAR_DOCUMENTS.every(t => types.has(t))
   const before = carId ? (await prisma.hostDocument.findMany({ where: { carId }, select: { id: true } })).map(d => d.id) : []
   const changed = before.length !== ids.length || before.some(id => !ids.includes(id))
-  return { ids, changed }
+  return { ids, complete, changed }
 }
 
 // Sent to (or back to) the admin for a check of the papers.
 const forReview = () => ({ reviewStatus: 'PENDING' as const, reviewNote: null, reviewSubmittedAt: new Date() })
+// Without its papers the car is kept but not shown, and not sent to the admin yet.
+const withoutPapers = () => ({ reviewStatus: 'NO_DOCUMENTS' as const, reviewNote: null, reviewSubmittedAt: null })
 
 // GET /api/host: everything a host follows on their pages. Customer contact details are
 // shown only once the admin has confirmed the booking. Hosts add, edit and remove their own cars.
@@ -153,7 +154,7 @@ export async function hostPortalRoutes(app: FastifyInstance) {
     const papers = await carPapers(request, input)
     const car = await prisma.$transaction(async tx => {
       const created = await tx.car.create({
-        data: { ...carData(input), ...forReview(), hostId: hostId(request), slug: await uniqueSlug(input.brand, input.model), photos: { create: photoRows(input.photos) } },
+        data: { ...carData(input), ...(papers.complete ? forReview() : withoutPapers()), hostId: hostId(request), slug: await uniqueSlug(input.brand, input.model), photos: { create: photoRows(input.photos) } },
         include: carInclude,
       })
       await tx.hostDocument.updateMany({ where: { id: { in: papers.ids } }, data: { carId: created.id } })
@@ -168,14 +169,15 @@ export async function hostPortalRoutes(app: FastifyInstance) {
     const input = hostCarInput.parse(request.body)
     const papers = await carPapers(request, input, current.id)
     // New papers, another car (brand, model, year) or a rejected car being fixed: checked again.
-    const recheck = papers.changed || current.reviewStatus === 'REJECTED' || current.brand !== input.brand || current.model !== input.model || current.year !== input.year
+    const recheck = papers.changed || current.reviewStatus === 'REJECTED' || current.reviewStatus === 'NO_DOCUMENTS' || current.brand !== input.brand || current.model !== input.model || current.year !== input.year
+    const review = !papers.complete ? withoutPapers() : recheck ? forReview() : {}
     const credits = new Map(current.photos.map(p => [p.url, { credit: p.credit, creditUrl: p.creditUrl }]))
     const car = await prisma.$transaction(async tx => {
       await tx.hostDocument.deleteMany({ where: { carId: current.id, id: { notIn: papers.ids } } })
       await tx.hostDocument.updateMany({ where: { id: { in: papers.ids } }, data: { carId: current.id } })
       return tx.car.update({
         where: { id: current.id },
-        data: { ...carData(input), ...(recheck ? forReview() : {}), photos: { deleteMany: {}, create: photoRows(input.photos, credits) } },
+        data: { ...carData(input), ...review, photos: { deleteMany: {}, create: photoRows(input.photos, credits) } },
         include: carInclude,
       })
     })

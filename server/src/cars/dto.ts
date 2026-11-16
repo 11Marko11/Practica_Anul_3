@@ -2,6 +2,10 @@ import { z } from 'zod'
 import type { Prisma } from '../generated/prisma/client.js'
 import type { HostStats } from './hostStats.js'
 
+// A car shows on the site only with its registration certificate and RCA insurance, checked by
+// the admin; a sale contract or power of attorney is optional.
+export const REQUIRED_CAR_DOCUMENTS = ['CAR_REGISTRATION', 'CAR_INSURANCE'] as const
+
 // Cars the public sees and can book: shown by their host and with papers checked by the admin.
 export const LISTED = { status: 'ACTIVE', reviewStatus: 'APPROVED' } as const satisfies Prisma.CarWhereInput
 export const isListed = (car: { status: string; reviewStatus: string }) => car.status === 'ACTIVE' && car.reviewStatus === 'APPROVED'

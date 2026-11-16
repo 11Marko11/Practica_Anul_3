@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { CAR_REVIEW_COLORS, type CarReviewStatus } from '../lib/privateDocuments'
 import { same, useLivePoll } from '../lib/livePoll'
 import { Link, Navigate, useLocation } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
@@ -20,7 +21,7 @@ type HostData = {
     pricePerDay: number
     city: string
     status: 'ACTIVE' | 'HIDDEN'
-    reviewStatus: 'PENDING' | 'APPROVED' | 'REJECTED' // the admin's check of the car's papers
+    reviewStatus: CarReviewStatus // the admin's check of the car's papers
     reviewNote: string | null
     rating: number | null
     reviews: number
@@ -158,11 +159,14 @@ function HostPanelContent() {
                         {car.brand} {car.model} <span style={{ fontWeight: 400, color: '#6e6e73' }}>· {car.year}</span>
                         {car.status === 'HIDDEN' && <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 500, color: '#6e6e73', background: '#f0f0f0', padding: '2px 8px', borderRadius: 980 }}>{h.hidden}</span>}
                         {car.reviewStatus !== 'APPROVED' && (
-                          <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 980, ...(car.reviewStatus === 'PENDING' ? { color: '#9a5b00', background: '#fff4e0' } : { color: '#b3261e', background: '#fdeaea' }) }}>
+                          <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 980, ...CAR_REVIEW_COLORS[car.reviewStatus] }}>
                             {t.carPapers.status[car.reviewStatus]}
                           </span>
                         )}
                       </div>
+                      {car.reviewStatus === 'NO_DOCUMENTS' && (
+                        <div style={{ fontSize: 13, color: '#424245', marginTop: 2 }}>{t.carPapers.noDocsShort}</div>
+                      )}
                       {car.reviewStatus === 'REJECTED' && car.reviewNote && (
                         <div style={{ fontSize: 13, color: '#b3261e', marginTop: 2 }}>{t.carPapers.reason}: {car.reviewNote}</div>
                       )}

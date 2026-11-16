@@ -11,6 +11,7 @@ import { DocumentCards, DocumentUploadForm } from '../components/PrivateDocument
 import {
   CAR_DOCUMENT_TYPES,
   hostDocumentUrl,
+  CAR_REVIEW_COLORS,
   REQUIRED_CAR_DOCUMENTS,
   uploadCarDocument,
   type CarDocumentType,
@@ -132,6 +133,7 @@ function CarForm({ existing, review, initialDocuments, backUrl, backLabel, title
   const [busy, setBusy] = useState(false)
   const [documents, setDocuments] = useState<CarDocument[]>(initialDocuments)
   const papers = t.carPapers
+  // A car may be saved without its papers, but it stays off the site until they are approved.
   const hasPapers = REQUIRED_CAR_DOCUMENTS.every(type => documents.some(d => d.type === type))
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
@@ -147,7 +149,6 @@ function CarForm({ existing, review, initialDocuments, backUrl, backLabel, title
     if (!required || !numbers) return setError(t.admin.errors.required)
     if (!f.pickup) return setError(t.admin.errors.address)
     if (!f.photos.length) return setError(t.admin.errors.photos)
-    if (!hasPapers) return setError(papers.missing)
 
     const num = (text: string) => Number(text.replace(',', '.'))
     const translations: Car['translations'] = {}
@@ -183,7 +184,7 @@ function CarForm({ existing, review, initialDocuments, backUrl, backLabel, title
       await save(input)
       navigate(backUrl)
     } catch (err) {
-      setError(err instanceof ApiError && err.code === 'validation' ? t.admin.errors.required : err instanceof ApiError && err.code === 'car-documents-missing' ? papers.missing : t.admin.saveError)
+      setError(err instanceof ApiError && err.code === 'validation' ? t.admin.errors.required : t.admin.saveError)
       setBusy(false)
     }
   }
@@ -197,9 +198,9 @@ function CarForm({ existing, review, initialDocuments, backUrl, backLabel, title
         <h1 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#1d1d1f', margin: '16px 0 8px' }}>{title}</h1>
         {existing && <p style={{ fontSize: 15, color: '#6e6e73', margin: 0 }}>{existing.brand} {existing.model}</p>}
         {review && review.status !== 'APPROVED' && (
-          <div style={{ marginTop: 16, padding: '14px 18px', borderRadius: 16, background: review.status === 'PENDING' ? '#fff4e0' : '#fdeaea' }}>
-            <div style={{ fontSize: 15, fontWeight: 600, color: review.status === 'PENDING' ? '#9a5b00' : '#b3261e' }}>{papers.status[review.status]}</div>
-            <div style={{ fontSize: 14, color: '#1d1d1f', marginTop: 4, lineHeight: 1.5 }}>{review.status === 'PENDING' ? papers.pendingText : papers.rejectedText}</div>
+          <div style={{ marginTop: 16, padding: '14px 18px', borderRadius: 16, background: CAR_REVIEW_COLORS[review.status].background }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: CAR_REVIEW_COLORS[review.status].color }}>{papers.status[review.status]}</div>
+            <div style={{ fontSize: 14, color: '#1d1d1f', marginTop: 4, lineHeight: 1.5 }}>{review.status === 'PENDING' ? papers.pendingText : review.status === 'NO_DOCUMENTS' ? papers.noDocsText : papers.rejectedText}</div>
             {review.status === 'REJECTED' && review.note && <div style={{ fontSize: 14, color: '#1d1d1f', marginTop: 6 }}><strong style={{ fontWeight: 600 }}>{papers.reason}:</strong> {review.note}</div>}
           </div>
         )}
@@ -301,6 +302,7 @@ function CarForm({ existing, review, initialDocuments, backUrl, backLabel, title
               }}
             />
             <p style={{ fontSize: 12, color: '#86868b', margin: 0 }}>{papers.required} {existing ? papers.recheck : papers.newNote}</p>
+            {!hasPapers && <p style={{ fontSize: 13, color: '#9a5b00', margin: 0 }}>{papers.noDocsText}</p>}
             </div>
           </FormSection>
 

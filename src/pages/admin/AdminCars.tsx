@@ -15,16 +15,22 @@ import type { Car } from '../../data/cars'
 import { api } from '../../lib/api'
 import { refreshAwaitingCount } from '../../lib/adminNotifications'
 import { DocumentCards } from '../../components/PrivateDocuments'
-import { hostDocumentUrl, type CarDocumentType, type CarReviewStatus, type PrivateDocument } from '../../lib/privateDocuments'
+import { CAR_REVIEW_COLORS, hostDocumentUrl, type CarDocumentType, type CarReviewStatus, type PrivateDocument } from '../../lib/privateDocuments'
 
 const SORTS = ['recent', 'oldest', 'name', 'price-asc', 'price-desc', 'year', 'power'] as const
 type Sort = (typeof SORTS)[number]
-const STATUS_FILTERS = ['all', 'REVIEW', 'ACTIVE', 'HIDDEN'] as const
+const STATUS_FILTERS = ['all', 'REVIEW', 'NO_DOCS', 'ACTIVE', 'HIDDEN'] as const
 const PAGE_SIZE = 20
 
-// "To check": cars whose papers wait for the admin.
-const statusMatches = (f: (typeof STATUS_FILTERS)[number], c: Car) =>
-  f === 'all' || (f === 'REVIEW' ? c.reviewStatus === 'PENDING' : (c.status ?? 'ACTIVE') === f)
+// "To check": papers waiting for the admin; "Unverified": no papers yet, so off the site.
+// "On the site" means shown by the host and approved.
+const statusMatches = (f: (typeof STATUS_FILTERS)[number], c: Car) => {
+  if (f === 'all') return true
+  if (f === 'REVIEW') return c.reviewStatus === 'PENDING'
+  if (f === 'NO_DOCS') return c.reviewStatus === 'NO_DOCUMENTS'
+  if (f === 'ACTIVE') return (c.status ?? 'ACTIVE') === 'ACTIVE' && (c.reviewStatus ?? 'APPROVED') === 'APPROVED'
+  return c.status === f
+}
 
 const name = (c: Car) => `${c.brand} ${c.model}`
 const added = (c: Car) => c.createdAt ?? ''
@@ -142,7 +148,7 @@ function AdminCarsContent() {
               aria-pressed={status === f}
               style={{ fontSize: 13, padding: '7px 14px', borderRadius: 980, border: '1px solid', borderColor: status === f ? '#1d1d1f' : '#d2d2d7', background: status === f ? '#1d1d1f' : 'transparent', color: status === f ? '#fff' : '#6e6e73', cursor: 'pointer' }}
             >
-              {f === 'REVIEW' ? t.carPapers.admin.filter : s.status[f]} ({count(f)})
+              {f === 'REVIEW' ? t.carPapers.admin.filter : f === 'NO_DOCS' ? t.carPapers.admin.noDocsFilter : s.status[f]} ({count(f)})
             </button>
           ))}
           {(q || brand || hostId || status !== 'all') && (
@@ -165,7 +171,7 @@ function AdminCarsContent() {
                   <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f' }}>{name} <span style={{ fontWeight: 400, color: '#6e6e73' }}>· {car.year}</span>
                     {car.status === 'HIDDEN' && <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 500, color: '#6e6e73', background: '#f0f0f0', padding: '2px 8px', borderRadius: 980 }}>{t.admin.hidden}</span>}
                     {car.reviewStatus && car.reviewStatus !== 'APPROVED' && (
-                      <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 980, ...(car.reviewStatus === 'PENDING' ? { color: '#9a5b00', background: '#fff4e0' } : { color: '#b3261e', background: '#fdeaea' }) }}>
+                      <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 980, ...CAR_REVIEW_COLORS[car.reviewStatus] }}>
                         {t.carPapers.status[car.reviewStatus]}
                       </span>
                     )}
@@ -237,7 +243,7 @@ function CarReview({ carId, onDone }: { carId: number; onDone: () => void }) {
   return (
     <div style={{ flexBasis: '100%', padding: 18, borderRadius: 16, background: '#f5f5f7', display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', fontSize: 13, color: '#6e6e73' }}>
-        <strong style={{ fontSize: 14, color: review.status === 'APPROVED' ? '#1b7a35' : review.status === 'PENDING' ? '#9a5b00' : '#b3261e' }}>{t.carPapers.status[review.status]}</strong>
+        <strong style={{ fontSize: 14, color: CAR_REVIEW_COLORS[review.status].color }}>{t.carPapers.status[review.status]}</strong>
         {review.submittedAt && <span>{a.submitted(new Date(review.submittedAt).toLocaleString(lang, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }))}</span>}
       </div>
       {review.status === 'REJECTED' && review.note && <p style={{ fontSize: 14, color: '#b3261e', margin: 0 }}>{t.carPapers.reason}: {review.note}</p>}
@@ -259,8 +265,8 @@ function CarReview({ carId, onDone }: { carId: number; onDone: () => void }) {
         </form>
       ) : (
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {review.status !== 'APPROVED' && <button onClick={() => decide('approve')} disabled={busy} style={{ ...button, background: '#1b7a35', color: '#fff' }}>✓ {a.approve}</button>}
-          {review.status !== 'REJECTED' && <button onClick={() => setRejecting(true)} style={{ ...button, background: '#fff', color: '#d70015', border: '1px solid #f0c4c4' }}>{a.reject}</button>}
+          {review.status !== 'APPROVED' && review.status !== 'NO_DOCUMENTS' && <button onClick={() => decide('approve')} disabled={busy} style={{ ...button, background: '#1b7a35', color: '#fff' }}>✓ {a.approve}</button>}
+          {review.status !== 'REJECTED' && review.status !== 'NO_DOCUMENTS' && <button onClick={() => setRejecting(true)} style={{ ...button, background: '#fff', color: '#d70015', border: '1px solid #f0c4c4' }}>{a.reject}</button>}
         </div>
       )}
     </div>

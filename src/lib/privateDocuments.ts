@@ -49,4 +49,11 @@ export const REQUIRED_CAR_DOCUMENTS: CarDocumentType[] = ['CAR_REGISTRATION', 'C
 export const uploadCarDocument = (type: CarDocumentType, file: File) => uploadPrivateDocument('/host/documents', type, file)
 
 // The admin's check of a car's papers.
-export type CarReviewStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
+export type CarReviewStatus = 'NO_DOCUMENTS' | 'PENDING' | 'APPROVED' | 'REJECTED'
+// Badge colours for each state of the check.
+export const CAR_REVIEW_COLORS: Record<CarReviewStatus, { background: string; color: string }> = {
+  NO_DOCUMENTS: { background: '#f2f2f4', color: '#424245' },
+  PENDING: { background: '#fff4e0', color: '#9a5b00' },
+  APPROVED: { background: '#e3f6e8', color: '#1b7a35' },
+  REJECTED: { background: '#fdeaea', color: '#b3261e' },
+}
