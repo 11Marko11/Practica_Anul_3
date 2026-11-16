@@ -17,6 +17,8 @@ export function HostFinances() {
   const { lang, t } = useI18n()
   const f = t.finances
   const [data, setData] = useState<Finances | null>(null)
+  const [paying, setPaying] = useState('')
+  const [notice, setNotice] = useState('')
   const { params, edit } = useUrlParams()
   const year = params.get('year') ?? ''
   const month = params.get('month') ?? ''
@@ -25,6 +27,31 @@ export function HostFinances() {
   useEffect(() => {
     getFinances().then(setData).catch(() => setData(null))
   }, [])
+
+  // Back from the payment page: record the payment at once, then show the month as paid.
+  const returned = params.get('commission')
+  useEffect(() => {
+    if (!returned) return
+    api<{ month: string | null }>('/host/finances/sync', { body: { sessionId: returned } })
+      .then(async res => {
+        setData(await getFinances())
+        if (res.month) setNotice(f.paidNow(monthLabel(res.month, lang)))
+      })
+      .catch(() => {})
+      .finally(() => edit(p => p.delete('commission')))
+  }, [returned])
+
+  // Opens Stripe's payment page for one month's commission.
+  async function pay(month: string) {
+    setPaying(month)
+    try {
+      const { checkoutUrl } = await api<{ checkoutUrl: string }>(`/host/finances/${month}/pay`, { body: { lang } })
+      window.location.href = checkoutUrl
+    } catch {
+      alert(f.payError)
+      setPaying('')
+    }
+  }
   useLivePoll(() => { getFinances().then(next => setData(prev => (same(prev, next) ? prev : next))).catch(() => {}) }, 30_000)
 
   if (!data) return <p style={{ fontSize: 15, color: '#6e6e73' }}>{t.bookings.loading}</p>
@@ -58,7 +85,18 @@ export function HostFinances() {
             </label>
           )}
         </div>
-        {months.length === 0 ? <p style={{ fontSize: 15, color: '#6e6e73' }}>{f.noIncome}</p> : <IncomeTable months={months} />}
+        {notice && <p role="status" style={{ fontSize: 14, color: '#1b7a35', background: '#e3f6e8', padding: '10px 14px', borderRadius: 12, margin: '0 0 12px' }}>✓ {notice}</p>}
+        {months.length === 0 ? (
+          <p style={{ fontSize: 15, color: '#6e6e73' }}>{f.noIncome}</p>
+        ) : (
+          <IncomeTable
+            months={months}
+            action={m => !m.paid && !m.current && m.commission > 0
+              ? <button onClick={() => pay(m.month)} disabled={!!paying} className="btn-action btn-action--primary">{paying === m.month ? f.paying : f.pay}</button>
+              : null}
+          />
+        )}
+        <p style={{ fontSize: 12, color: '#86868b', margin: '10px 0 0' }}>{f.payHint}</p>
       </section>
 
       <section>

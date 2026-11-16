@@ -619,6 +619,11 @@ export const en = {
     error: 'Could not save. Please try again.',
   },
   finances: {
+    pay: 'Pay',
+    paying: 'Opening the payment…',
+    payError: 'The payment could not be opened. Please try again.',
+    paidNow: (month: string) => `The commission payment for ${month} was received. The month is marked as paid.`,
+    payHint: 'You pay the commission online by card. Once paid, the month is marked as paid automatically.',
     rateNow: 'Your current commission',
     rateHint: 'The share of your monthly income you pay to Rent Motors. It applies to bookings confirmed after the last change.',
     thisMonth: 'Net income this month',
@@ -649,7 +654,7 @@ export const en = {
   adminFinances: {
     hostIncomeCol: 'Host’s income',
     title: 'Rent Motors income',
-    intro: 'The company’s income is the commission each host pays monthly from their income. Customers pay through Stripe; the host pays the commission outside the site and you mark the month as paid.',
+    intro: 'The company’s income is the commission each host pays monthly from their income. The host pays it online by card from their Finances page; once paid, the month shows as paid automatically.',
     thisMonth: 'Commission this month',
     collected: 'Collected from hosts',
     toCollect: 'To collect',

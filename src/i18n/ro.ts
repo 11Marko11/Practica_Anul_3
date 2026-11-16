@@ -619,6 +619,11 @@ export const ro: Dict = {
     error: 'Nu s-a putut salva. Încearcă din nou.',
   },
   finances: {
+    pay: 'Achită',
+    paying: 'Se deschide plata…',
+    payError: 'Plata nu a putut fi deschisă. Încearcă din nou.',
+    paidNow: (month: string) => `Plata comisionului pentru ${month} a fost primită. Luna este marcată ca achitată.`,
+    payHint: 'Achiți comisionul online, cu cardul. După plată, luna se marchează automat ca achitată.',
     rateNow: 'Comisionul tău actual',
     rateHint: 'Procentul din venitul lunar pe care îl achiți către Rent Motors. Se aplică rezervărilor confirmate după ultima schimbare.',
     thisMonth: 'Venit net luna aceasta',
@@ -649,7 +654,7 @@ export const ro: Dict = {
   adminFinances: {
     hostIncomeCol: 'Venitul gazdei',
     title: 'Venituri Rent Motors',
-    intro: 'Venitul firmei este comisionul pe care fiecare gazdă îl achită lunar din veniturile ei. Banii clienților intră prin Stripe; gazda achită comisionul în afara site-ului, iar tu marchezi luna ca achitată.',
+    intro: 'Venitul firmei este comisionul pe care fiecare gazdă îl achită lunar din veniturile ei. Gazda plătește comisionul online, cu cardul, din pagina ei de Finanțe; după plată, luna apare automat ca achitată.',
     thisMonth: 'Comision luna aceasta',
     collected: 'Încasat de la gazde',
     toCollect: 'De încasat',

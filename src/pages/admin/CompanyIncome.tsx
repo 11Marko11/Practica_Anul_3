@@ -5,7 +5,7 @@ import { Money } from '../../components/Money'
 import { useI18n } from '../../i18n/I18nContext'
 import { api } from '../../lib/api'
 import { same, useLivePoll } from '../../lib/livePoll'
-import { fmt, formatDate } from '../../lib/rental'
+import { formatDate } from '../../lib/rental'
 
 type CompanyMonth = { month: string; commission: number; paid: number; unpaid: number; charged: number; hosts: number; current: boolean }
 type HostRow = IncomeMonth & { hostId: number; host: { id: number; name: string; rate: number | null } }
@@ -14,7 +14,7 @@ type Finances = { company: CompanyMonth[]; hosts: HostRow[] }
 const getFinances = () => api<Finances>('/admin/finances')
 
 // Admin > Transactions, top: Rent Motors' income (the hosts' commission) by month, and every
-// host's income month by month, where the admin marks a month's commission as paid.
+// host's income month by month. Hosts pay the commission by card; a month turns paid by itself.
 export function CompanyIncome() {
   const { lang, t } = useI18n()
   const a = t.adminFinances
@@ -23,11 +23,10 @@ export function CompanyIncome() {
   const [host, setHost] = useState('')
   const [month, setMonth] = useState('')
   const [status, setStatus] = useState<'all' | 'unpaid' | 'paid'>('all')
-  const [busy, setBusy] = useState('')
 
   const load = () => getFinances().then(next => setData(prev => (same(prev, next) ? prev : next)))
   useEffect(() => { load().catch(() => setData({ company: [], hosts: [] })) }, [])
-  useLivePoll(() => { load().catch(() => {}) }, 30_000, !busy)
+  useLivePoll(() => { load().catch(() => {}) }, 30_000)
 
   if (!data) return <p style={{ fontSize: 15, color: '#6e6e73' }}>{t.bookings.loading}</p>
 
@@ -40,17 +39,7 @@ export function CompanyIncome() {
     (!host || String(h.host.id) === host) && (!month || h.month === month) &&
     (status === 'all' || (status === 'paid' ? !!h.paid : !h.paid && !h.current && h.commission > 0)))
 
-  async function mark(row: HostRow, paid: boolean) {
-    if (paid ? !confirm(a.markPaidAsk(row.host.name, monthLabel(row.month, lang), fmt(row.commission))) : !confirm(a.undoAsk)) return
-    setBusy(`${row.host.id}|${row.month}`)
-    try {
-      await api(`/admin/hosts/${row.host.id}/payments/${row.month}`, { method: paid ? 'POST' : 'DELETE' })
-      await load()
-    } catch {
-      alert(a.error)
-    }
-    setBusy('')
-  }
+
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -114,14 +103,13 @@ export function CompanyIncome() {
             <div style={{ overflowX: 'auto', border: '1px solid #e5e5ea', borderRadius: 16 }}>
               <table className="income-table">
                 <thead>
-                  <tr><th>{a.host}</th><th>{f.month}</th><th className="num">{f.bookings}</th><th className="num">{f.charged}</th><th className="num">{f.refunded}</th><th className="num">{f.commission}</th><th className="num">{a.hostIncomeCol}</th><th>{f.status}</th><th /></tr>
+                  <tr><th>{a.host}</th><th>{f.month}</th><th className="num">{f.bookings}</th><th className="num">{f.charged}</th><th className="num">{f.refunded}</th><th className="num">{f.commission}</th><th className="num">{a.hostIncomeCol}</th><th>{f.status}</th></tr>
                 </thead>
                 <tbody>
-                  {rows.length === 0 && <tr><td colSpan={9} style={{ color: '#6e6e73' }}>{a.empty}</td></tr>}
+                  {rows.length === 0 && <tr><td colSpan={8} style={{ color: '#6e6e73' }}>{a.empty}</td></tr>}
                   {rows.map(r => {
-                    const key = `${r.host.id}|${r.month}`
                     return (
-                      <tr key={key}>
+                      <tr key={`${r.host.id}|${r.month}`}>
                         <td style={{ fontWeight: 600 }}>
                           <Link to={`/hosts/${r.host.id}`} style={{ color: '#1d1d1f', textDecoration: 'none' }}>{r.host.name}</Link>
                           {r.host.rate !== null && <span style={{ fontWeight: 400, color: '#86868b' }}> · {r.host.rate}%</span>}
@@ -140,13 +128,6 @@ export function CompanyIncome() {
                               : r.commission > 0
                                 ? <span style={{ ...pill, background: '#fff4e0', color: '#9a5b00' }}>{f.unpaid}</span>
                                 : f.nothing}
-                        </td>
-                        <td style={{ textAlign: 'right' }}>
-                          {r.paid ? (
-                            <button onClick={() => mark(r, false)} disabled={busy === key} className="btn-action btn-action--neutral">{a.undo}</button>
-                          ) : !r.current && r.commission > 0 ? (
-                            <button onClick={() => mark(r, true)} disabled={busy === key} className="btn-action btn-action--primary">{a.markPaid}</button>
-                          ) : null}
                         </td>
                       </tr>
                     )
