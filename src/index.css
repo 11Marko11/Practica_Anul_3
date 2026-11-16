@@ -297,3 +297,6 @@ select:not([multiple]):not([size]) {
 .quick-link:hover { background: #ebebef; }
 .quick-link--primary { background: #1d1d1f; color: #fff; border-color: #1d1d1f; }
 .quick-link--primary:hover { background: #3a3a3c; }
+
+/* A form field with a mistake: red outline. */
+.field--error input, .field--error textarea, .field--error select { border-color: #d70015 !important; box-shadow: 0 0 0 3px rgba(215, 0, 21, 0.12); }

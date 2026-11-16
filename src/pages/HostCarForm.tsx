@@ -113,6 +113,11 @@ function fromCar(car: Car): FormState {
   }
 }
 
+// The fields checked before saving, in the order they appear on the page.
+const CHECKED = ['brand', 'model', 'year', 'price', 'seats', 'horsepower', 'acceleration', 'topSpeed', 'transmission', 'address', 'photos', 'descriptionEn'] as const
+type Checked = (typeof CHECKED)[number]
+type FieldErrors = Partial<Record<Checked, string>>
+
 const lines = (text: string) => text.split('\n').map(l => l.trim()).filter(Boolean)
 const positive = (text: string) => Number(text.replace(',', '.')) > 0
 
@@ -130,6 +135,7 @@ function CarForm({ existing, review, initialDocuments, backUrl, backLabel, title
   const { t } = useI18n()
   const [form, setForm] = useState<FormState>(() => (existing ? fromCar(existing) : EMPTY))
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [busy, setBusy] = useState(false)
   const [documents, setDocuments] = useState<CarDocument[]>(initialDocuments)
   const papers = t.carPapers
@@ -139,16 +145,64 @@ function CarForm({ existing, review, initialDocuments, backUrl, backLabel, title
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm(f => ({ ...f, [key]: value }))
     setError('')
+    // A corrected field loses its red mark.
+    const checked = (key === 'pickup' ? 'address' : key) as Checked
+    if (fieldErrors[checked]) setFieldErrors(({ [checked]: _, ...rest }) => rest)
+  }
+
+  const cf = t.carForm
+  const fieldLabels: Record<Checked, string> = {
+    brand: t.admin.fields.brand, model: t.admin.fields.model, year: t.admin.fields.year, price: t.admin.fields.price,
+    seats: t.admin.fields.seats, horsepower: t.admin.fields.horsepower, acceleration: t.admin.fields.acceleration,
+    topSpeed: t.admin.fields.topSpeed, transmission: t.admin.fields.transmission, address: t.admin.fields.address,
+    photos: t.admin.sections.photos, descriptionEn: `${t.admin.sections.description} (${t.admin.fields.descriptionEn})`,
+  }
+
+  // What is wrong with each field, with the same limits as the server.
+  function validate(f: FormState): FieldErrors {
+    const out: FieldErrors = {}
+    const text = (key: Checked, value: string) => { if (!value.trim()) out[key] = cf.required }
+    const number = (key: Checked, value: string, min: number, max: number) => {
+      if (!value.trim()) return (out[key] = cf.required)
+      const n = Number(value.replace(',', '.'))
+      if (!Number.isFinite(n) || n <= 0) out[key] = cf.number
+      else if (n < min || n > max) out[key] = cf.range(min, max)
+    }
+    text('brand', f.brand)
+    text('model', f.model)
+    number('year', f.year, 1950, new Date().getFullYear() + 1)
+    number('price', f.price, 1, 1_000_000)
+    number('seats', f.seats, 1, 12)
+    number('horsepower', f.horsepower, 1, 3000)
+    number('acceleration', f.acceleration, 0.1, 60)
+    number('topSpeed', f.topSpeed, 1, 600)
+    text('transmission', f.transmission)
+    if (!f.pickup) out.address = f.address.trim() ? cf.address : cf.required
+    if (!f.photos.length) out.photos = cf.photos
+    text('descriptionEn', f.descriptionEn)
+    return out
+  }
+
+  // Scrolls to the first wrong field and puts the cursor in it.
+  function showFirst(errors: FieldErrors) {
+    const first = CHECKED.find(k => errors[k])
+    if (!first) return
+    const box = document.getElementById(`field-${first}`)
+    box?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    box?.querySelector<HTMLElement>('input, textarea, select, button')?.focus({ preventScroll: true })
   }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     const f = form
-    const required = [f.brand, f.model, f.transmission, f.descriptionEn].every(v => v.trim())
-    const numbers = [f.year, f.price, f.seats, f.horsepower, f.acceleration, f.topSpeed].every(positive)
-    if (!required || !numbers) return setError(t.admin.errors.required)
-    if (!f.pickup) return setError(t.admin.errors.address)
-    if (!f.photos.length) return setError(t.admin.errors.photos)
+    const errors = validate(f)
+    setFieldErrors(errors)
+    if (Object.keys(errors).length) {
+      setError(cf.summary(CHECKED.filter(k => errors[k]).map(k => fieldLabels[k]).join(', ')))
+      showFirst(errors)
+      return
+    }
+    if (!f.pickup) return
 
     const num = (text: string) => Number(text.replace(',', '.'))
     const translations: Car['translations'] = {}
@@ -208,10 +262,10 @@ function CarForm({ existing, review, initialDocuments, backUrl, backLabel, title
         <form onSubmit={submit} noValidate>
           <FormSection title={t.admin.sections.basics}>
             <div className="admin-fields">
-              <Field label={t.admin.fields.brand} required><input value={form.brand} onChange={e => set('brand', e.target.value)} style={inputStyle} /></Field>
-              <Field label={t.admin.fields.model} required><input value={form.model} onChange={e => set('model', e.target.value)} style={inputStyle} /></Field>
-              <Field label={t.admin.fields.year} required><input inputMode="numeric" value={form.year} onChange={e => set('year', e.target.value)} style={inputStyle} /></Field>
-              <Field label={t.admin.fields.price} required><input inputMode="numeric" value={form.price} onChange={e => set('price', e.target.value)} style={inputStyle} /></Field>
+              <Field name="brand" label={t.admin.fields.brand} required error={fieldErrors.brand}><input value={form.brand} onChange={e => set('brand', e.target.value)} style={inputStyle} /></Field>
+              <Field name="model" label={t.admin.fields.model} required error={fieldErrors.model}><input value={form.model} onChange={e => set('model', e.target.value)} style={inputStyle} /></Field>
+              <Field name="year" label={t.admin.fields.year} required error={fieldErrors.year}><input inputMode="numeric" value={form.year} onChange={e => set('year', e.target.value)} style={inputStyle} /></Field>
+              <Field name="price" label={t.admin.fields.price} required error={fieldErrors.price}><input inputMode="numeric" value={form.price} onChange={e => set('price', e.target.value)} style={inputStyle} /></Field>
               <Field label={t.admin.status}>
                 <select value={form.status} onChange={e => set('status', e.target.value as Status)} style={inputStyle}>
                   <option value="ACTIVE">{t.admin.statusActive}</option>
@@ -233,11 +287,11 @@ function CarForm({ existing, review, initialDocuments, backUrl, backLabel, title
                   {(['FWD', 'AWD', 'RWD'] as const).map(d => <option key={d} value={d}>{t.car.drive[d]}</option>)}
                 </select>
               </Field>
-              <Field label={t.admin.fields.seats} required><input inputMode="numeric" value={form.seats} onChange={e => set('seats', e.target.value)} style={inputStyle} /></Field>
-              <Field label={t.admin.fields.horsepower} required><input inputMode="numeric" value={form.horsepower} onChange={e => set('horsepower', e.target.value)} style={inputStyle} /></Field>
-              <Field label={t.admin.fields.acceleration} required><input inputMode="decimal" value={form.acceleration} onChange={e => set('acceleration', e.target.value)} style={inputStyle} /></Field>
-              <Field label={t.admin.fields.topSpeed} required><input inputMode="numeric" value={form.topSpeed} onChange={e => set('topSpeed', e.target.value)} style={inputStyle} /></Field>
-              <Field label={t.admin.fields.transmission} required><input value={form.transmission} onChange={e => set('transmission', e.target.value)} style={inputStyle} /></Field>
+              <Field name="seats" label={t.admin.fields.seats} required error={fieldErrors.seats}><input inputMode="numeric" value={form.seats} onChange={e => set('seats', e.target.value)} style={inputStyle} /></Field>
+              <Field name="horsepower" label={t.admin.fields.horsepower} required error={fieldErrors.horsepower}><input inputMode="numeric" value={form.horsepower} onChange={e => set('horsepower', e.target.value)} style={inputStyle} /></Field>
+              <Field name="acceleration" label={t.admin.fields.acceleration} required error={fieldErrors.acceleration}><input inputMode="decimal" value={form.acceleration} onChange={e => set('acceleration', e.target.value)} style={inputStyle} /></Field>
+              <Field name="topSpeed" label={t.admin.fields.topSpeed} required error={fieldErrors.topSpeed}><input inputMode="numeric" value={form.topSpeed} onChange={e => set('topSpeed', e.target.value)} style={inputStyle} /></Field>
+              <Field name="transmission" label={t.admin.fields.transmission} required error={fieldErrors.transmission}><input value={form.transmission} onChange={e => set('transmission', e.target.value)} style={inputStyle} /></Field>
               {(form.fuel === 'Electric' || form.fuel === 'Hybrid') && (
                 <Field label={t.admin.fields.range} hint={t.admin.hints.range}><input inputMode="numeric" value={form.range} onChange={e => set('range', e.target.value)} style={inputStyle} /></Field>
               )}
@@ -252,18 +306,22 @@ function CarForm({ existing, review, initialDocuments, backUrl, backLabel, title
               pickup={form.pickup}
               onCity={city => set('city', city)}
               onAddress={address => setForm(f => ({ ...f, address, pickup: null }))}
-              onPick={place => setForm(f => ({ ...f, address: place.label, pickup: { address: place.label, lat: place.lat, lng: place.lng } }))}
+              onPick={place => { setForm(f => ({ ...f, address: place.label })); set('pickup', { address: place.label, lat: place.lat, lng: place.lng }) }}
+              error={fieldErrors.address}
             />
           </FormSection>
 
           <FormSection title={t.admin.sections.photos}>
-            <PhotoManager photos={form.photos} onChange={photos => set('photos', photos)} />
+            <div id="field-photos" className={fieldErrors.photos ? 'field--error' : undefined} style={{ scrollMarginTop: 140 }}>
+              <PhotoManager photos={form.photos} onChange={photos => set('photos', photos)} />
+              {fieldErrors.photos && <FieldError text={fieldErrors.photos} />}
+            </div>
           </FormSection>
 
           <FormSection title={t.admin.sections.description}>
             <p style={hintStyle}>{t.admin.hints.descriptions}</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 10 }}>
-              <Field label={t.admin.fields.descriptionEn} required><textarea rows={4} value={form.descriptionEn} onChange={e => set('descriptionEn', e.target.value)} style={{ ...inputStyle, resize: 'vertical' }} /></Field>
+              <Field name="descriptionEn" label={t.admin.fields.descriptionEn} required error={fieldErrors.descriptionEn}><textarea rows={4} value={form.descriptionEn} onChange={e => set('descriptionEn', e.target.value)} style={{ ...inputStyle, resize: 'vertical' }} /></Field>
               <Field label={t.admin.fields.descriptionRo}><textarea rows={4} lang="ro" value={form.descriptionRo} onChange={e => set('descriptionRo', e.target.value)} style={{ ...inputStyle, resize: 'vertical' }} /></Field>
               <Field label={t.admin.fields.descriptionRu}><textarea rows={4} lang="ru" value={form.descriptionRu} onChange={e => set('descriptionRu', e.target.value)} style={{ ...inputStyle, resize: 'vertical' }} /></Field>
             </div>
@@ -321,7 +379,7 @@ function CarForm({ existing, review, initialDocuments, backUrl, backLabel, title
 }
 
 // City + street search: the car can only be saved once the address is found on the map.
-function PickupField({ city, cities, address, pickup, onCity, onAddress, onPick }: {
+function PickupField({ city, cities, address, pickup, onCity, onAddress, onPick, error }: {
   city: string
   cities: string[]
   address: string
@@ -329,6 +387,7 @@ function PickupField({ city, cities, address, pickup, onCity, onAddress, onPick 
   onCity: (city: string) => void
   onAddress: (address: string) => void
   onPick: (place: Place) => void
+  error?: string
 }) {
   const { lang, t } = useI18n()
   const [results, setResults] = useState<Place[]>([])
@@ -363,7 +422,7 @@ function PickupField({ city, cities, address, pickup, onCity, onAddress, onPick 
         </Field>
       </div>
       <div style={{ marginTop: 14 }}>
-        <Field label={t.admin.fields.address} hint={t.admin.hints.address} required>
+        <Field name="address" label={t.admin.fields.address} hint={t.admin.hints.address} required error={error}>
           <div style={{ display: 'flex', gap: 8 }}>
             <input
               value={address}
@@ -498,16 +557,21 @@ function FormSection({ title, children }: { title: string; children: ReactNode }
   )
 }
 
-function Field({ label, hint, required = false, children }: { label: string; hint?: string; required?: boolean; children: ReactNode }) {
+// A labelled field; with an `error` it is outlined in red and the reason shows under it.
+function Field({ name, label, hint, required = false, error, children }: { name?: string; label: string; hint?: string; required?: boolean; error?: string; children: ReactNode }) {
   return (
-    <label style={{ display: 'block', minWidth: 0 }}>
-      <span style={{ display: 'block', fontSize: 13, color: '#6e6e73', marginBottom: 6 }}>
+    <label id={name ? `field-${name}` : undefined} className={error ? 'field--error' : undefined} style={{ display: 'block', minWidth: 0, scrollMarginTop: 140 }}>
+      <span style={{ display: 'block', fontSize: 13, color: error ? '#d70015' : '#6e6e73', marginBottom: 6 }}>
         {label}{required && <span style={{ color: '#d70015' }}> *</span>}
       </span>
       {children}
-      {hint && <span style={{ ...hintStyle, display: 'block' }}>{hint}</span>}
+      {error ? <FieldError text={error} /> : hint && <span style={{ ...hintStyle, display: 'block' }}>{hint}</span>}
     </label>
   )
+}
+
+function FieldError({ text }: { text: string }) {
+  return <span role="alert" style={{ display: 'block', fontSize: 13, color: '#d70015', margin: '6px 0 0', lineHeight: 1.4 }}>{text}</span>
 }
 
 const inputStyle: React.CSSProperties = {

@@ -573,6 +573,14 @@ export const en = {
     startsIn: (n: number) => `Starts in ${countOf('en', n, { one: 'day', other: 'days' })}`,
     found: (n: number) => countOf('en', n, { one: 'booking', other: 'bookings' }),
   },
+  carForm: {
+    required: 'This field is required.',
+    number: 'Enter a number greater than 0.',
+    range: (min: number, max: number) => `Must be between ${min} and ${max}.`,
+    address: 'Type the address, press “Find” and pick it from the list.',
+    photos: 'Add at least one photo.',
+    summary: (fields: string) => `Check the fields marked in red: ${fields}.`,
+  },
   adminHosts: {
     tab: 'Hosts',
     title: 'Hosts',

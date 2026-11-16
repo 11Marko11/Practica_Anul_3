@@ -573,6 +573,14 @@ export const ro: Dict = {
     startsIn: (n: number) => `Începe peste ${countOf('ro', n, { one: 'zi', few: 'zile', other: 'de zile' })}`,
     found: (n: number) => countOf('ro', n, { one: 'rezervare', few: 'rezervări', other: 'de rezervări' }),
   },
+  carForm: {
+    required: 'Câmp obligatoriu.',
+    number: 'Introdu un număr mai mare decât 0.',
+    range: (min: number, max: number) => `Trebuie să fie între ${min} și ${max}.`,
+    address: 'Scrie adresa, apasă „Caută” și alege-o din listă.',
+    photos: 'Adaugă cel puțin o fotografie.',
+    summary: (fields: string) => `Verifică câmpurile marcate cu roșu: ${fields}.`,
+  },
   adminHosts: {
     tab: 'Gazde',
     title: 'Gazde',

@@ -573,6 +573,14 @@ export const ru: Dict = {
     startsIn: (n: number) => `Начнётся через ${countOf('ru', n, { one: 'день', few: 'дня', many: 'дней', other: 'дня' })}`,
     found: (n: number) => countOf('ru', n, { one: 'бронирование', few: 'бронирования', many: 'бронирований', other: 'бронирования' }),
   },
+  carForm: {
+    required: 'Обязательное поле.',
+    number: 'Введите число больше 0.',
+    range: (min: number, max: number) => `Должно быть от ${min} до ${max}.`,
+    address: 'Введите адрес, нажмите «Найти» и выберите его из списка.',
+    photos: 'Добавьте хотя бы одну фотографию.',
+    summary: (fields: string) => `Проверьте поля, отмеченные красным: ${fields}.`,
+  },
   adminHosts: {
     tab: 'Владельцы',
     title: 'Владельцы',
