@@ -180,9 +180,14 @@ export function MyBookings() {
             <BookingCard key={b.id} booking={b} to={`/bookings/${b.id}`}>
               {g === 'active' && <div style={{ fontSize: 13, fontWeight: 500, color: '#b25000', marginTop: 6 }}>{mb.inProgress(formatDate(b.returnDate, lang))}</div>}
               {g === 'upcoming' && <div style={{ fontSize: 13, fontWeight: 500, color: '#1b7a35', marginTop: 6 }}>{startsIn <= 0 ? mb.startsToday : mb.startsIn(startsIn)}</div>}
-              <Link to={`/bookings/${b.id}`} style={{ display: 'inline-block', marginTop: 10, fontSize: 14, color: '#0071e3', textDecoration: 'none' }}>
-                {b.status === 'PENDING_PAYMENT' ? t.bookings.pay : t.admin.view} →
-              </Link>
+              <div style={{ marginTop: 12 }}>
+                <Link to={`/bookings/${b.id}`} className="btn-action btn-action--primary" style={{ gap: 6 }}>
+                  {b.status === 'PENDING_PAYMENT' ? t.bookings.pay : t.admin.view}
+                  <svg width="12" height="12" viewBox="0 0 14 14" aria-hidden>
+                    <path d="M3 7h8M7.5 3.5 11 7l-3.5 3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </Link>
+              </div>
             </BookingCard>
           )
         })}
