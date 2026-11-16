@@ -17,7 +17,7 @@ type Dashboard = {
   revenueThisMonth: number
   bookingsThisMonth: number
   cars: { active: number; hidden: number }
-  customers: number
+  users: { total: number; customers: number; hosts: number }
   reviews: { count: number; average: number | null }
   awaiting: Booking[]
   verifications: { id: string; name: string; email: string; verificationSubmittedAt: string | null }[]
@@ -81,7 +81,7 @@ function DashboardContent() {
           <Tile to="/admin/bookings" label={d.tiles.awaiting} value={data ? String(data.awaiting.length) : '—'} />
           <Tile wide to="/admin/transactions" label={d.tiles.revenue} value={data ? <Money value={data.revenueThisMonth} /> : '—'} sub={data ? `${d.tiles.revenueSub(data.bookingsThisMonth)} · ${t.transactions.seeAll}` : undefined} />
           <Tile to="/admin/cars" label={d.tiles.cars} value={data ? String(data.cars.active) : '—'} sub={data ? d.tiles.carsSub(data.cars.hidden) : undefined} />
-          <Tile to="/admin/users?role=customer" label={d.tiles.customers} value={data ? String(data.customers) : '—'} />
+          <Tile to="/admin/users" label={d.tiles.users} value={data ? String(data.users.total) : '—'} sub={data ? d.tiles.usersSub(data.users.customers, data.users.hosts) : undefined} />
           <Tile
             to="/admin/reviews"
             label={d.tiles.reviews}

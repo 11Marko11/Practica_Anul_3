@@ -358,6 +358,8 @@ export const en = {
     title: 'Dashboard',
     hello: (name: string) => `Hello, ${name}`,
     tiles: {
+      users: 'Users',
+      usersSub: (customers: number, hosts: number) => `${countOf('en', customers, { one: 'customer', other: 'customers' })} · ${countOf('en', hosts, { one: 'host', other: 'hosts' })}`,
       awaiting: 'Waiting for hosts',
       revenue: 'Rent Motors income this month',
       revenueSub: (n: number) => `${countOf('en', n, { one: 'booking', other: 'bookings' })} confirmed`,

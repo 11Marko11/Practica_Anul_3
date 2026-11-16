@@ -15,7 +15,7 @@ export async function dashboardRoutes(app: FastifyInstance) {
     const inAWeek = fromIsoDate(addDays(today, 7))
     const forAdmin = { forAdmin: true }
 
-    const [awaiting, upcoming, recent, charged, activeCars, hiddenCars, customers, reviews, verifications, hostApplications, carReviews] = await Promise.all([
+    const [awaiting, upcoming, recent, charged, activeCars, hiddenCars, customers, reviews, verifications, hostApplications, carReviews, hosts] = await Promise.all([
       prisma.booking.findMany({ where: { status: 'AWAITING_CONFIRMATION' }, include: bookingInclude, orderBy: { authorizedAt: 'asc' } }),
       prisma.booking.findMany({
         where: { status: 'CONFIRMED', pickupDate: { gte: fromIsoDate(today), lt: inAWeek } },
@@ -48,6 +48,8 @@ export async function dashboardRoutes(app: FastifyInstance) {
         select: { id: true, slug: true, brand: true, model: true, year: true, reviewSubmittedAt: true, host: { select: { name: true } } },
         orderBy: { reviewSubmittedAt: 'asc' },
       }),
+      // Active accounts with the host role (the others are plain customers).
+      prisma.user.count({ where: { role: 'CUSTOMER', deletedAt: null, host: { isNot: null } } }),
     ])
 
     return {
@@ -55,7 +57,8 @@ export async function dashboardRoutes(app: FastifyInstance) {
       hostsRevenueThisMonth: charged.net,
       bookingsThisMonth: charged.charges,
       cars: { active: activeCars, hidden: hiddenCars },
-      customers,
+      // Active user accounts (admins excluded), and how many of them are hosts.
+      users: { total: customers, customers: customers - hosts, hosts },
       reviews: { count: reviews._count._all, average: reviews._avg.rating === null ? null : Math.round(reviews._avg.rating * 10) / 10 },
       awaiting: awaiting.map(b => toBookingDto(b, forAdmin)),
       upcoming: upcoming.map(b => toBookingDto(b, forAdmin)),

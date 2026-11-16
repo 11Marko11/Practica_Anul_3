@@ -358,6 +358,8 @@ export const ru: Dict = {
     title: 'Панель управления',
     hello: (name: string) => `Здравствуйте, ${name}`,
     tiles: {
+      users: 'Пользователи',
+      usersSub: (customers: number, hosts: number) => `${countOf('ru', customers, { one: 'клиент', few: 'клиента', many: 'клиентов', other: 'клиента' })} · ${countOf('ru', hosts, { one: 'владелец', few: 'владельца', many: 'владельцев', other: 'владельца' })}`,
       awaiting: 'Ожидают владельцев',
       revenue: 'Доход Rent Motors в этом месяце',
       revenueSub: (n: number) => `Подтверждено: ${n}`,

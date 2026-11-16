@@ -358,6 +358,8 @@ export const ro: Dict = {
     title: 'Dashboard',
     hello: (name: string) => `Bună, ${name}`,
     tiles: {
+      users: 'Utilizatori',
+      usersSub: (customers: number, hosts: number) => `${countOf('ro', customers, { one: 'client', few: 'clienți', other: 'de clienți' })} · ${countOf('ro', hosts, { one: 'gazdă', few: 'gazde', other: 'de gazde' })}`,
       awaiting: 'Așteaptă gazdele',
       revenue: 'Venit Rent Motors luna aceasta',
       revenueSub: (n: number) => `${n === 1 ? '1 rezervare confirmată' : `${countOf('ro', n, { few: 'rezervări', other: 'de rezervări' })} confirmate`}`,
