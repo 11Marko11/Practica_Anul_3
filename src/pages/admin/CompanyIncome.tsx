@@ -79,7 +79,7 @@ export function CompanyIncome() {
                 <tbody>
                   {data.company.map(c => (
                     <tr key={c.month}>
-                      <td style={{ fontWeight: 600 }}>{monthLabel(c.month, lang)}{c.current && <span style={{ fontWeight: 400, color: '#86868b' }}> · {f.current}</span>}</td>
+                      <td style={{ fontWeight: 600 }}>{monthLabel(c.month, lang, true)}{c.current && <span style={{ fontWeight: 400, color: '#86868b' }}> · {f.current}</span>}</td>
                       <td className="num">{c.hosts}</td>
                       <td className="num"><Money value={c.charged} /></td>
                       <td className="num" style={{ fontWeight: 600 }}><Money value={c.commission} /></td>
@@ -126,7 +126,7 @@ export function CompanyIncome() {
                           <Link to={`/hosts/${r.host.id}`} style={{ color: '#1d1d1f', textDecoration: 'none' }}>{r.host.name}</Link>
                           {r.host.rate !== null && <span style={{ fontWeight: 400, color: '#86868b' }}> · {r.host.rate}%</span>}
                         </td>
-                        <td>{monthLabel(r.month, lang)}</td>
+                        <td>{monthLabel(r.month, lang, true)}</td>
                         <td className="num">{r.bookings}</td>
                         <td className="num"><Money value={r.charged} /></td>
                         <td className="num">{r.refunded ? <>−<Money value={r.refunded} /></> : f.nothing}</td>

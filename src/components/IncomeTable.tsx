@@ -14,10 +14,11 @@ export type IncomeMonth = {
   current: boolean
 }
 
-// "noiembrie 2026"
-export function monthLabel(month: string, lang: string) {
+// "Noiembrie 2026", or "Nov. 2026" with `short` (for table rows).
+export function monthLabel(month: string, lang: string, short = false) {
   const [y, m] = month.split('-').map(Number)
-  const text = new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString(lang, { month: 'long', year: 'numeric', timeZone: 'UTC' })
+  const full = new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString(lang, { month: short ? 'short' : 'long', year: 'numeric', timeZone: 'UTC' })
+  const text = short ? full.replace(/\s*г\.$/, '') : full // Russian adds "г." after the year
   return text.charAt(0).toUpperCase() + text.slice(1)
 }
 
@@ -53,7 +54,7 @@ export function IncomeTable({ months, action }: { months: IncomeMonth[]; action?
         <tbody>
           {months.map(m => (
             <tr key={m.month}>
-              <td style={{ fontWeight: 600 }}>{monthLabel(m.month, lang)}</td>
+              <td style={{ fontWeight: 600 }}>{monthLabel(m.month, lang, true)}</td>
               <td className="num">{m.bookings}</td>
               <td className="num"><Money value={m.charged} /></td>
               <td className="num">{m.refunded ? <>−<Money value={m.refunded} /></> : f.nothing}</td>
