@@ -1,17 +1,20 @@
 import { useEffect, useRef, useState } from 'react'
 import { useI18n } from '../../i18n/I18nContext'
 import { ApiError } from '../../lib/api'
-import { adminCancelBooking, adminRejectBooking, CANCEL_REASONS, REJECT_REASONS, type Booking, type CancelReason } from '../../lib/bookings'
+import { adminCancelBooking, CANCEL_REASONS, hostRejectBooking, REJECT_REASONS, type CancelReason } from '../../lib/bookings'
 import { fmt } from '../../lib/rental'
 
-// The admin closes a booking with a reason the customer will see:
-// - 'reject' a paid booking waiting for confirmation: the card hold is released, nothing to refund;
-// - 'cancel' a confirmed booking: also choose how much of the charged money goes back (all, part or nothing).
-export function CloseBookingDialog({ booking, mode, onClose, onDone }: { booking: Booking; mode: 'cancel' | 'reject'; onClose: () => void; onDone: () => void }) {
+// What the dialog needs to know about the booking (admin and host pages describe it differently).
+type ClosingBooking = { id: string; car: { brand: string; model: string }; customer?: { name: string } | null; total: number; refundedAmount?: number }
+
+// A booking is closed with a reason the customer will see:
+// - 'reject' (by the car's host) a paid booking waiting for confirmation: the card hold is released;
+// - 'cancel' (by the admin) a confirmed booking: also choose how much of the charged money goes back.
+export function CloseBookingDialog({ booking, mode, onClose, onDone }: { booking: ClosingBooking; mode: 'cancel' | 'reject'; onClose: () => void; onDone: () => void }) {
   const { t } = useI18n()
   const a = t.adminBookings
   const dialog = useRef<HTMLDialogElement>(null)
-  const refundable = booking.total - booking.refundedAmount
+  const refundable = booking.total - (booking.refundedAmount ?? 0)
   const rejecting = mode === 'reject'
   const reasons = rejecting ? REJECT_REASONS : CANCEL_REASONS
   const [reason, setReason] = useState<CancelReason>('car-unavailable')
@@ -33,7 +36,7 @@ export function CloseBookingDialog({ booking, mode, onClose, onDone }: { booking
     setBusy(true)
     setError('')
     try {
-      if (rejecting) await adminRejectBooking(booking.id, { reason, note: note.trim() || undefined })
+      if (rejecting) await hostRejectBooking(booking.id, { reason, note: note.trim() || undefined })
       else await adminCancelBooking(booking.id, { reason, note: note.trim() || undefined, refund })
       onDone()
     } catch (err) {

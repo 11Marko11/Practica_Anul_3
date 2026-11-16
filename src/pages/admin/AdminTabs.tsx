@@ -35,7 +35,7 @@ export function AdminTabs() {
       <NavLink to="/admin" end style={tab}>{t.dashboard.tab}</NavLink>
       <NavLink to="/admin/cars" style={tab}>{t.adminBookings.tabCars} <CountBadge n={counts.carReviews} /></NavLink>
       <NavLink to="/admin/bookings" style={tab}>
-        {t.adminBookings.tabBookings} <CountBadge n={counts.bookings} />
+        {t.adminBookings.tabBookings}
       </NavLink>
       <NavLink to="/admin/transactions" style={tab}>{t.transactions.tab}</NavLink>
       <NavLink to="/admin/users" style={tab}>{t.users.tab} <CountBadge n={counts.verifications + counts.hostRequests} /></NavLink>

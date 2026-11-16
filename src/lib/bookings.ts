@@ -55,7 +55,9 @@ export const adminBookings = (status?: BookingStatus) =>
   api<{ bookings: Booking[] }>(`/admin/bookings${status ? `?status=${status}` : ''}`).then(r => r.bookings)
 export const adminCancelBooking = (id: string, input: { reason: CancelReason; note?: string; refund: number }) =>
   api<{ booking: Booking }>(`/admin/bookings/${id}/cancel`, { body: input }).then(r => r.booking)
-export const adminRejectBooking = (id: string, input: { reason: CancelReason; note?: string }) =>
-  api<{ booking: Booking }>(`/admin/bookings/${id}/reject`, { body: input }).then(r => r.booking)
-export const adminBookingAction = (id: string, action: 'confirm' | 'complete') =>
+export const adminBookingAction = (id: string, action: 'complete') =>
   api<{ booking: Booking }>(`/admin/bookings/${id}/${action}`, { method: 'POST' }).then(r => r.booking)
+
+// The car's host answers a paid booking: confirm (the money is taken) or reject (the hold is released).
+export const hostConfirmBooking = (id: string) => api(`/host/bookings/${id}/confirm`, { method: 'POST' })
+export const hostRejectBooking = (id: string, input: { reason: CancelReason; note?: string }) => api(`/host/bookings/${id}/reject`, { body: input })

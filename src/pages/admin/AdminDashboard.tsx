@@ -6,9 +6,9 @@ import { useAuth } from '../../auth/AuthContext'
 import { StatusBadge } from '../../components/BookingCard'
 import { Money } from '../../components/Money'
 import { useI18n } from '../../i18n/I18nContext'
-import { api, ApiError } from '../../lib/api'
+import { api } from '../../lib/api'
 import { refreshAwaitingCount, useAwaitingCount } from '../../lib/adminNotifications'
-import { adminBookingAction, type Booking } from '../../lib/bookings'
+import type { Booking } from '../../lib/bookings'
 import { fmt, formatDate } from '../../lib/rental'
 import { AdminGuard } from './AdminGuard'
 import { AdminTabs } from './AdminTabs'
@@ -42,9 +42,8 @@ function DashboardContent() {
   const { lang, t } = useI18n()
   const [data, setData] = useState<Dashboard | null>(null)
   const [failed, setFailed] = useState(false)
-  const [busyId, setBusyId] = useState<string | null>(null)
   // The booking being cancelled or rejected in the reason dialog.
-  const [closing, setClosing] = useState<{ booking: Booking; mode: 'cancel' | 'reject' } | null>(null)
+  const [closing, setClosing] = useState<{ booking: Booking; mode: 'cancel' } | null>(null)
   // Reload when a new paid booking arrives (the notification count changes).
   const awaitingCount = useAwaitingCount(true)
 
@@ -62,21 +61,8 @@ function DashboardContent() {
   }, [awaitingCount])
   useLivePoll(() => {
     api<Dashboard>('/admin/dashboard').then(next => setData(prev => (same(prev, next) ? prev : next))).catch(() => {})
-  }, 30_000, !busyId && !closing)
+  }, 30_000, !closing)
 
-  async function act(b: Booking, action: 'confirm') {
-    const question = t.adminBookings.confirmAsk(fmt(b.total))
-    if (!confirm(question)) return
-    setBusyId(b.id)
-    try {
-      await adminBookingAction(b.id, action)
-    } catch (err) {
-      const code = err instanceof ApiError ? err.code : 'unknown'
-      alert(code in t.adminBookings.errors ? t.adminBookings.errors[code as keyof typeof t.adminBookings.errors] : t.adminBookings.errors.unknown)
-    }
-    setBusyId(null)
-    await Promise.all([load(), refreshAwaitingCount()])
-  }
 
   const d = t.dashboard
   const dates = (b: Booking) => `${formatDate(b.pickupDate, lang)} – ${formatDate(b.returnDate, lang)}`
@@ -96,7 +82,7 @@ function DashboardContent() {
         {failed && !data && <p style={{ fontSize: 15, color: '#d70015' }}>{d.loadError}</p>}
 
         <div className="dashboard-tiles">
-          <Tile to="/admin/bookings" label={d.tiles.awaiting} value={data ? String(data.awaiting.length) : '—'} highlight={!!data?.awaiting.length} />
+          <Tile to="/admin/bookings" label={d.tiles.awaiting} value={data ? String(data.awaiting.length) : '—'} />
           <Tile wide to="/admin/transactions" label={d.tiles.revenue} value={data ? <Money value={data.revenueThisMonth} /> : '—'} sub={data ? `${d.tiles.revenueSub(data.bookingsThisMonth)} · ${t.transactions.seeAll}` : undefined} />
           <Tile to="/admin/cars" label={d.tiles.cars} value={data ? String(data.cars.active) : '—'} sub={data ? d.tiles.carsSub(data.cars.hidden) : undefined} />
           <Tile to="/admin/users?role=customer" label={d.tiles.customers} value={data ? String(data.customers) : '—'} />
@@ -111,7 +97,7 @@ function DashboardContent() {
         <div className="dashboard-columns">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 28, minWidth: 0 }}>
             <Panel title={d.attention} link="/admin/bookings">
-              {data?.awaiting.length === 0 && data.verifications.length === 0 && data.hostApplications.length === 0 && data.carReviews.length === 0 && <Empty>✓ {d.allClear}</Empty>}
+              {data?.verifications.length === 0 && data.hostApplications.length === 0 && data.carReviews.length === 0 && <Empty>✓ {d.allClear}</Empty>}
               {data?.verifications.map(u => (
                 <Row key={u.id}>
                   <div style={{ minWidth: 0, flex: 1 }}>
@@ -146,20 +132,6 @@ function DashboardContent() {
                   <Link to={`/admin/users/${u.id}`} className="btn-action btn-action--primary" style={{ gap: 6 }}>
                     {t.hostApply.admin.open} <ArrowIcon />
                   </Link>
-                </Row>
-              ))}
-              {data?.awaiting.map(b => (
-                <Row key={b.id}>
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <RowTitle>{b.car.brand} {b.car.model} · {fmt(b.total)}</RowTitle>
-                    <RowText>{b.customer?.name} · <a href={`tel:${b.phone.replace(/[^+\d]/g, '')}`} style={linkStyle}>{b.phone}</a></RowText>
-                    <RowText>{dates(b)} · {b.handover === 'DELIVERY' ? `${d.delivery}: ${b.deliveryAddress}` : d.pickup}</RowText>
-                    {b.holdExpiresAt && <RowText color="#9a5b00">{t.adminBookings.holdUntil(time(b.holdExpiresAt))}</RowText>}
-                  </div>
-                  <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-                    <SmallAction primary disabled={busyId === b.id} onClick={() => act(b, 'confirm')}>{t.adminBookings.confirm}</SmallAction>
-                    <SmallAction disabled={busyId === b.id} onClick={() => setClosing({ booking: b, mode: 'reject' })}>{t.adminBookings.reject}</SmallAction>
-                  </div>
                 </Row>
               ))}
             </Panel>

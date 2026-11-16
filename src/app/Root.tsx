@@ -8,6 +8,7 @@ import { useI18n } from '../i18n/I18nContext'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { CountBadge } from '../components/CountBadge'
 import { useAwaitingCount } from '../lib/adminNotifications'
+import { useHostAwaiting } from '../lib/hostNotifications'
 
 const NAV_LINKS = [['marketplace', 'rent'], ['about', 'about'], ['contact', 'contact']] as const
 
@@ -17,6 +18,8 @@ export function Root() {
   const { t } = useI18n()
   const { user } = useAuth()
   const awaiting = useAwaitingCount(isAdmin(user))
+  // Bookings waiting for a host's answer.
+  const hostAwaiting = useHostAwaiting(!!user?.host)
   const location = useLocation()
   const navigate = useNavigate()
   const isHome = location.pathname === '/'
@@ -90,7 +93,7 @@ export function Root() {
             aria-expanded={menuOpen}
             style={{ position: 'relative', width: 40, height: 40, marginRight: -8, alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: '#fff' }}
           >
-            {awaiting > 0 && !menuOpen && <span aria-hidden style={{ position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: '50%', background: '#ff3b30' }} />}
+            {awaiting + hostAwaiting > 0 && !menuOpen && <span aria-hidden style={{ position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: '50%', background: '#ff3b30' }} />}
             <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden>
               {menuOpen
                 ? <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
@@ -127,6 +130,8 @@ function AccountButton({ btnStyle }: { btnStyle: React.CSSProperties }) {
   const { t } = useI18n()
   const location = useLocation()
   const awaiting = useAwaitingCount(isAdmin(user))
+  // Bookings waiting for a host's answer.
+  const hostAwaiting = useHostAwaiting(!!user?.host)
   const [open, setOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -164,7 +169,7 @@ function AccountButton({ btnStyle }: { btnStyle: React.CSSProperties }) {
       >
         <Avatar name={user.name} url={user.avatarUrl} size={24} background="#0071e3" />
         {user.name.split(' ')[0]}
-        <CountBadge n={awaiting} />
+        <CountBadge n={awaiting + hostAwaiting} />
       </button>
       {open && (
         <div role="menu" style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', minWidth: 220, background: '#2a2a2d', borderRadius: 14, boxShadow: '0 12px 40px rgba(0,0,0,0.35)', border: '1px solid #3a3a3d', padding: 8 }}>
@@ -183,7 +188,7 @@ function AccountButton({ btnStyle }: { btnStyle: React.CSSProperties }) {
           ) : (
             <MenuLink to="/bookings">{t.bookings.menu}</MenuLink>
           )}
-          {user.host && <MenuLink to="/host">{t.hostPortal.menu}</MenuLink>}
+          {user.host && <MenuLink to="/host">{t.hostPortal.menu} <CountBadge n={hostAwaiting} /></MenuLink>}
           <button
             role="menuitem"
             onClick={() => { signOut(); setOpen(false) }}
@@ -218,6 +223,8 @@ function MobileMenu() {
   const { t } = useI18n()
   const location = useLocation()
   const awaiting = useAwaitingCount(isAdmin(user))
+  // Bookings waiting for a host's answer.
+  const hostAwaiting = useHostAwaiting(!!user?.host)
   const item = ({ isActive }: { isActive: boolean }) => ({ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 0', fontSize: 20, fontWeight: 500, letterSpacing: '-0.02em', color: isActive ? '#fff' : 'rgba(255,255,255,0.7)', textDecoration: 'none', borderBottom: '1px solid #2c2c2e' })
   return (
     <div className="mobile-menu" style={{ background: '#1c1c1e', borderTop: '1px solid #2c2c2e', padding: '8px 24px 24px' }}>
@@ -238,7 +245,7 @@ function MobileMenu() {
       ) : (
         user && <NavLink to="/bookings" end style={item}>{t.bookings.menu}</NavLink>
       )}
-      {user?.host && <NavLink to="/host" style={item}>{t.hostPortal.menu}</NavLink>}
+      {user?.host && <NavLink to="/host" style={item}>{t.hostPortal.menu} <CountBadge n={hostAwaiting} /></NavLink>}
       {loading ? null : user ? (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 20 }}>
           <div style={{ minWidth: 0 }}>

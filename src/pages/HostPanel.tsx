@@ -7,14 +7,17 @@ import { Money } from '../components/Money'
 import { photoUrl } from '../data/cars'
 import { useI18n } from '../i18n/I18nContext'
 import { api, ApiError } from '../lib/api'
-import type { BookingStatus } from '../lib/bookings'
-import { formatDate } from '../lib/rental'
+import { hostConfirmBooking, type BookingStatus } from '../lib/bookings'
+import { refreshHostAwaiting } from '../lib/hostNotifications'
+import { CountBadge } from '../components/CountBadge'
+import { CloseBookingDialog } from './admin/CloseBookingDialog'
+import { fmt, formatDate } from '../lib/rental'
 import { useUrlParams } from '../lib/useUrlParams'
 
 type CarRef = { id: number; slug: string; brand: string; model: string }
 type Period = { pickupDate: string; returnDate: string }
 type HostData = {
-  host: { id: number; name: string; phone: string | null; rating: number | null; reviews: number; trips: number; earned: number; upcoming: number }
+  host: { id: number; name: string; phone: string | null; rating: number | null; reviews: number; trips: number; earned: number; awaiting: number; upcoming: number }
   cars: (CarRef & {
     year: number
     photo: string | null
@@ -39,7 +42,8 @@ type HostData = {
     status: BookingStatus
     total: number
     earned: number
-    customer: { name: string; phone: string } | null // only once the booking is confirmed
+    customer: { name: string; phone: string | null } // the phone only once the booking is confirmed
+    holdExpiresAt: string | null // answer before then, or Stripe releases the payment
     createdAt: string
   })[]
   reviews: { id: string; car: CarRef; name: string; rating: number; text: string; date: string }[]
@@ -48,8 +52,8 @@ type HostData = {
 const TABS = ['cars', 'bookings', 'reviews'] as const
 type Tab = (typeof TABS)[number]
 
-// /host: what a user with the host role follows about their cars. Read-only: bookings are
-// confirmed by the admin.
+// /host: what a user with the host role follows about their cars. The host adds and edits their
+// cars and confirms or rejects the paid bookings of them.
 export function HostPanel() {
   const { user, loading } = useAuth()
   const { t } = useI18n()
@@ -75,11 +79,28 @@ function HostPanelContent() {
   const [data, setData] = useState<HostData | null>(null)
   const [failed, setFailed] = useState(false)
   const load = () => api<HostData>('/host').then(setData).catch(() => setFailed(true))
+  const [busyId, setBusyId] = useState<string | null>(null)
+  const [rejecting, setRejecting] = useState<HostData['bookings'][number] | null>(null)
+
+  // Confirm a paid booking: the money is taken from the customer's card.
+  async function confirmBooking(b: HostData['bookings'][number]) {
+    if (!confirm(h.confirmAsk(fmt(b.total)))) return
+    setBusyId(b.id)
+    try {
+      await hostConfirmBooking(b.id)
+    } catch (err) {
+      const code = err instanceof ApiError ? err.code : 'unknown'
+      const errors = t.adminBookings.errors
+      alert(code in errors ? errors[code as keyof typeof errors] : errors.unknown)
+    }
+    setBusyId(null)
+    await Promise.all([load(), refreshHostAwaiting()])
+  }
   useEffect(() => {
     load()
   }, [])
   // New bookings, reviews and the admin's check of the cars show without a refresh.
-  useLivePoll(() => { api<HostData>('/host').then(next => setData(prev => (same(prev, next) ? prev : next))).catch(() => {}) }, 30_000)
+  useLivePoll(() => { api<HostData>('/host').then(next => setData(prev => (same(prev, next) ? prev : next))).catch(() => {}) }, 30_000, !busyId && !rejecting)
 
   // The car leaves the site at once; the server refuses while a booking is still going on.
   async function remove(car: CarRef) {
@@ -98,7 +119,10 @@ function HostPanelContent() {
   const setParam = (key: string, value: string, fallback: string) => edit(p => (value && value !== fallback ? p.set(key, value) : p.delete(key)))
   const date = (iso: string) => formatDate(iso, lang)
 
-  const bookings = (data?.bookings ?? []).filter(b => !carId || String(b.car.id) === carId)
+  // Bookings waiting for an answer come first.
+  const bookings = (data?.bookings ?? [])
+    .filter(b => !carId || String(b.car.id) === carId)
+    .sort((a, b) => Number(b.status === 'AWAITING_CONFIRMATION') - Number(a.status === 'AWAITING_CONFIRMATION'))
   const reviews = (data?.reviews ?? []).filter(r => !carId || String(r.car.id) === carId)
   const counts: Record<Tab, number> = { cars: data?.cars.length ?? 0, bookings: data?.bookings.length ?? 0, reviews: data?.reviews.length ?? 0 }
 
@@ -124,6 +148,7 @@ function HostPanelContent() {
               <Tile label={h.tiles.rating} value={data.host.rating !== null ? `★ ${data.host.rating.toFixed(1)}` : h.noRating} sub={h.reviewsCount(data.host.reviews)} />
               <Tile label={h.tiles.trips} value={String(data.host.trips)} />
               <Tile label={h.tiles.earned} value={<Money value={data.host.earned} />} />
+              <Tile label={h.awaitingTile} value={String(data.host.awaiting)} />
               <Tile label={h.tiles.upcoming} value={String(data.host.upcoming)} />
             </div>
 
@@ -135,7 +160,7 @@ function HostPanelContent() {
                   aria-pressed={tab === x}
                   style={{ fontSize: 14, fontWeight: 500, padding: '8px 16px', borderRadius: 980, border: '1px solid', borderColor: tab === x ? '#1d1d1f' : '#d2d2d7', background: tab === x ? '#1d1d1f' : '#fff', color: tab === x ? '#fff' : '#1d1d1f', cursor: 'pointer', fontFamily: 'inherit' }}
                 >
-                  {h.tabs[x]} ({counts[x]})
+                  {h.tabs[x]} ({counts[x]}) {x === 'bookings' && <CountBadge n={data.host.awaiting} />}
                 </button>
               ))}
               {tab !== 'cars' && data.cars.length > 1 && (
@@ -208,18 +233,27 @@ function HostPanelContent() {
                     </div>
                     <div style={{ flex: '1 1 200px', fontSize: 13, color: '#6e6e73' }}>
                       <div style={{ color: '#86868b' }}>{h.customer}</div>
-                      {b.customer ? (
-                        <div style={{ color: '#1d1d1f', marginTop: 2 }}>
-                          {b.customer.name} · <a href={`tel:${b.customer.phone}`} style={{ color: '#0071e3', textDecoration: 'none' }}>{b.customer.phone}</a>
-                        </div>
-                      ) : (
-                        <div style={{ marginTop: 2 }}>{h.contactLater}</div>
-                      )}
+                      <div style={{ color: '#1d1d1f', marginTop: 2 }}>
+                        {b.customer.name}
+                        {b.customer.phone ? <> · <a href={`tel:${b.customer.phone}`} style={{ color: '#0071e3', textDecoration: 'none' }}>{b.customer.phone}</a></> : <div style={{ color: '#6e6e73' }}>{h.contactLater}</div>}
+                      </div>
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
                       <strong style={{ fontSize: 16, color: '#1d1d1f' }}><Money value={b.total} /></strong>
                       {b.earned > 0 && b.earned !== b.total && <div style={{ fontSize: 12, color: '#86868b' }}>{h.earned}: <Money value={b.earned} /></div>}
                     </div>
+                    {b.status === 'AWAITING_CONFIRMATION' && (
+                      <div style={{ flexBasis: '100%', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '12px 14px', borderRadius: 14, background: '#fff4e0' }}>
+                        <div style={{ flex: '1 1 240px', fontSize: 13, color: '#9a5b00' }}>
+                          <strong style={{ fontWeight: 600 }}>{h.awaitingTitle}</strong>
+                          {b.holdExpiresAt && <div>{h.answerBy(new Date(b.holdExpiresAt).toLocaleString(lang, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }))}</div>}
+                        </div>
+                        <div className="row-actions">
+                          <button onClick={() => confirmBooking(b)} disabled={busyId === b.id} className="btn-action btn-action--primary">{h.confirm}</button>
+                          <button onClick={() => setRejecting(b)} disabled={busyId === b.id} className="btn-action btn-action--danger">{h.reject}</button>
+                        </div>
+                      </div>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -241,6 +275,14 @@ function HostPanelContent() {
           </>
         )}
       </main>
+      {rejecting && (
+        <CloseBookingDialog
+          booking={rejecting}
+          mode="reject"
+          onClose={() => setRejecting(null)}
+          onDone={() => { setRejecting(null); load(); refreshHostAwaiting() }}
+        />
+      )}
     </div>
   )
 }

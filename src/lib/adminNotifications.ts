@@ -47,7 +47,8 @@ export function useAdminCounts(isAdmin: boolean): Counts {
 // Everything waiting for the admin, for the account menu badge and the browser tab title.
 export function useAwaitingCount(isAdmin: boolean) {
   const c = useAdminCounts(isAdmin)
-  const value = c.bookings + c.verifications + c.hostRequests + c.carReviews
+  // Paid bookings are answered by the hosts now, so they don't count as the admin's work.
+  const value = c.verifications + c.hostRequests + c.carReviews
   // Show the count in the browser tab too, e.g. "(2) Rent Motors".
   useEffect(() => {
     if (!isAdmin) return

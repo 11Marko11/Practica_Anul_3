@@ -26,7 +26,7 @@ function AdminBookingsContent() {
   const [bookings, setBookings] = useState<Booking[] | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
   // The booking being cancelled or rejected in the reason dialog.
-  const [closing, setClosing] = useState<{ booking: Booking; mode: 'cancel' | 'reject' } | null>(null)
+  const [closing, setClosing] = useState<{ booking: Booking; mode: 'cancel' } | null>(null)
 
   async function load() {
     setBookings(await adminBookings(filter === 'ALL' ? undefined : filter).catch(() => []))
@@ -41,9 +41,8 @@ function AdminBookingsContent() {
     adminBookings(filter === 'ALL' ? undefined : filter).then(next => setBookings(prev => (same(prev, next) ? prev : next))).catch(() => {})
   }, 30_000, !busyId && !closing)
 
-  async function act(b: Booking, action: 'confirm' | 'complete') {
-    const question = action === 'confirm' ? t.adminBookings.confirmAsk(fmt(b.total)) : t.adminBookings.completeAsk
-    if (!confirm(question)) return
+  async function act(b: Booking, action: 'complete') {
+    if (action === 'complete' && !confirm(t.adminBookings.completeAsk)) return
     setBusyId(b.id)
     try {
       await adminBookingAction(b.id, action)
@@ -109,12 +108,7 @@ function AdminBookingsContent() {
                 )}
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
-                {b.status === 'AWAITING_CONFIRMATION' && (
-                  <>
-                    <ActionButton primary disabled={busyId === b.id} onClick={() => act(b, 'confirm')}>{t.adminBookings.confirm}</ActionButton>
-                    <ActionButton danger disabled={busyId === b.id} onClick={() => setClosing({ booking: b, mode: 'reject' })}>{t.adminBookings.reject}</ActionButton>
-                  </>
-                )}
+                {b.status === 'AWAITING_CONFIRMATION' && <span style={{ fontSize: 13, color: '#9a5b00' }}>{t.hostPortal.adminWaits}</span>}
                 {b.status === 'CONFIRMED' && (
                   <>
                     <ActionButton disabled={busyId === b.id} onClick={() => act(b, 'complete')}>{t.adminBookings.complete}</ActionButton>
