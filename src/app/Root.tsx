@@ -25,8 +25,6 @@ export function Root() {
   const location = useLocation()
   const navigate = useNavigate()
   const isHome = location.pathname === '/'
-  // The admin and host pages have a section bar under the menu: there both stay in place.
-  const pinned = /^\/(admin|host)(\/|$)/.test(location.pathname)
 
   // Whenever the user is signed out – by "Sign out" or because the session ended – go to the home page.
   // The current page is not shown meanwhile, so pages for signed-in users don't send them to the
@@ -62,7 +60,7 @@ export function Root() {
         background: navBg,
         backdropFilter: transparent ? 'none' : 'blur(20px)',
         borderBottom: `1px solid ${navBorder}`,
-        transform: hidden && !menuOpen && !pinned ? 'translateY(-100%)' : 'none',
+        transform: hidden && !menuOpen ? 'translateY(-100%)' : 'none',
         transition: 'transform 0.3s ease, background 0.3s ease, border-color 0.3s ease',
       }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', height: NAV_HEIGHT, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>

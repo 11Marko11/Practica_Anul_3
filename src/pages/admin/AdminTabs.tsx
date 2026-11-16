@@ -5,12 +5,15 @@ import { isAdmin } from '../../auth/admin'
 import { CountBadge } from '../../components/CountBadge'
 import { useI18n } from '../../i18n/I18nContext'
 import { useAdminCounts } from '../../lib/adminNotifications'
+import { useNavScroll } from '../../lib/useNavScroll'
 
 // The admin sections, centred in a bar fixed under the site menu; Bookings shows how many wait for confirmation.
 export function AdminTabs() {
   const { t } = useI18n()
   const { user } = useAuth()
   const counts = useAdminCounts(isAdmin(user))
+  // Moves up with the site menu when that hides while scrolling down.
+  const { hidden } = useNavScroll()
   // On narrow screens the bar scrolls sideways: bring the current section into view.
   const bar = useRef<HTMLElement>(null)
   const { pathname } = useLocation()
@@ -27,7 +30,7 @@ export function AdminTabs() {
   return (
     <>
     <div className="admin-tabs-space" aria-hidden />
-    <nav ref={bar} className="admin-tabs">
+    <nav ref={bar} className="admin-tabs" style={{ transform: hidden ? 'translateY(-52px)' : 'none' }}>
       <div className="admin-tabs-inner">
       <NavLink to="/admin" end style={tab}>{t.dashboard.tab}</NavLink>
       <NavLink to="/admin/cars" style={tab}>{t.adminBookings.tabCars} <CountBadge n={counts.carReviews} /></NavLink>
