@@ -5,6 +5,7 @@ export type AdminHost = {
   id: number
   name: string
   phone: string | null
+  commissionRate: number // Rent Motors' share (%) of the host's monthly income
   rating: number | null // average of the reviews of their cars; null before the first review
   reviews: number
   trips: number // completed rentals of their cars
@@ -30,7 +31,11 @@ export function useAdminHosts(enabled = true) {
   return { hosts, reload }
 }
 
-export const createHostWithAccount = (input: HostInput & Required<AccountInput>) => api<{ id: number }>('/admin/hosts', { body: input })
+// Rent Motors' possible shares (%) of a host's income.
+export const COMMISSION_RATES = [5, 10, 15, 20, 25, 30] as const
+export const updateCommission = (id: number, rate: number) => api(`/admin/hosts/${id}/commission`, { method: 'PUT', body: { rate } })
+
+export const createHostWithAccount = (input: HostInput & Required<AccountInput> & { commissionRate?: number }) => api<{ id: number }>('/admin/hosts', { body: input })
 export const updateHostAccount = (id: number, input: AccountInput) => api(`/admin/hosts/${id}/account`, { method: 'PUT', body: input })
 export const updateHost = (id: number, input: HostInput) => api(`/admin/hosts/${id}`, { method: 'PUT', body: input })
 export const deleteHost = (id: number) => api(`/admin/hosts/${id}`, { method: 'DELETE' })

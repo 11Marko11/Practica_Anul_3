@@ -23,6 +23,7 @@ import { HostProfile } from '../pages/HostProfile'
 import { MyBookings } from '../pages/MyBookings'
 import { BookingDetails } from '../pages/BookingDetails'
 import { Profile } from '../pages/Profile'
+import { Notifications } from '../pages/Notifications'
 
 export const router = createBrowserRouter([
   {
@@ -38,6 +39,7 @@ export const router = createBrowserRouter([
       { path: 'terms', Component: Terms },
       { path: 'privacy', Component: Privacy },
       { path: 'profile', Component: Profile },
+      { path: 'notifications', Component: Notifications },
       { path: 'bookings', Component: MyBookings },
       { path: 'bookings/:id', Component: BookingDetails },
       { path: 'admin', Component: AdminDashboard },

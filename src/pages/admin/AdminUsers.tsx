@@ -10,7 +10,7 @@ import { Money } from '../../components/Money'
 import { pageFrom, Pagination } from '../../components/Pagination'
 import { useI18n } from '../../i18n/I18nContext'
 import { api, ApiError } from '../../lib/api'
-import { createHostWithAccount, deleteHost, updateHostAccount, useAdminHosts, type AccountInput, type AdminHost, type HostInput } from '../../lib/hosts'
+import { createHostWithAccount, deleteHost, updateCommission, updateHostAccount, useAdminHosts, type AccountInput, type AdminHost, type HostInput } from '../../lib/hosts'
 import type { Booking } from '../../lib/bookings'
 import { formatDate } from '../../lib/rental'
 import { useUrlParams } from '../../lib/useUrlParams'
@@ -18,7 +18,7 @@ import { AdminGuard } from './AdminGuard'
 import { AdminTabs } from './AdminTabs'
 import { Avatar } from '../../components/Avatar'
 import { CountBadge } from '../../components/CountBadge'
-import { AccountEditor, control, field, HostEditor } from './HostForms'
+import { AccountEditor, CommissionSelect, control, field, HostEditor } from './HostForms'
 import { DocumentCards } from '../../components/PrivateDocuments'
 import { hostDocumentUrl, type HostApplicationStatus, type HostDocumentType, type PrivateDocument } from '../../lib/privateDocuments'
 
@@ -162,7 +162,7 @@ function UserList() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  async function addHost(input: HostInput & AccountInput) {
+  async function addHost(input: HostInput & AccountInput & { commissionRate?: number }) {
     const { id } = await createHostWithAccount({ ...input, password: input.password ?? '' })
     const r = await reloadHosts()
     const account = r?.find(h => h.id === id)?.account
@@ -241,7 +241,7 @@ function UserList() {
                   </div>
                   <div style={{ fontSize: 12, color: '#86868b', marginTop: 2 }}>
                     {e.host
-                      ? `${e.host.rating !== null ? `★ ${e.host.rating.toFixed(1)}` : t.adminHosts.noRatings} · ${t.common.trips(e.host.trips)} · ${t.adminHosts.cars(e.host.cars.filter(car => car.status !== 'REMOVED').length)}`
+                      ? `${e.host.rating !== null ? `★ ${e.host.rating.toFixed(1)}` : t.adminHosts.noRatings} · ${t.common.trips(e.host.trips)} · ${t.adminHosts.cars(e.host.cars.filter(car => car.status !== 'REMOVED').length)} · ${t.commission.label}: ${e.host.commissionRate}%`
                       : x && (x.active ? c.since(formatDate(x.createdAt.slice(0, 10), lang)) : c.deletedOn(formatDate(x.deletedAt!.slice(0, 10), lang)))}
                     {x?.lastBookingAt && ` · ${c.lastBooking(formatDate(x.lastBookingAt.slice(0, 10), lang))}`}
                   </div>
@@ -316,6 +316,7 @@ function UserDetail({ id }: { id: string }) {
             {host ? (
               <HostCard
                 host={host}
+                onChanged={reloadAll}
                 onDeleted={() => navigate('/admin/users', { replace: true })}
                 extra={<HostRolePanel customer={data.customer} cars={host.cars.length} onChange={reloadAll} />}
               />
@@ -386,7 +387,7 @@ function HostOnlyDetail({ hostId }: { hostId: number }) {
             <div style={{ padding: 20, borderRadius: 16, background: '#f5f5f7' }}>
               <AccountEditor host={host} onSave={createAccount} onCancel={() => navigate('/admin/users')} />
             </div>
-            <HostCard host={host} onDeleted={() => navigate('/admin/users', { replace: true })} />
+            <HostCard host={host} onChanged={reload} onDeleted={() => navigate('/admin/users', { replace: true })} />
           </>
         )}
       </main>
@@ -485,7 +486,7 @@ function AccountPanel({ data, onChange }: { data: Detail; onChange: () => Promis
 
 // The host profile tied to a user (or a host without an account): public name and phone,
 // rating, trips and cars, with edit and delete.
-function HostCard({ host, onDeleted, extra }: { host: AdminHost; onDeleted: () => void; extra?: React.ReactNode }) {
+function HostCard({ host, onDeleted, onChanged, extra }: { host: AdminHost; onDeleted: () => void; onChanged: () => Promise<unknown>; extra?: React.ReactNode }) {
   const { t } = useI18n()
   const h = t.adminHosts
   const u = t.users
@@ -519,6 +520,7 @@ function HostCard({ host, onDeleted, extra }: { host: AdminHost; onDeleted: () =
                 </Link>
               ))}
             </div>
+            <CommissionEditor host={host} onChanged={onChanged} />
             <div className="row-actions" style={{ marginTop: 16 }}>
               <Link to={`/hosts/${host.id}`} className="btn-action btn-action--neutral">{u.publicProfile}</Link>
               <button onClick={remove} className="btn-action btn-action--danger">{u.deleteHost}</button>
@@ -689,13 +691,14 @@ function HostApplicationPanel({ data, onChange }: { data: Detail; onChange: () =
   const [rejecting, setRejecting] = useState(false)
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
+  const [rate, setRate] = useState(10)
   const time = (iso: string) => new Date(iso).toLocaleString(lang, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })
 
   async function decide(action: 'approve' | 'reject') {
     if (action === 'approve' && !confirm(a.approveAsk)) return
     setBusy(true)
     try {
-      await api(`/admin/customers/${c.id}/host-application/${action}`, action === 'reject' ? { body: { note: note.trim() } } : { method: 'POST' })
+      await api(`/admin/customers/${c.id}/host-application/${action}`, { body: action === 'reject' ? { note: note.trim() } : { commissionRate: rate } })
       setRejecting(false)
       setNote('')
       await onChange()
@@ -743,7 +746,8 @@ function HostApplicationPanel({ data, onChange }: { data: Detail; onChange: () =
                   </div>
                 </form>
               ) : (
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                  <div style={{ flex: '0 1 260px' }}><CommissionSelect value={rate} onChange={setRate} /></div>
                   <button onClick={() => decide('approve')} disabled={busy} style={{ ...actionButton, background: '#1b7a35', color: '#fff' }}>✓ {a.approve}</button>
                   <button onClick={() => setRejecting(true)} style={{ ...actionButton, background: '#fff', color: '#d70015', border: '1px solid #f0c4c4' }}>{a.reject}</button>
                 </div>
@@ -753,5 +757,37 @@ function HostApplicationPanel({ data, onChange }: { data: Detail; onChange: () =
         </>
       )}
     </>
+  )
+}
+
+// The host's commission: shown, and changed by the admin (the host gets a notification).
+function CommissionEditor({ host, onChanged }: { host: AdminHost; onChanged: () => Promise<unknown> }) {
+  const { t } = useI18n()
+  const c = t.commission
+  const [rate, setRate] = useState(host.commissionRate)
+  const [busy, setBusy] = useState(false)
+  useEffect(() => setRate(host.commissionRate), [host.commissionRate])
+
+  async function save() {
+    if (!confirm(c.changeAsk(host.commissionRate, rate))) return
+    setBusy(true)
+    try {
+      await updateCommission(host.id, rate)
+      await onChanged()
+    } catch {
+      alert(c.error)
+    }
+    setBusy(false)
+  }
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, flexWrap: 'wrap', marginTop: 14, padding: '12px 14px', borderRadius: 14, background: '#f5f5f7' }}>
+      <div style={{ flex: '1 1 160px', fontSize: 13, color: '#6e6e73' }}>
+        {c.label}
+        <div style={{ fontSize: 22, fontWeight: 600, color: '#1d1d1f', marginTop: 2 }}>{c.rate(host.commissionRate)}</div>
+      </div>
+      <div style={{ flex: '0 1 240px' }}><CommissionSelect value={rate} onChange={setRate} /></div>
+      <button onClick={save} disabled={busy || rate === host.commissionRate} className="btn-action btn-action--primary" style={{ opacity: rate === host.commissionRate ? 0.4 : 1 }}>{c.change}</button>
+    </div>
   )
 }

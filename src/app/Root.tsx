@@ -9,6 +9,7 @@ import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { CountBadge } from '../components/CountBadge'
 import { useAwaitingCount } from '../lib/adminNotifications'
 import { useHostAwaiting } from '../lib/hostNotifications'
+import { useUnreadNotifications } from '../lib/notifications'
 
 const NAV_LINKS = [['marketplace', 'rent'], ['about', 'about'], ['contact', 'contact']] as const
 
@@ -20,6 +21,7 @@ export function Root() {
   const awaiting = useAwaitingCount(isAdmin(user))
   // Bookings waiting for a host's answer.
   const hostAwaiting = useHostAwaiting(!!user?.host)
+  const unread = useUnreadNotifications(!!user)
   const location = useLocation()
   const navigate = useNavigate()
   const isHome = location.pathname === '/'
@@ -84,6 +86,7 @@ export function Root() {
           </div>
           <div className="nav-account" style={{ alignItems: 'center', gap: 12 }}>
             <LanguageSwitcher />
+            <NotificationBell />
             <AccountButton btnStyle={btnStyle} />
           </div>
           <button
@@ -93,7 +96,7 @@ export function Root() {
             aria-expanded={menuOpen}
             style={{ position: 'relative', width: 40, height: 40, marginRight: -8, alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: '#fff' }}
           >
-            {awaiting + hostAwaiting > 0 && !menuOpen && <span aria-hidden style={{ position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: '50%', background: '#ff3b30' }} />}
+            {awaiting + hostAwaiting + unread > 0 && !menuOpen && <span aria-hidden style={{ position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: '50%', background: '#ff3b30' }} />}
             <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden>
               {menuOpen
                 ? <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
@@ -122,6 +125,22 @@ export function Root() {
         </div>
       </footer>
     </div>
+  )
+}
+
+// The bell next to the account menu: opens the notifications, with a red count of unread ones.
+function NotificationBell() {
+  const { user } = useAuth()
+  const { t } = useI18n()
+  const unread = useUnreadNotifications(!!user)
+  if (!user) return null
+  return (
+    <NavLink to="/notifications" aria-label={t.notifications.title} title={t.notifications.title} style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, borderRadius: '50%', color: '#f5f5f7', background: 'rgba(255,255,255,0.12)' }}>
+      <svg width="17" height="17" viewBox="0 0 20 20" aria-hidden>
+        <path d="M10 2.5a5 5 0 0 0-5 5v3.2L3.5 13.5h13L15 10.7V7.5a5 5 0 0 0-5-5ZM8 16a2 2 0 0 0 4 0" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      {unread > 0 && <span style={{ position: 'absolute', top: -4, right: -6 }}><CountBadge n={unread} /></span>}
+    </NavLink>
   )
 }
 
@@ -225,6 +244,7 @@ function MobileMenu() {
   const awaiting = useAwaitingCount(isAdmin(user))
   // Bookings waiting for a host's answer.
   const hostAwaiting = useHostAwaiting(!!user?.host)
+  const unread = useUnreadNotifications(!!user)
   const item = ({ isActive }: { isActive: boolean }) => ({ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 0', fontSize: 20, fontWeight: 500, letterSpacing: '-0.02em', color: isActive ? '#fff' : 'rgba(255,255,255,0.7)', textDecoration: 'none', borderBottom: '1px solid #2c2c2e' })
   return (
     <div className="mobile-menu" style={{ background: '#1c1c1e', borderTop: '1px solid #2c2c2e', padding: '8px 24px 24px' }}>
@@ -238,6 +258,7 @@ function MobileMenu() {
         </NavLink>
       ))}
       {user && <NavLink to="/profile" style={item}>{t.profile.menu}</NavLink>}
+      {user && <NavLink to="/notifications" style={item}>{t.notifications.menu} <CountBadge n={unread} /></NavLink>}
       {isAdmin(user) ? (
         <NavLink to="/admin" style={item}>
           {t.dashboard.menu} <CountBadge n={awaiting} />

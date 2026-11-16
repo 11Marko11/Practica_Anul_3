@@ -7,12 +7,11 @@ import { StatusBadge } from '../../components/BookingCard'
 import { Money } from '../../components/Money'
 import { useI18n } from '../../i18n/I18nContext'
 import { api } from '../../lib/api'
-import { refreshAwaitingCount, useAwaitingCount } from '../../lib/adminNotifications'
+import { useAwaitingCount } from '../../lib/adminNotifications'
 import type { Booking } from '../../lib/bookings'
 import { fmt, formatDate } from '../../lib/rental'
 import { AdminGuard } from './AdminGuard'
 import { AdminTabs } from './AdminTabs'
-import { CloseBookingDialog } from './CloseBookingDialog'
 
 type Dashboard = {
   revenueThisMonth: number
@@ -42,8 +41,6 @@ function DashboardContent() {
   const { lang, t } = useI18n()
   const [data, setData] = useState<Dashboard | null>(null)
   const [failed, setFailed] = useState(false)
-  // The booking being cancelled or rejected in the reason dialog.
-  const [closing, setClosing] = useState<{ booking: Booking; mode: 'cancel' } | null>(null)
   // Reload when a new paid booking arrives (the notification count changes).
   const awaitingCount = useAwaitingCount(true)
 
@@ -61,11 +58,10 @@ function DashboardContent() {
   }, [awaitingCount])
   useLivePoll(() => {
     api<Dashboard>('/admin/dashboard').then(next => setData(prev => (same(prev, next) ? prev : next))).catch(() => {})
-  }, 30_000, !closing)
+  }, 30_000)
 
 
   const d = t.dashboard
-  const dates = (b: Booking) => `${formatDate(b.pickupDate, lang)} – ${formatDate(b.returnDate, lang)}`
   const time = (iso: string) => new Date(iso).toLocaleString(lang, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })
 
   return (
@@ -146,7 +142,6 @@ function DashboardContent() {
                     <RowText>{b.customer?.name} · <a href={`tel:${b.phone.replace(/[^+\d]/g, '')}`} style={linkStyle}>{b.phone}</a></RowText>
                     <RowText>{b.handover === 'DELIVERY' ? `${d.delivery}: ${b.deliveryAddress}` : d.pickup}</RowText>
                   </div>
-                  <SmallAction onClick={() => setClosing({ booking: b, mode: 'cancel' })}>{t.adminBookings.cancel}</SmallAction>
                 </Row>
               ))}
             </Panel>
@@ -176,7 +171,6 @@ function DashboardContent() {
           </div>
         </div>
       </main>
-      {closing && <CloseBookingDialog booking={closing.booking} mode={closing.mode} onClose={() => setClosing(null)} onDone={() => { setClosing(null); load(); refreshAwaitingCount() }} />}
     </div>
   )
 }
@@ -230,17 +224,6 @@ function Empty({ children }: { children: ReactNode }) {
   return <p style={{ fontSize: 14, color: '#6e6e73', margin: 0, padding: '16px 0' }}>{children}</p>
 }
 
-function SmallAction({ primary, disabled, onClick, children }: { primary?: boolean; disabled?: boolean; onClick: () => void; children: ReactNode }) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      style={{ fontSize: 13, fontWeight: 500, padding: '8px 14px', borderRadius: 980, cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1, border: primary ? 'none' : '1px solid #d2d2d7', background: primary ? '#1d1d1f' : '#fff', color: primary ? '#fff' : '#1d1d1f' }}
-    >
-      {children}
-    </button>
-  )
-}
 
 function QuickLink({ to, primary, external, children }: { to: string; primary?: boolean; external?: boolean; children: ReactNode }) {
   return (

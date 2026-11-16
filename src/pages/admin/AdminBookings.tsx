@@ -2,13 +2,9 @@ import { useEffect, useState } from 'react'
 import { same, useLivePoll } from '../../lib/livePoll'
 import { BookingCard } from '../../components/BookingCard'
 import { useI18n } from '../../i18n/I18nContext'
-import { ApiError } from '../../lib/api'
-import { adminBookingAction, adminBookings, type Booking, type BookingStatus } from '../../lib/bookings'
-import { refreshAwaitingCount } from '../../lib/adminNotifications'
-import { fmt } from '../../lib/rental'
+import { adminBookings, type Booking, type BookingStatus } from '../../lib/bookings'
 import { AdminGuard } from './AdminGuard'
 import { AdminTabs } from './AdminTabs'
-import { CloseBookingDialog } from './CloseBookingDialog'
 
 const FILTERS: (BookingStatus | 'ALL')[] = ['AWAITING_CONFIRMATION', 'CONFIRMED', 'PENDING_PAYMENT', 'COMPLETED', 'ALL']
 
@@ -24,9 +20,6 @@ function AdminBookingsContent() {
   const { lang, t } = useI18n()
   const [filter, setFilter] = useState<BookingStatus | 'ALL'>('AWAITING_CONFIRMATION')
   const [bookings, setBookings] = useState<Booking[] | null>(null)
-  const [busyId, setBusyId] = useState<string | null>(null)
-  // The booking being cancelled or rejected in the reason dialog.
-  const [closing, setClosing] = useState<{ booking: Booking; mode: 'cancel' } | null>(null)
 
   async function load() {
     setBookings(await adminBookings(filter === 'ALL' ? undefined : filter).catch(() => []))
@@ -39,20 +32,8 @@ function AdminBookingsContent() {
   // New bookings and changes made elsewhere show without a refresh.
   useLivePoll(() => {
     adminBookings(filter === 'ALL' ? undefined : filter).then(next => setBookings(prev => (same(prev, next) ? prev : next))).catch(() => {})
-  }, 30_000, !busyId && !closing)
+  }, 30_000)
 
-  async function act(b: Booking, action: 'complete') {
-    if (action === 'complete' && !confirm(t.adminBookings.completeAsk)) return
-    setBusyId(b.id)
-    try {
-      await adminBookingAction(b.id, action)
-    } catch (err) {
-      const code = err instanceof ApiError ? err.code : 'unknown'
-      alert(code in t.adminBookings.errors ? t.adminBookings.errors[code as keyof typeof t.adminBookings.errors] : t.adminBookings.errors.unknown)
-    }
-    setBusyId(null)
-    await Promise.all([load(), refreshAwaitingCount()])
-  }
 
   const time = (iso: string) => new Date(iso).toLocaleString(lang, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })
   const label = (f: BookingStatus | 'ALL') => (f === 'ALL' ? t.adminBookings.all : t.bookings.status[f])
@@ -109,34 +90,12 @@ function AdminBookingsContent() {
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
                 {b.status === 'AWAITING_CONFIRMATION' && <span style={{ fontSize: 13, color: '#9a5b00' }}>{t.hostPortal.adminWaits}</span>}
-                {b.status === 'CONFIRMED' && (
-                  <>
-                    <ActionButton disabled={busyId === b.id} onClick={() => act(b, 'complete')}>{t.adminBookings.complete}</ActionButton>
-                    <ActionButton danger disabled={busyId === b.id} onClick={() => setClosing({ booking: b, mode: 'cancel' })}>{t.adminBookings.cancel}</ActionButton>
-                  </>
-                )}
               </div>
             </BookingCard>
           ))}
         </div>
       </main>
-      {closing && <CloseBookingDialog booking={closing.booking} mode={closing.mode} onClose={() => setClosing(null)} onDone={() => { setClosing(null); load(); refreshAwaitingCount() }} />}
     </div>
   )
 }
 
-function ActionButton({ primary, danger, disabled, onClick, children }: { primary?: boolean; danger?: boolean; disabled?: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        fontSize: 14, fontWeight: 500, padding: '9px 18px', borderRadius: 980, cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1,
-        border: primary ? 'none' : '1px solid', borderColor: danger ? '#f0c4c4' : '#d2d2d7',
-        background: primary ? '#1d1d1f' : '#fff', color: primary ? '#fff' : danger ? '#d70015' : '#1d1d1f',
-      }}
-    >
-      {children}
-    </button>
-  )
-}

@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { useI18n } from '../../i18n/I18nContext'
 import { ApiError } from '../../lib/api'
-import type { AccountInput, AdminHost, HostInput } from '../../lib/hosts'
+import { COMMISSION_RATES, type AccountInput, type AdminHost, type HostInput } from '../../lib/hosts'
 
 // Name and phone of a host, for adding a new one (with the email and password of their
 // account) or editing one.
 export function HostEditor({ host, withAccount = false, onSave, onCancel }: {
   host?: AdminHost
   withAccount?: boolean
-  onSave: (input: HostInput & AccountInput) => Promise<void>
+  onSave: (input: HostInput & AccountInput & { commissionRate?: number }) => Promise<void>
   onCancel: () => void
 }) {
   const { t } = useI18n()
@@ -17,6 +17,7 @@ export function HostEditor({ host, withAccount = false, onSave, onCancel }: {
   const [phone, setPhone] = useState(host?.phone ?? '')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [rate, setRate] = useState(10)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const ready = name.trim() && (!withAccount || (email.trim() && password.length >= 8))
@@ -26,7 +27,7 @@ export function HostEditor({ host, withAccount = false, onSave, onCancel }: {
     if (!ready) return
     setBusy(true)
     try {
-      await onSave({ name: name.trim(), phone: phone.trim() || undefined, email: email.trim(), ...(withAccount ? { password } : {}) })
+      await onSave({ name: name.trim(), phone: phone.trim() || undefined, email: email.trim(), ...(withAccount ? { password, commissionRate: rate } : {}) })
     } catch (err) {
       setError(err instanceof ApiError && err.code === 'email-taken' ? h.emailTaken : h.error)
       setBusy(false)
@@ -44,6 +45,7 @@ export function HostEditor({ host, withAccount = false, onSave, onCancel }: {
         <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} maxLength={30} placeholder="+373…" style={{ ...control, borderRadius: 10 }} />
       </label>
       {withAccount && <AccountFields email={email} password={password} onEmail={setEmail} onPassword={setPassword} passwordLabel={h.password} />}
+      {withAccount && <CommissionSelect value={rate} onChange={setRate} />}
       <button type="submit" disabled={busy || !ready} style={{ fontSize: 14, fontWeight: 500, padding: '10px 20px', borderRadius: 980, background: '#1d1d1f', color: '#fff', border: 'none', cursor: 'pointer', opacity: busy || !ready ? 0.5 : 1 }}>
         {h.save}
       </button>
@@ -115,3 +117,16 @@ export function AccountFields({ email, password, onEmail, onPassword, passwordLa
 
 export const control: React.CSSProperties = { fontSize: 14, padding: '9px 14px', borderRadius: 980, border: '1px solid #d2d2d7', background: '#fff', color: '#1d1d1f', fontFamily: 'inherit', outline: 'none' }
 export const field: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, color: '#6e6e73', flex: '1 1 200px' }
+
+// Rent Motors' share of a host's monthly income: 5, 10, 15, 20, 25 or 30 %.
+export function CommissionSelect({ value, onChange }: { value: number; onChange: (rate: number) => void }) {
+  const { t } = useI18n()
+  return (
+    <label style={field}>
+      {t.commission.choose}
+      <select value={value} onChange={e => onChange(Number(e.target.value))} style={{ ...control, borderRadius: 10 }}>
+        {COMMISSION_RATES.map(r => <option key={r} value={r}>{t.commission.rate(r)}</option>)}
+      </select>
+    </label>
+  )
+}

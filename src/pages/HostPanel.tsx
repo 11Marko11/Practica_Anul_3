@@ -7,7 +7,7 @@ import { Money } from '../components/Money'
 import { photoUrl } from '../data/cars'
 import { useI18n } from '../i18n/I18nContext'
 import { api, ApiError } from '../lib/api'
-import { hostConfirmBooking, type BookingStatus } from '../lib/bookings'
+import { hostCompleteBooking, hostConfirmBooking, type BookingStatus } from '../lib/bookings'
 import { refreshHostAwaiting } from '../lib/hostNotifications'
 import { CountBadge } from '../components/CountBadge'
 import { CloseBookingDialog } from './admin/CloseBookingDialog'
@@ -42,6 +42,8 @@ type HostData = {
     status: BookingStatus
     total: number
     earned: number
+    refundedAmount: number
+    commissionRate: number | null // Rent Motors' share (%) once confirmed
     customer: { name: string; phone: string | null } // the phone only once the booking is confirmed
     holdExpiresAt: string | null // answer before then, or Stripe releases the payment
     createdAt: string
@@ -80,7 +82,7 @@ function HostPanelContent() {
   const [failed, setFailed] = useState(false)
   const load = () => api<HostData>('/host').then(setData).catch(() => setFailed(true))
   const [busyId, setBusyId] = useState<string | null>(null)
-  const [rejecting, setRejecting] = useState<HostData['bookings'][number] | null>(null)
+  const [closing, setClosing] = useState<{ booking: HostData['bookings'][number]; mode: 'reject' | 'cancel' } | null>(null)
 
   // Confirm a paid booking: the money is taken from the customer's card.
   async function confirmBooking(b: HostData['bookings'][number]) {
@@ -96,11 +98,26 @@ function HostPanelContent() {
     setBusyId(null)
     await Promise.all([load(), refreshHostAwaiting()])
   }
+
+  // The car was returned: the trip counts, and the customer may review the car.
+  async function completeBooking(b: HostData['bookings'][number]) {
+    if (!confirm(t.adminBookings.completeAsk)) return
+    setBusyId(b.id)
+    try {
+      await hostCompleteBooking(b.id)
+    } catch (err) {
+      const code = err instanceof ApiError ? err.code : 'unknown'
+      const errors = t.adminBookings.errors
+      alert(code in errors ? errors[code as keyof typeof errors] : errors.unknown)
+    }
+    setBusyId(null)
+    await load()
+  }
   useEffect(() => {
     load()
   }, [])
   // New bookings, reviews and the admin's check of the cars show without a refresh.
-  useLivePoll(() => { api<HostData>('/host').then(next => setData(prev => (same(prev, next) ? prev : next))).catch(() => {}) }, 30_000, !busyId && !rejecting)
+  useLivePoll(() => { api<HostData>('/host').then(next => setData(prev => (same(prev, next) ? prev : next))).catch(() => {}) }, 30_000, !busyId && !closing)
 
   // The car leaves the site at once; the server refuses while a booking is still going on.
   async function remove(car: CarRef) {
@@ -250,8 +267,14 @@ function HostPanelContent() {
                         </div>
                         <div className="row-actions">
                           <button onClick={() => confirmBooking(b)} disabled={busyId === b.id} className="btn-action btn-action--primary">{h.confirm}</button>
-                          <button onClick={() => setRejecting(b)} disabled={busyId === b.id} className="btn-action btn-action--danger">{h.reject}</button>
+                          <button onClick={() => setClosing({ booking: b, mode: 'reject' })} disabled={busyId === b.id} className="btn-action btn-action--danger">{h.reject}</button>
                         </div>
+                      </div>
+                    )}
+                    {b.status === 'CONFIRMED' && (
+                      <div className="row-actions" style={{ flexBasis: '100%' }}>
+                        <button onClick={() => completeBooking(b)} disabled={busyId === b.id} className="btn-action btn-action--primary">{t.adminBookings.complete}</button>
+                        <button onClick={() => setClosing({ booking: b, mode: 'cancel' })} disabled={busyId === b.id} className="btn-action btn-action--danger">{t.adminBookings.cancel}</button>
                       </div>
                     )}
                   </li>
@@ -275,12 +298,12 @@ function HostPanelContent() {
           </>
         )}
       </main>
-      {rejecting && (
+      {closing && (
         <CloseBookingDialog
-          booking={rejecting}
-          mode="reject"
-          onClose={() => setRejecting(null)}
-          onDone={() => { setRejecting(null); load(); refreshHostAwaiting() }}
+          booking={closing.booking}
+          mode={closing.mode}
+          onClose={() => setClosing(null)}
+          onDone={() => { setClosing(null); load(); refreshHostAwaiting() }}
         />
       )}
     </div>
