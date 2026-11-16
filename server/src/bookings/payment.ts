@@ -1,5 +1,6 @@
 import type Stripe from 'stripe'
 import { prisma } from '../db.js'
+import { carName, notify } from '../notifications/notify.js'
 import { stripe } from '../payments/stripe.js'
 
 // Moves an unpaid booking forward from what Stripe reports about its Checkout Session.
@@ -10,12 +11,16 @@ export async function syncCheckout(bookingId: string) {
   const session = await stripe().checkout.sessions.retrieve(booking.stripeCheckoutSessionId, { expand: ['payment_intent'] })
   const intent = session.payment_intent as Stripe.PaymentIntent | null
 
-  // The card was authorised but not charged: the money is on hold until the admin decides.
+  // The card was authorised but not charged: the money is on hold until the car's host decides.
   if (session.status === 'complete' && intent?.status === 'requires_capture') {
-    await prisma.booking.updateMany({
+    const done = await prisma.booking.updateMany({
       where: { id: booking.id, status: 'PENDING_PAYMENT' },
       data: { status: 'AWAITING_CONFIRMATION', stripePaymentIntentId: intent.id, authorizedAt: new Date() },
     })
+    if (done.count) {
+      const car = await prisma.car.findUniqueOrThrow({ where: { id: booking.carId }, select: { brand: true, model: true, host: { select: { userId: true } } } })
+      await notify(car.host.userId, 'booking-awaiting', { car: carName(car), from: booking.pickupDate.toISOString().slice(0, 10), to: booking.returnDate.toISOString().slice(0, 10) }, '/host?tab=bookings')
+    }
   } else if (session.status === 'expired') {
     await markUnpaidExpired(booking.id)
   }

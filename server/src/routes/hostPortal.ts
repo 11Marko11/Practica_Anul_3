@@ -2,8 +2,9 @@ import type { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { requireHost } from '../auth/guards.js'
 import { isoDate, todayInMoldova } from '../bookings/dates.js'
-import { confirmBooking, rejectBooking } from '../bookings/decisions.js'
-import { REJECT_REASONS } from '../bookings/dto.js'
+import { cancelBooking, confirmBooking, rejectBooking } from '../bookings/decisions.js'
+import { CANCEL_REASONS, REJECT_REASONS } from '../bookings/dto.js'
+import { completeBooking } from '../bookings/payment.js'
 import { carData, carInclude, hostCarInput, REQUIRED_CAR_DOCUMENTS, type CarInput } from '../cars/dto.js'
 import { prisma } from '../db.js'
 import { HttpError } from '../http/errors.js'
@@ -86,6 +87,8 @@ export async function hostPortalRoutes(app: FastifyInstance) {
           status: b.status,
           total: b.total,
           earned: earned(b),
+          refundedAmount: b.refundedAmount,
+          commissionRate: b.commissionRate,
           // The name helps the host decide; the phone shows once the booking is confirmed.
           customer: { name: b.user.name, phone: confirmed ? b.phone : null },
           // Stripe releases the card hold after 7 days: the host must answer before then.
@@ -164,6 +167,26 @@ export async function hostPortalRoutes(app: FastifyInstance) {
       .refine(b => b.reason !== 'other' || !!b.note, { path: ['note'], message: 'Explain the reason' })
       .parse(request.body)
     await rejectBooking(id, body)
+    return { ok: true }
+  })
+
+  // The car was returned: the trip counts, and the customer may review the car.
+  app.post('/host/bookings/:id/complete', { preHandler: requireHost }, async request => {
+    const id = await ownBooking(request)
+    const booking = await prisma.booking.findUniqueOrThrow({ where: { id }, select: { status: true } })
+    if (booking.status !== 'CONFIRMED') throw new HttpError(409, 'not-confirmed')
+    await completeBooking(id)
+    return { ok: true }
+  })
+
+  // Cancel a confirmed booking with a reason, refunding all, part or none of the money.
+  app.post('/host/bookings/:id/cancel', { preHandler: requireHost }, async request => {
+    const id = await ownBooking(request)
+    const body = z
+      .object({ reason: z.enum(CANCEL_REASONS), note: z.string().trim().max(1000).optional(), refund: z.int().min(0) })
+      .refine(b => b.reason !== 'other' || !!b.note, { path: ['note'], message: 'Explain the reason' })
+      .parse(request.body)
+    await cancelBooking(id, body)
     return { ok: true }
   })
 

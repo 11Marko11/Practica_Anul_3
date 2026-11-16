@@ -6,6 +6,8 @@ import { normalizePhone } from '../auth/phone.js'
 import { phoneInUse, uniqueViolation } from './auth.js'
 import { documentDto, hostDocumentMeta } from './hostApplication.js'
 import { removeHost } from '../hosts/removeHost.js'
+import { COMMISSION_RATES } from '../hosts/commission.js'
+import { notify } from '../notifications/notify.js'
 import { bookingInclude, toBookingDto } from '../bookings/dto.js'
 import { prisma } from '../db.js'
 import { HttpError } from '../http/errors.js'
@@ -148,15 +150,18 @@ export async function adminPeopleRoutes(app: FastifyInstance) {
   // phone, and they get the host pages to add their cars.
   app.post('/admin/customers/:id/host-application/approve', async (request, reply) => {
     const { id } = z.object({ id: z.uuid() }).parse(request.params)
+    // Rent Motors' share of the host's income, chosen when the request is approved.
+    const { commissionRate } = z.object({ commissionRate: z.union(COMMISSION_RATES.map(r => z.literal(r))) }).parse(request.body)
     const user = await customer(id)
     if (user.deletedAt) throw new HttpError(409, 'account-deleted')
     if (user.hostApplicationStatus !== 'PENDING') throw new HttpError(409, 'no-pending-application')
     const host = await prisma.$transaction(async tx => {
       if (await tx.host.findUnique({ where: { userId: id }, select: { id: true } })) throw new HttpError(409, 'already-host')
-      const created = await tx.host.create({ data: { name: user.name, phone: user.phone, userId: id }, select: { id: true, name: true } })
+      const created = await tx.host.create({ data: { name: user.name, phone: user.phone, userId: id, commissionRate }, select: { id: true, name: true } })
       await tx.user.update({ where: { id }, data: { hostApplicationStatus: 'APPROVED', hostApplicationNote: null } })
       return created
     })
+    await notify(id, 'host-approved', { rate: commissionRate }, '/host')
     reply.code(201)
     return { host }
   })
@@ -168,6 +173,7 @@ export async function adminPeopleRoutes(app: FastifyInstance) {
     await customer(id)
     const done = await prisma.user.updateMany({ where: { id, hostApplicationStatus: 'PENDING' }, data: { hostApplicationStatus: 'REJECTED', hostApplicationNote: note } })
     if (!done.count) throw new HttpError(409, 'no-pending-application')
+    await notify(id, 'host-rejected', { note }, '/profile')
     return { ok: true }
   })
 

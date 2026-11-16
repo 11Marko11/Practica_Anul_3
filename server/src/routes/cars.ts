@@ -5,6 +5,7 @@ import { carInclude, isListed, LISTED, REQUIRED_CAR_DOCUMENTS, slugBase, toCarDt
 import { hostStats } from '../cars/hostStats.js'
 import { prisma } from '../db.js'
 import { HttpError } from '../http/errors.js'
+import { carName, notify } from '../notifications/notify.js'
 import { documentDto, hostDocumentMeta } from './hostApplication.js'
 
 const idParam = z.object({ id: z.coerce.number().int().positive() })
@@ -85,6 +86,8 @@ export async function carRoutes(app: FastifyInstance) {
       data: body.decision === 'approve' ? { reviewStatus: 'APPROVED', reviewNote: null } : { reviewStatus: 'REJECTED', reviewNote: body.note },
     })
     if (!done.count) throw new HttpError(404, 'car-not-found')
+    const car = await prisma.car.findUniqueOrThrow({ where: { id }, select: { id: true, brand: true, model: true, host: { select: { userId: true } } } })
+    await notify(car.host.userId, body.decision === 'approve' ? 'car-approved' : 'car-rejected', { car: carName(car), ...(body.decision === 'reject' ? { note: body.note } : {}) }, `/host/cars/${car.id}`)
     return { ok: true }
   })
 

@@ -95,6 +95,23 @@ model User {
   hostApplicationNote        String? // why the admin rejected the request, shown to the customer
   hostApplicationSubmittedAt DateTime?
   hostDocuments              HostDocument[]
+  notifications              Notification[]
+}
+
+// Messages in a user's notification box, e.g. "your commission rate changed". `type` picks the
+// text on the website (in the user's language); `data` holds the details it shows.
+model Notification {
+  id        String    @id @default(uuid())
+  userId    String
+  type      String
+  data      Json      @default("{}")
+  link      String? // page to open, e.g. "/host?tab=bookings"
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }
 
 enum HostApplicationStatus {
@@ -231,14 +248,16 @@ model Car {
 // and trips are not stored: they are calculated from the reviews and completed bookings of
 // their cars (see cars/hostStats.ts).
 model Host {
-  id        Int      @id @default(autoincrement())
-  name      String
-  phone     String?
+  id             Int      @id @default(autoincrement())
+  name           String
+  phone          String?
+  // Rent Motors' share (%) of the host's monthly income, set by the admin (5–30, in steps of 5).
+  commissionRate Int      @default(10)
   // The user account of the host, if the admin gave someone the host role. That user can
   // then follow the host's cars, bookings and reviews on the host pages.
-  userId    String?  @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  userId         String?  @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
   cars Car[]
@@ -289,6 +308,8 @@ model Booking {
   cancelReason            String? // a code such as 'car-unavailable' (labels live in the website's translations)
   cancelNote              String? // the admin's explanation, shown to the customer
   refundedAmount          Int          @default(0)
+  // Rent Motors' share (%) of this booking, the host's rate when it was confirmed.
+  commissionRate          Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -7,6 +7,8 @@ import { hostStats } from '../cars/hostStats.js'
 import { prisma } from '../db.js'
 import { HttpError } from '../http/errors.js'
 import { removeHost } from '../hosts/removeHost.js'
+import { COMMISSION_RATES } from '../hosts/commission.js'
+import { notify } from '../notifications/notify.js'
 
 const idParam = z.object({ id: z.coerce.number().int().positive() })
 const hostInput = z.object({
@@ -68,6 +70,7 @@ export async function hostRoutes(app: FastifyInstance) {
         id: h.id,
         name: h.name,
         phone: h.phone,
+        commissionRate: h.commissionRate,
         ...stats(h.id),
         // The user account with the host role, if any.
         account: h.user ? { id: h.user.id, name: h.user.name, email: h.user.deletedEmail ?? h.user.email, hasPassword: h.user.passwordHash !== '!' } : null,
@@ -79,12 +82,13 @@ export async function hostRoutes(app: FastifyInstance) {
 
   // A new host always comes with their account, so they can sign in and add cars.
   app.post('/admin/hosts', { preHandler: requireAdmin }, async (request, reply) => {
-    const input = hostInput.extend({ email, password }).parse(request.body)
+    const input = hostInput.extend({ email, password, commissionRate: z.union(COMMISSION_RATES.map(r => z.literal(r))).default(10) }).parse(request.body)
     await emailFree(input.email)
     const host = await prisma.host.create({
       data: {
         name: input.name,
         phone: input.phone,
+        commissionRate: input.commissionRate,
         user: {
           create: {
             name: input.name, email: input.email, passwordHash: await hashPassword(input.password),
@@ -129,6 +133,20 @@ export async function hostRoutes(app: FastifyInstance) {
     const input = hostInput.parse(request.body)
     const done = await prisma.host.updateMany({ where: { id }, data: input })
     if (!done.count) throw new HttpError(404, 'host-not-found')
+    return { ok: true }
+  })
+
+  // Changes Rent Motors' share of the host's income. It applies to bookings confirmed from now
+  // on; the host is told in their notification box.
+  app.put('/admin/hosts/:id/commission', { preHandler: requireAdmin }, async request => {
+    const { id } = idParam.parse(request.params)
+    const { rate } = z.object({ rate: z.union(COMMISSION_RATES.map(r => z.literal(r))) }).parse(request.body)
+    const host = await prisma.host.findUnique({ where: { id }, select: { commissionRate: true, userId: true } })
+    if (!host) throw new HttpError(404, 'host-not-found')
+    if (host.commissionRate !== rate) {
+      await prisma.host.update({ where: { id }, data: { commissionRate: rate } })
+      await notify(host.userId, 'commission-changed', { from: host.commissionRate, to: rate }, '/host?tab=finances')
+    }
     return { ok: true }
   })
 
