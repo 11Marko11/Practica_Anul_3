@@ -300,3 +300,10 @@ select:not([multiple]):not([size]) {
 
 /* A form field with a mistake: red outline. */
 .field--error input, .field--error textarea, .field--error select { border-color: #d70015 !important; box-shadow: 0 0 0 3px rgba(215, 0, 21, 0.12); }
+
+/* Income by month: a plain table that scrolls sideways on phones. */
+.income-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 760px; }
+.income-table th { text-align: left; font-size: 12px; font-weight: 500; color: #6e6e73; padding: 12px 14px; background: #f5f5f7; white-space: nowrap; }
+.income-table td { padding: 12px 14px; border-top: 1px solid #f0f0f0; color: #1d1d1f; white-space: nowrap; }
+.income-table .num { text-align: right; }
+.income-table tfoot td { font-weight: 600; background: #fafafa; }

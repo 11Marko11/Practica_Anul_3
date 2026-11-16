@@ -5,6 +5,8 @@ import { isoDate, todayInMoldova } from '../bookings/dates.js'
 import { cancelBooking, confirmBooking, rejectBooking } from '../bookings/decisions.js'
 import { CANCEL_REASONS, REJECT_REASONS } from '../bookings/dto.js'
 import { completeBooking } from '../bookings/payment.js'
+import { ledger } from '../bookings/ledger.js'
+import { hostMonths, moldovaMonth } from '../finance/hostIncome.js'
 import { carData, carInclude, hostCarInput, REQUIRED_CAR_DOCUMENTS, type CarInput } from '../cars/dto.js'
 import { prisma } from '../db.js'
 import { HttpError } from '../http/errors.js'
@@ -138,6 +140,27 @@ export async function hostPortalRoutes(app: FastifyInstance) {
       cars,
       bookings: bookings.sort((a, b) => b.pickupDate.localeCompare(a.pickupDate)),
       reviews,
+    }
+  })
+
+  // The host's money: income per month (charged, refunded, Rent Motors' commission, what they
+  // keep and whether the commission was paid) and every money movement of their cars.
+  app.get('/host/finances', { preHandler: requireHost }, async request => {
+    const id = hostId(request)
+    const [host, entries] = await Promise.all([
+      prisma.host.findUniqueOrThrow({ where: { id }, select: { commissionRate: true } }),
+      ledger({ car: { hostId: id } }),
+    ])
+    const months = await hostMonths(entries)
+    const now = moldovaMonth(new Date())
+    return {
+      rate: host.commissionRate,
+      currentMonth: now,
+      months: months.map(({ hostId: _, ...m }) => m),
+      // Commission of finished months not paid yet.
+      due: months.filter(m => !m.current && !m.paid && m.commission > 0).reduce((s, m) => s + m.commission, 0),
+      onHold: entries.filter(e => e.type === 'hold').reduce((s, e) => s + e.amount, 0),
+      entries: entries.map(e => ({ id: e.id, type: e.type, at: e.at.toISOString(), month: moldovaMonth(e.at), amount: e.amount, rate: e.rate, booking: { id: e.booking.id, car: e.booking.car, customer: e.booking.customer } })),
     }
   })
 

@@ -1,3 +1,4 @@
+import type { Prisma } from '../generated/prisma/client.js'
 import { prisma } from '../db.js'
 
 // Money movements, rebuilt from the bookings (Stripe holds the same history; this is the
@@ -12,21 +13,25 @@ export type LedgerEntry = {
   at: Date
   amount: number
   booking: { id: string; status: string; car: string; customer: string; email: string }
+  hostId: number // the car's host
+  rate: number // Rent Motors' share (%) of this booking
 }
 
-export async function ledger(): Promise<LedgerEntry[]> {
+// `where` narrows the bookings, e.g. to one host's cars.
+export async function ledger(where: Prisma.BookingWhereInput = {}): Promise<LedgerEntry[]> {
   const bookings = await prisma.booking.findMany({
-    where: { authorizedAt: { not: null } },
-    include: { car: { select: { brand: true, model: true } }, user: { select: { name: true, email: true } } },
+    where: { ...where, authorizedAt: { not: null } },
+    include: { car: { select: { brand: true, model: true, hostId: true, host: { select: { commissionRate: true } } } }, user: { select: { name: true, email: true } } },
   })
   const entries: LedgerEntry[] = []
   for (const b of bookings) {
     const booking = { id: b.id, status: b.status, car: `${b.car.brand} ${b.car.model}`, customer: b.user.name, email: b.user.email }
     const closedAt = b.cancelledAt ?? b.updatedAt
-    if (b.status === 'AWAITING_CONFIRMATION') entries.push({ id: `${b.id}-hold`, type: 'hold', at: b.authorizedAt!, amount: b.total, booking })
-    if (b.confirmedAt) entries.push({ id: `${b.id}-charge`, type: 'charge', at: b.confirmedAt, amount: b.total, booking })
-    else if (b.status !== 'AWAITING_CONFIRMATION') entries.push({ id: `${b.id}-release`, type: 'release', at: closedAt, amount: b.total, booking })
-    if (b.refundedAmount > 0) entries.push({ id: `${b.id}-refund`, type: 'refund', at: closedAt, amount: -b.refundedAmount, booking })
+    const own = { hostId: b.car.hostId, rate: b.commissionRate ?? b.car.host.commissionRate }
+    if (b.status === 'AWAITING_CONFIRMATION') entries.push({ id: `${b.id}-hold`, type: 'hold', at: b.authorizedAt!, amount: b.total, booking, ...own })
+    if (b.confirmedAt) entries.push({ id: `${b.id}-charge`, type: 'charge', at: b.confirmedAt, amount: b.total, booking, ...own })
+    else if (b.status !== 'AWAITING_CONFIRMATION') entries.push({ id: `${b.id}-release`, type: 'release', at: closedAt, amount: b.total, booking, ...own })
+    if (b.refundedAmount > 0) entries.push({ id: `${b.id}-refund`, type: 'refund', at: closedAt, amount: -b.refundedAmount, booking, ...own })
   }
   return entries.sort((a, b) => b.at.getTime() - a.at.getTime())
 }

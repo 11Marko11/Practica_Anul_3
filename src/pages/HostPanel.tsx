@@ -11,6 +11,7 @@ import { hostCompleteBooking, hostConfirmBooking, type BookingStatus } from '../
 import { refreshHostAwaiting } from '../lib/hostNotifications'
 import { CountBadge } from '../components/CountBadge'
 import { CloseBookingDialog } from './admin/CloseBookingDialog'
+import { HostFinances } from './HostFinances'
 import { fmt, formatDate } from '../lib/rental'
 import { useUrlParams } from '../lib/useUrlParams'
 
@@ -51,7 +52,7 @@ type HostData = {
   reviews: { id: string; car: CarRef; name: string; rating: number; text: string; date: string }[]
 }
 
-const TABS = ['cars', 'bookings', 'reviews'] as const
+const TABS = ['cars', 'bookings', 'finances', 'reviews'] as const
 type Tab = (typeof TABS)[number]
 
 // /host: what a user with the host role follows about their cars. The host adds and edits their
@@ -141,7 +142,7 @@ function HostPanelContent() {
     .filter(b => !carId || String(b.car.id) === carId)
     .sort((a, b) => Number(b.status === 'AWAITING_CONFIRMATION') - Number(a.status === 'AWAITING_CONFIRMATION'))
   const reviews = (data?.reviews ?? []).filter(r => !carId || String(r.car.id) === carId)
-  const counts: Record<Tab, number> = { cars: data?.cars.length ?? 0, bookings: data?.bookings.length ?? 0, reviews: data?.reviews.length ?? 0 }
+  const counts: Partial<Record<Tab, number>> = { cars: data?.cars.length ?? 0, bookings: data?.bookings.length ?? 0, reviews: data?.reviews.length ?? 0 }
 
   return (
     <div style={{ paddingTop: 52 }}>
@@ -177,7 +178,7 @@ function HostPanelContent() {
                   aria-pressed={tab === x}
                   style={{ fontSize: 14, fontWeight: 500, padding: '8px 16px', borderRadius: 980, border: '1px solid', borderColor: tab === x ? '#1d1d1f' : '#d2d2d7', background: tab === x ? '#1d1d1f' : '#fff', color: tab === x ? '#fff' : '#1d1d1f', cursor: 'pointer', fontFamily: 'inherit' }}
                 >
-                  {h.tabs[x]} ({counts[x]}) {x === 'bookings' && <CountBadge n={data.host.awaiting} />}
+                  {h.tabs[x]}{counts[x] !== undefined && ` (${counts[x]})`} {x === 'bookings' && <CountBadge n={data.host.awaiting} />}
                 </button>
               ))}
               {tab !== 'cars' && data.cars.length > 1 && (
@@ -281,6 +282,8 @@ function HostPanelContent() {
                 ))}
               </ul>
             )}
+
+            {tab === 'finances' && <HostFinances />}
 
             {tab === 'reviews' && (
               <ul style={list}>

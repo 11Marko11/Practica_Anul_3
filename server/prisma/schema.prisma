@@ -259,8 +259,23 @@ model Host {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
-  cars Car[]
+  user     User?                   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  cars     Car[]
+  payments HostCommissionPayment[]
+}
+
+// The admin marks a month's commission as paid by the host (paid outside the site, e.g. by bank
+// transfer). `amount` is what was due when it was marked.
+model HostCommissionPayment {
+  id     String   @id @default(uuid())
+  hostId Int
+  month  String // "2026-11", Moldova time
+  amount Int // MDL
+  paidAt DateTime @default(now())
+
+  host Host @relation(fields: [hostId], references: [id], onDelete: Cascade)
+
+  @@unique([hostId, month])
 }
 
 model CarPhoto {
