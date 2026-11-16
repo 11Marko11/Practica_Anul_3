@@ -309,3 +309,7 @@ select:not([multiple]):not([size]) {
 .income-table td { padding: 12px 14px; border-top: 1px solid #f0f0f0; color: #1d1d1f; white-space: nowrap; }
 .income-table .num { text-align: right; }
 .income-table tfoot td { font-weight: 600; background: #fafafa; }
+
+/* Host panel sections: centred at the top of the page header (not fixed); scroll sideways on phones. */
+.host-tabs { position: relative; overflow-x: auto; scrollbar-width: none; margin: 0 -24px; padding: 0 24px; }
+.host-tabs::-webkit-scrollbar { display: none; }
