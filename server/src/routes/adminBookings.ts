@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { requireAdmin } from '../auth/guards.js'
-import { bookingInclude, CANCEL_REASONS, REJECT_REASONS, toBookingDto } from '../bookings/dto.js'
+import { bookingInclude, CANCEL_REASONS, toBookingDto } from '../bookings/dto.js'
 import { completeBooking } from '../bookings/payment.js'
 import { prisma } from '../db.js'
 import { HttpError } from '../http/errors.js'
@@ -44,44 +44,8 @@ export async function adminBookingRoutes(app: FastifyInstance) {
     return { bookings: bookings.map(b => toBookingDto(b, { forAdmin: true })) }
   })
 
-  // Confirm: the held money is now taken from the customer's card.
-  app.post('/admin/bookings/:id/confirm', async request => {
-    const { id } = idParam.parse(request.params)
-    const booking = await findBooking(id)
-    if (booking.status !== 'AWAITING_CONFIRMATION' || !booking.stripePaymentIntentId) throw new HttpError(409, 'not-awaiting-confirmation')
-    try {
-      await stripe().paymentIntents.capture(booking.stripePaymentIntentId)
-    } catch (err) {
-      request.log.warn(err, 'Capture failed')
-      const intent = await stripe().paymentIntents.retrieve(booking.stripePaymentIntentId)
-      if (intent.status === 'canceled') {
-        // Released by Stripe after 7 days, or the customer cancelled at the same moment.
-        await prisma.booking.updateMany({ where: { id, status: 'AWAITING_CONFIRMATION' }, data: { status: 'EXPIRED' } })
-        throw new HttpError(409, (await findBooking(id)).status === 'CANCELLED' ? 'not-awaiting-confirmation' : 'payment-hold-expired')
-      }
-      if (intent.status !== 'succeeded') throw new HttpError(502, 'payment-provider-error')
-    }
-    await prisma.booking.update({ where: { id }, data: { status: 'CONFIRMED', confirmedAt: new Date() } })
-    return reply(id)
-  })
-
-  // Reject: the hold is released and the customer pays nothing. The admin says why.
-  app.post('/admin/bookings/:id/reject', async request => {
-    const { id } = idParam.parse(request.params)
-    const body = z
-      .object({ reason: z.enum(REJECT_REASONS), note: z.string().trim().max(1000).optional() })
-      .refine(b => b.reason !== 'other' || !!b.note, { path: ['note'], message: 'Explain the reason' })
-      .parse(request.body)
-    const booking = await findBooking(id)
-    if (booking.status !== 'AWAITING_CONFIRMATION' || !booking.stripePaymentIntentId) throw new HttpError(409, 'not-awaiting-confirmation')
-    const intent = await stripe().paymentIntents.retrieve(booking.stripePaymentIntentId)
-    if (intent.status === 'requires_capture') await stripe().paymentIntents.cancel(intent.id)
-    await prisma.booking.update({
-      where: { id },
-      data: { status: 'REJECTED', cancelledBy: 'ADMIN', cancelledAt: new Date(), cancelReason: body.reason, cancelNote: body.note || null },
-    })
-    return reply(id)
-  })
+  // Paid bookings are confirmed or rejected by the car's host (see hostPortal.ts); the admin
+  // follows them, ends trips and cancels confirmed bookings with a refund.
 
   // The car was returned: the trip counts for the host, and the customer may now review the car.
   app.post('/admin/bookings/:id/complete', async request => {

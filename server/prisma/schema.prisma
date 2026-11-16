@@ -39,6 +39,7 @@ enum CarStatus {
 enum CancelledBy {
   CUSTOMER
   ADMIN
+  HOST // the car's owner rejected the booking
 }
 
 enum Handover {

@@ -2,6 +2,8 @@ import type { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { requireHost } from '../auth/guards.js'
 import { isoDate, todayInMoldova } from '../bookings/dates.js'
+import { confirmBooking, rejectBooking } from '../bookings/decisions.js'
+import { REJECT_REASONS } from '../bookings/dto.js'
 import { carData, carInclude, hostCarInput, REQUIRED_CAR_DOCUMENTS, type CarInput } from '../cars/dto.js'
 import { prisma } from '../db.js'
 import { HttpError } from '../http/errors.js'
@@ -84,7 +86,10 @@ export async function hostPortalRoutes(app: FastifyInstance) {
           status: b.status,
           total: b.total,
           earned: earned(b),
-          customer: confirmed ? { name: b.user.name, phone: b.phone } : null,
+          // The name helps the host decide; the phone shows once the booking is confirmed.
+          customer: { name: b.user.name, phone: confirmed ? b.phone : null },
+          // Stripe releases the card hold after 7 days: the host must answer before then.
+          holdExpiresAt: b.status === 'AWAITING_CONFIRMATION' && b.authorizedAt ? new Date(b.authorizedAt.getTime() + 7 * 86_400_000).toISOString() : null,
           createdAt: b.createdAt.toISOString(),
         }
       }),
@@ -124,12 +129,42 @@ export async function hostPortalRoutes(app: FastifyInstance) {
         reviews: reviews.length,
         trips: allCars.reduce((s, c) => s + c.trips, 0),
         earned: allCars.reduce((s, c) => s + c.earned, 0),
+        awaiting: bookings.filter(b => b.status === 'AWAITING_CONFIRMATION').length,
         upcoming: bookings.filter(b => (b.status === 'CONFIRMED' || b.status === 'AWAITING_CONFIRMATION') && b.returnDate >= today).length,
       },
       cars,
       bookings: bookings.sort((a, b) => b.pickupDate.localeCompare(a.pickupDate)),
       reviews,
     }
+  })
+
+  // How many paid bookings wait for this host's answer, for the menu badge.
+  app.get('/host/summary', { preHandler: requireHost }, async request => ({
+    awaiting: await prisma.booking.count({ where: { status: 'AWAITING_CONFIRMATION', car: { hostId: hostId(request) } } }),
+  }))
+
+  // The host answers a paid booking of one of their cars: confirm (the money is taken from the
+  // card) or reject with a reason the customer sees (the card hold is released).
+  async function ownBooking(request: FastifyRequest) {
+    const { id } = z.object({ id: z.uuid() }).parse(request.params)
+    const booking = await prisma.booking.findFirst({ where: { id, car: { hostId: hostId(request) } }, select: { id: true } })
+    if (!booking) throw new HttpError(404, 'booking-not-found')
+    return booking.id
+  }
+
+  app.post('/host/bookings/:id/confirm', { preHandler: requireHost }, async request => {
+    await confirmBooking(await ownBooking(request), request.log)
+    return { ok: true }
+  })
+
+  app.post('/host/bookings/:id/reject', { preHandler: requireHost }, async request => {
+    const id = await ownBooking(request)
+    const body = z
+      .object({ reason: z.enum(REJECT_REASONS), note: z.string().trim().max(1000).optional() })
+      .refine(b => b.reason !== 'other' || !!b.note, { path: ['note'], message: 'Explain the reason' })
+      .parse(request.body)
+    await rejectBooking(id, body)
+    return { ok: true }
   })
 
   // The full car with its papers, for the host's edit form.
