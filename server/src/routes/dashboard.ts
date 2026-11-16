@@ -6,6 +6,7 @@ import { ledger, netBetween } from '../bookings/ledger.js'
 import { hostMonths, moldovaMonth } from '../finance/hostIncome.js'
 import { LISTED } from '../cars/dto.js'
 import { prisma } from '../db.js'
+import { dashboardStats } from '../finance/dashboardStats.js'
 
 // Everything the admin dashboard shows, in one request.
 export async function dashboardRoutes(app: FastifyInstance) {
@@ -65,6 +66,7 @@ export async function dashboardRoutes(app: FastifyInstance) {
       recent: recent.map(b => toBookingDto(b, forAdmin)),
       verifications: verifications.map(u => ({ ...u, verificationSubmittedAt: u.verificationSubmittedAt?.toISOString() ?? null })),
       carReviews: carReviews.map(c => ({ ...c, host: c.host.name, reviewSubmittedAt: c.reviewSubmittedAt?.toISOString() ?? null })),
+      stats: await dashboardStats(monthStart, today),
       hostApplications: hostApplications.map(u => ({ ...u, hostApplicationSubmittedAt: u.hostApplicationSubmittedAt?.toISOString() ?? null })),
     }
   })
