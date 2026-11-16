@@ -3,8 +3,8 @@ import { z } from 'zod'
 import { requireHost } from '../auth/guards.js'
 import { isoDate, todayInMoldova } from '../bookings/dates.js'
 import { cancelBooking, confirmBooking, rejectBooking } from '../bookings/decisions.js'
-import { CANCEL_REASONS, REJECT_REASONS } from '../bookings/dto.js'
-import { completeBooking } from '../bookings/payment.js'
+import { CANCEL_REASONS, customerCanComplete, REJECT_REASONS } from '../bookings/dto.js'
+import { completeBooking, returnPlace } from '../bookings/payment.js'
 import { ledger } from '../bookings/ledger.js'
 import { hostMonths, moldovaMonth } from '../finance/hostIncome.js'
 import { startCommissionCheckout, syncCommissionSession } from '../finance/commissionPayment.js'
@@ -91,6 +91,8 @@ export async function hostPortalRoutes(app: FastifyInstance) {
           total: b.total,
           earned: earned(b),
           refundedAmount: b.refundedAmount,
+          canComplete: customerCanComplete(b),
+          returnLocation: b.returnAddress ? { address: b.returnAddress, lat: b.returnLat, lng: b.returnLng, by: b.completedBy } : null,
           commissionRate: b.commissionRate,
           // The name helps the host decide; the phone shows once the booking is confirmed.
           customer: { name: b.user.name, phone: confirmed ? b.phone : null },
@@ -209,12 +211,14 @@ export async function hostPortalRoutes(app: FastifyInstance) {
     return { ok: true }
   })
 
-  // The car was returned: the trip counts, and the customer may review the car.
+  // The car was returned: the host ends the trip (from the pick-up day on), saying where the car
+  // was left. The trip counts, and the customer may review the car.
   app.post('/host/bookings/:id/complete', { preHandler: requireHost }, async request => {
     const id = await ownBooking(request)
-    const booking = await prisma.booking.findUniqueOrThrow({ where: { id }, select: { status: true } })
-    if (booking.status !== 'CONFIRMED') throw new HttpError(409, 'not-confirmed')
-    await completeBooking(id)
+    const place = returnPlace.parse(request.body)
+    const booking = await prisma.booking.findUniqueOrThrow({ where: { id }, select: { status: true, pickupDate: true } })
+    if (!customerCanComplete(booking)) throw new HttpError(409, booking.status === 'CONFIRMED' ? 'too-early-to-complete' : 'not-confirmed')
+    await completeBooking(id, place, 'HOST')
     return { ok: true }
   })
 

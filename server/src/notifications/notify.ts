@@ -13,6 +13,8 @@ export type NotificationType =
   | 'host-approved' // { rate }
   | 'host-rejected' // { note }
   | 'commission-paid' // { month, amount }
+  | 'booking-returned' // { car, address } the customer ended the trip: for the host
+  | 'booking-completed' // { car, address } the host ended the trip: for the customer
 
 // Adds a notification to a user's box. Never fails the action that caused it.
 export async function notify(userId: string | null | undefined, type: NotificationType, data: Prisma.InputJsonObject, link?: string) {

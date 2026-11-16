@@ -4,7 +4,7 @@ import { requireUser } from '../auth/guards.js'
 import { blockingBookings, overlapping } from '../bookings/availability.js'
 import { addDays, daysBetween, fromIsoDate, isoDate, todayInMoldova } from '../bookings/dates.js'
 import { bookingInclude, customerCanCancel, customerCanComplete, toBookingDto } from '../bookings/dto.js'
-import { completeBooking } from '../bookings/payment.js'
+import { completeBooking, returnPlace } from '../bookings/payment.js'
 import { syncCheckout } from '../bookings/payment.js'
 import { assertInMoldova, deliveryQuote } from '../bookings/pricing.js'
 import { isListed } from '../cars/dto.js'
@@ -201,13 +201,15 @@ export async function bookingRoutes(app: FastifyInstance) {
     return { booking: toBookingDto(await findOwnBooking(id, request.user!.id)) }
   })
 
-  // After confirmation the customer ends the booking once the car is returned (from the
-  // pick-up day on). The trip then counts for the host and the customer can review the car.
+  // After confirmation the customer who rented the car ends the trip once it is returned (from the
+  // pick-up day on), saying where the car was left. The trip then counts for the host and the
+  // customer can review the car.
   app.post('/bookings/:id/complete', { preHandler: requireUser }, async request => {
     const { id } = idParam.parse(request.params)
     const booking = await findOwnBooking(id, request.user!.id)
+    const place = returnPlace.parse(request.body)
     if (!customerCanComplete(booking)) throw new HttpError(409, booking.status === 'CONFIRMED' ? 'too-early-to-complete' : 'not-confirmed')
-    await completeBooking(id)
+    await completeBooking(id, place, 'CUSTOMER')
     return { booking: toBookingDto(await findOwnBooking(id, request.user!.id)) }
   })
 }

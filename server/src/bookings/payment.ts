@@ -1,4 +1,5 @@
 import type Stripe from 'stripe'
+import { z } from 'zod'
 import { prisma } from '../db.js'
 import { carName, notify } from '../notifications/notify.js'
 import { stripe } from '../payments/stripe.js'
@@ -38,8 +39,21 @@ export function markHoldReleased(paymentIntentId: string) {
   })
 }
 
-// Marks a confirmed booking as completed (car returned); it then counts as a trip for the host.
-// Only one caller wins if the customer and the admin do it at the same time.
-export async function completeBooking(bookingId: string) {
-  await prisma.booking.updateMany({ where: { id: bookingId, status: 'CONFIRMED' }, data: { status: 'COMPLETED' } })
+// Where the car was left at the end of a trip. Only inside Moldova (a rough box around the country).
+export const returnPlace = z.object({ address: z.string().trim().min(3).max(300), lat: z.number().min(45.4).max(48.6), lng: z.number().min(26.5).max(30.3) })
+export type ReturnPlace = z.infer<typeof returnPlace>
+
+// Ends a confirmed trip (the car was returned) with where the car was left; it then counts as a
+// trip for the host and the customer may review the car. Only the customer who rented the car or
+// the car's host can do it; only one wins if both do it at the same moment.
+export async function completeBooking(bookingId: string, place: ReturnPlace, by: 'CUSTOMER' | 'HOST') {
+  const done = await prisma.booking.updateMany({
+    where: { id: bookingId, status: 'CONFIRMED' },
+    data: { status: 'COMPLETED', returnAddress: place.address, returnLat: place.lat, returnLng: place.lng, completedAt: new Date(), completedBy: by },
+  })
+  if (!done.count) return
+  // Tell the other side where the car is.
+  const b = await prisma.booking.findUniqueOrThrow({ where: { id: bookingId }, select: { userId: true, car: { select: { brand: true, model: true, host: { select: { userId: true } } } } } })
+  if (by === 'CUSTOMER') await notify(b.car.host.userId, 'booking-returned', { car: carName(b.car), address: place.address }, '/host?tab=bookings')
+  else await notify(b.userId, 'booking-completed', { car: carName(b.car), address: place.address }, `/bookings/${bookingId}`)
 }

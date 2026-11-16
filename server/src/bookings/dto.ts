@@ -37,6 +37,8 @@ export function toBookingDto(b: BookingRow, options: { forAdmin?: boolean } = {}
     deliveryFee: b.deliveryFee,
     total: b.total,
     refundedAmount: b.refundedAmount,
+    // Where the car was left when the trip ended, and by whom.
+    returnLocation: b.returnAddress ? { address: b.returnAddress, lat: b.returnLat, lng: b.returnLng, by: b.completedBy, at: b.completedAt?.toISOString() ?? null } : null,
     phone: b.phone,
     note: b.note,
     createdAt: b.createdAt.toISOString(),

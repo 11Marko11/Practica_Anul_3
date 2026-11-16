@@ -324,6 +324,12 @@ model Booking {
   cancelReason            String? // a code such as 'car-unavailable' (labels live in the website's translations)
   cancelNote              String? // the admin's explanation, shown to the customer
   refundedAmount          Int          @default(0)
+  // Where the car was left when the trip ended, and who ended it (the customer or the car's host).
+  returnAddress           String?
+  returnLat               Float?
+  returnLng               Float?
+  completedAt             DateTime?
+  completedBy             CancelledBy?
   // Rent Motors' share (%) of this booking, the host's rate when it was confirmed.
   commissionRate          Int?
 
