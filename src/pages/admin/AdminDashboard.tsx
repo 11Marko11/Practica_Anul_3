@@ -17,12 +17,13 @@ type Dashboard = {
   revenueThisMonth: number
   bookingsThisMonth: number
   cars: { active: number; hidden: number }
-  users: { total: number; customers: number; hosts: number }
+  users?: { total: number; customers: number; hosts: number }
+  customers?: number // the same total, from an API that has not been updated yet
   reviews: { count: number; average: number | null }
   awaiting: Booking[]
   verifications: { id: string; name: string; email: string; verificationSubmittedAt: string | null }[]
-  carReviews: { id: number; slug: string; brand: string; model: string; year: number; host: string; reviewSubmittedAt: string | null }[]
-  hostApplications: { id: string; name: string; email: string; hostApplicationSubmittedAt: string | null }[]
+  carReviews?: { id: number; slug: string; brand: string; model: string; year: number; host: string; reviewSubmittedAt: string | null }[]
+  hostApplications?: { id: string; name: string; email: string; hostApplicationSubmittedAt: string | null }[]
   upcoming: Booking[]
   recent: Booking[]
 }
@@ -81,7 +82,7 @@ function DashboardContent() {
           <Tile to="/admin/bookings" label={d.tiles.awaiting} value={data ? String(data.awaiting.length) : '—'} />
           <Tile wide to="/admin/transactions" label={d.tiles.revenue} value={data ? <Money value={data.revenueThisMonth} /> : '—'} sub={data ? `${d.tiles.revenueSub(data.bookingsThisMonth)} · ${t.transactions.seeAll}` : undefined} />
           <Tile to="/admin/cars" label={d.tiles.cars} value={data ? String(data.cars.active) : '—'} sub={data ? d.tiles.carsSub(data.cars.hidden) : undefined} />
-          <Tile to="/admin/users" label={d.tiles.users} value={data ? String(data.users.total) : '—'} sub={data ? d.tiles.usersSub(data.users.customers, data.users.hosts) : undefined} />
+          <Tile to="/admin/users" label={d.tiles.users} value={data ? String(data.users?.total ?? data.customers ?? 0) : '—'} sub={data?.users ? d.tiles.usersSub(data.users.customers, data.users.hosts) : undefined} />
           <Tile
             to="/admin/reviews"
             label={d.tiles.reviews}
@@ -93,7 +94,7 @@ function DashboardContent() {
         <div className="dashboard-columns">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 28, minWidth: 0 }}>
             <Panel title={d.attention} link="/admin/bookings">
-              {data?.verifications.length === 0 && data.hostApplications.length === 0 && data.carReviews.length === 0 && <Empty>✓ {d.allClear}</Empty>}
+              {data?.verifications.length === 0 && !data.hostApplications?.length && !data.carReviews?.length && <Empty>✓ {d.allClear}</Empty>}
               {data?.verifications.map(u => (
                 <Row key={u.id}>
                   <div style={{ minWidth: 0, flex: 1 }}>
@@ -106,7 +107,7 @@ function DashboardContent() {
                   </Link>
                 </Row>
               ))}
-              {data?.carReviews.map(c => (
+              {data?.carReviews?.map(c => (
                 <Row key={`car-${c.id}`}>
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <RowTitle>{c.brand} {c.model} · {c.year}</RowTitle>
@@ -118,7 +119,7 @@ function DashboardContent() {
                   </Link>
                 </Row>
               ))}
-              {data?.hostApplications.map(u => (
+              {data?.hostApplications?.map(u => (
                 <Row key={`host-${u.id}`}>
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <RowTitle>{u.name}</RowTitle>
