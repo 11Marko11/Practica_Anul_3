@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
+import { Avatar } from '../components/Avatar'
 import { Stars } from '../components/CarReviews'
 import type { Car } from '../data/cars'
 import { useI18n } from '../i18n/I18nContext'
@@ -9,9 +10,9 @@ import { useRentalDates } from '../lib/useRentalDates'
 import { CarCard } from './Marketplace'
 
 type HostProfileData = {
-  host: { id: number; name: string; since: string; rating: number | null; reviews: number; trips: number; cars: number }
+  host: { id: number; name: string; avatarUrl: string | null; since: string; rating: number | null; reviews: number; trips: number; cars: number }
   cars: Car[]
-  reviews: { id: string; name: string; rating: number; text: string; date: string; car: { slug: string | null; name: string } }[]
+  reviews: { id: string; name: string; avatarUrl: string | null; rating: number; text: string; date: string; car: { slug: string | null; name: string } }[]
 }
 
 const REVIEWS_STEP = 6
@@ -50,9 +51,7 @@ export function HostProfile() {
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <Link to={`/marketplace${query}`} className="btn-action btn-action--neutral btn-back" style={{ background: '#2c2c2e', color: '#f5f5f7', borderColor: '#3a3a3d' }}>{h.back}</Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginTop: 28, flexWrap: 'wrap' }}>
-            <div style={{ width: 80, height: 80, borderRadius: '50%', background: '#3a3a3d', color: '#f5f5f7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, fontWeight: 600, flexShrink: 0 }}>
-              {host.name.charAt(0)}
-            </div>
+            <Avatar name={host.name} url={host.avatarUrl} size={80} background="#3a3a3d" color="#f5f5f7" />
             <div style={{ minWidth: 0 }}>
               <p style={{ fontSize: 13, color: '#a1a1a6', margin: '0 0 6px' }}>{h.eyebrow}</p>
               <h1 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#f5f5f7', margin: 0, lineHeight: 1.05 }}>{host.name}</h1>
@@ -90,9 +89,7 @@ export function HostProfile() {
               {reviews.slice(0, shown).map(r => (
                 <article key={r.id} style={{ padding: '20px 22px', borderRadius: 18, background: '#f5f5f7', minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#1d1d1f', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 600, flexShrink: 0 }}>
-                      {r.name.charAt(0)}
-                    </div>
+                    <Avatar name={r.name} url={r.avatarUrl} size={36} background="#1d1d1f" />
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: 15, fontWeight: 600, color: '#1d1d1f' }}>{r.name}</div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#86868b' }}>

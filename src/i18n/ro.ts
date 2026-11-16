@@ -692,6 +692,13 @@ export const ro: Dict = {
     },
   },
   profile: {
+    photo: 'Fotografia de profil',
+    photoHint: 'Se vede în meniul contului, la recenziile tale și, dacă ești gazdă, pe pagina ta publică. JPG, PNG sau WEBP; o decupăm pătrat.',
+    photoUpload: 'Adaugă o fotografie',
+    photoChange: 'Schimbă fotografia',
+    photoRemove: 'Șterge',
+    photoRemoveAsk: 'Ștergi fotografia de profil?',
+    photoUploading: 'Se încarcă…',
     menu: 'Profilul meu',
     title: 'Profilul meu',
     eyebrow: 'Cont',

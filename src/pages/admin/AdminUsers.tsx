@@ -16,6 +16,7 @@ import { formatDate } from '../../lib/rental'
 import { useUrlParams } from '../../lib/useUrlParams'
 import { AdminGuard } from './AdminGuard'
 import { AdminTabs } from './AdminTabs'
+import { Avatar } from '../../components/Avatar'
 import { AccountEditor, control, field, HostEditor } from './HostForms'
 import { DocumentCards } from '../../components/PrivateDocuments'
 import { hostDocumentUrl, type HostApplicationStatus, type HostDocumentType, type PrivateDocument } from '../../lib/privateDocuments'
@@ -24,6 +25,7 @@ type Customer = {
   id: string
   name: string
   email: string
+  avatarUrl: string | null
   active: boolean
   verificationStatus: VerificationStatus
   verificationSubmittedAt: string | null
@@ -38,7 +40,7 @@ type Customer = {
   hostApplicationStatus: HostApplicationStatus | null
 }
 type Detail = {
-  customer: Pick<Customer, 'id' | 'name' | 'email' | 'active' | 'createdAt' | 'deletedAt' | 'spent' | 'verificationStatus' | 'verificationSubmittedAt' | 'host'> & {
+  customer: Pick<Customer, 'id' | 'name' | 'email' | 'avatarUrl' | 'active' | 'createdAt' | 'deletedAt' | 'spent' | 'verificationStatus' | 'verificationSubmittedAt' | 'host'> & {
     refunded: number
     phone: string | null
     birthDate: string | null
@@ -217,7 +219,7 @@ function UserList() {
             const active = x ? x.active : true
             return (
               <li key={e.key} className="customer-row user-row">
-                <span className="customer-avatar" style={{ background: !active ? '#c7c7cc' : e.host ? '#0071e3' : '#1c1c1e' }}>{e.name.charAt(0).toUpperCase()}</span>
+                <Avatar name={e.name} url={x?.avatarUrl} size={40} background={!active ? '#c7c7cc' : e.host ? '#0071e3' : '#1c1c1e'} />
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                     <Link to={e.to} className="user-row-link" style={{ fontSize: 15, fontWeight: 600, color: '#1d1d1f', textDecoration: 'none' }}>{e.name}</Link>
@@ -283,6 +285,7 @@ function UserDetail({ id }: { id: string }) {
         {data && (
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
+              <Avatar name={data.customer.name} url={data.customer.avatarUrl} size={44} />
               {data.customer.host ? <HostBadge /> : <CustomerBadge />}
               <StatusPill active={data.customer.active} />
               <span style={{ fontSize: 14, color: '#424245', overflowWrap: 'anywhere' }}>

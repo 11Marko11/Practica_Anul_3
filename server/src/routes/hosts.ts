@@ -33,6 +33,7 @@ export async function hostRoutes(app: FastifyInstance) {
       where: { id },
       include: {
         cars: { where: LISTED, include: carInclude, orderBy: [{ brand: 'asc' }, { model: 'asc' }] },
+        user: { select: { avatarUrl: true } },
       },
     })
     if (!host) throw new HttpError(404, 'host-not-found')
@@ -40,17 +41,17 @@ export async function hostRoutes(app: FastifyInstance) {
       hostStats([host.id]),
       prisma.review.findMany({
         where: { car: { hostId: host.id } },
-        include: { car: { select: { slug: true, brand: true, model: true, status: true, reviewStatus: true } } },
+        include: { car: { select: { slug: true, brand: true, model: true, status: true, reviewStatus: true } }, user: { select: { avatarUrl: true } } },
         orderBy: { createdAt: 'desc' },
         take: 100,
       }),
     ])
     const hostStatsNow = stats(host.id)
     return {
-      host: { id: host.id, name: host.name, since: host.createdAt.toISOString().slice(0, 10), ...hostStatsNow, cars: host.cars.length },
+      host: { id: host.id, name: host.name, avatarUrl: host.user?.avatarUrl ?? null, since: host.createdAt.toISOString().slice(0, 10), ...hostStatsNow, cars: host.cars.length },
       cars: host.cars.map(c => toCarDto(c, hostStatsNow)),
       reviews: reviews.map(r => ({
-        id: r.id, name: r.authorName, rating: r.rating, text: r.text, date: r.createdAt.toISOString().slice(0, 10),
+        id: r.id, name: r.authorName, avatarUrl: r.user?.avatarUrl ?? null, rating: r.rating, text: r.text, date: r.createdAt.toISOString().slice(0, 10),
         car: isListed(r.car) ? { slug: r.car.slug, name: `${r.car.brand} ${r.car.model}` } : { slug: null, name: `${r.car.brand} ${r.car.model}` },
       })),
     }

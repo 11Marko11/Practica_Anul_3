@@ -1,4 +1,5 @@
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router'
+import { Avatar } from '../components/Avatar'
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { isAdmin } from '../auth/admin'
@@ -185,9 +186,7 @@ function AccountButton({ btnStyle }: { btnStyle: React.CSSProperties }) {
         aria-expanded={open}
         style={{ ...pill, display: 'flex', alignItems: 'center', gap: 8, padding: '5px 14px 5px 5px' }}
       >
-        <span style={{ width: 24, height: 24, borderRadius: '50%', background: '#0071e3', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600 }}>
-          {user.name.charAt(0).toUpperCase()}
-        </span>
+        <Avatar name={user.name} url={user.avatarUrl} size={24} background="#0071e3" />
         {user.name.split(' ')[0]}
         <CountBadge n={awaiting} />
       </button>

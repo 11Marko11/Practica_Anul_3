@@ -51,7 +51,7 @@ export async function removeHost(hostId: number, account: 'delete' | 'keep') {
       const user = await tx.user.findUniqueOrThrow({ where: { id: userId }, select: { email: true } })
       await tx.user.update({
         where: { id: userId },
-        data: { deletedAt: new Date(), deletedEmail: user.email, email: `deleted-${userId}@deleted.invalid`, passwordHash: placeholderPassword },
+        data: { deletedAt: new Date(), deletedEmail: user.email, email: `deleted-${userId}@deleted.invalid`, passwordHash: placeholderPassword, avatarUrl: null },
       })
       await tx.session.deleteMany({ where: { userId } })
       await tx.identityDocument.deleteMany({ where: { userId } })

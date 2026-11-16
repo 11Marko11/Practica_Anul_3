@@ -5,7 +5,7 @@ import { api } from '../lib/api'
 // Failed calls throw an ApiError whose `code` the login page translates.
 export type VerificationStatus = 'UNVERIFIED' | 'PENDING' | 'VERIFIED' | 'REJECTED'
 // `host` is set when the admin gave the user the host role (they then have the host panel).
-export type User = { id: string; name: string; email: string; role: 'CUSTOMER' | 'ADMIN'; verificationStatus: VerificationStatus; host?: { id: number; name: string } | null }
+export type User = { id: string; name: string; email: string; role: 'CUSTOMER' | 'ADMIN'; verificationStatus: VerificationStatus; avatarUrl?: string | null; host?: { id: number; name: string } | null }
 
 type AuthContextValue = {
   user: User | null

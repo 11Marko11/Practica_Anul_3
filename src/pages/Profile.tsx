@@ -3,6 +3,7 @@ import { Navigate, useLocation } from 'react-router'
 import { useAuth, type VerificationStatus } from '../auth/AuthContext'
 import { DeleteAccount } from '../components/DeleteAccount'
 import { HostApplicationSection } from '../components/HostApplicationSection'
+import { Avatar } from '../components/Avatar'
 import { useI18n } from '../i18n/I18nContext'
 import { ApiError } from '../lib/api'
 import { formatPhone } from '../lib/phone'
@@ -12,9 +13,11 @@ import {
   DOCUMENT_TYPES,
   getProfile,
   hasRequiredDocuments,
+  removeAvatar,
   removeDocument,
   submitVerification,
   updateProfile,
+  uploadAvatar,
   uploadDocument,
   type DocumentType,
   type IdentityDocument,
@@ -60,7 +63,7 @@ function ProfileContent() {
   function apply(res: { profile: ProfileData; documents: IdentityDocument[] }) {
     setProfile(res.profile)
     setDocuments(res.documents)
-    if (res.profile.verificationStatus !== user?.verificationStatus || res.profile.name !== user?.name) refreshUser()
+    if (res.profile.verificationStatus !== user?.verificationStatus || res.profile.name !== user?.name || res.profile.avatarUrl !== (user?.avatarUrl ?? null)) refreshUser()
   }
 
   useEffect(() => {
@@ -80,6 +83,7 @@ function ProfileContent() {
           <h1 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#f5f5f7', margin: 0, lineHeight: 1.05 }}>{p.title}</h1>
           {profile && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14, flexWrap: 'wrap' }}>
+              <Avatar name={profile.name} url={profile.avatarUrl} size={32} background="#3a3a3d" />
               <span style={{ fontSize: 15, color: '#f5f5f7' }}>{profile.name}</span>
               {profile.role === 'ADMIN' ? <RoleBadge /> : <VerificationBadge status={profile.verificationStatus} />}
             </div>
@@ -93,11 +97,13 @@ function ProfileContent() {
         ) : profile.role === 'ADMIN' ? (
           // Admins don't rent cars: no documents or verification, just their account details.
           <>
+            <ProfilePhoto profile={profile} onChange={apply} errorText={errorText} />
             <AdminInfo profile={profile} lang={lang} />
             <PasswordForm errorText={errorText} />
           </>
         ) : (
           <>
+            <ProfilePhoto profile={profile} onChange={apply} errorText={errorText} />
             <Verification profile={profile} documents={documents} onChange={apply} onDocuments={setDocuments} errorText={errorText} lang={lang} />
             <HostApplicationSection identityVerified={profile.verificationStatus === 'VERIFIED'} />
             <PersonalDetails profile={profile} onSaved={apply} errorText={errorText} />
@@ -237,6 +243,58 @@ function Verification({ profile, documents, onChange, onDocuments, errorText, la
           {!hasRequiredDocuments(documents) && <p style={{ fontSize: 13, color: '#6e6e73', margin: '8px 0 0' }}>{p.missing}</p>}
         </div>
       )}
+    </Section>
+  )
+}
+
+// The profile photo: add, change or remove it.
+function ProfilePhoto({ profile, onChange, errorText }: {
+  profile: ProfileData
+  onChange: (res: { profile: ProfileData; documents: IdentityDocument[] }) => void
+  errorText: (err: unknown) => string
+}) {
+  const { t } = useI18n()
+  const p = t.profile
+  const input = useRef<HTMLInputElement>(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
+  async function run(action: () => Promise<{ profile: ProfileData; documents: IdentityDocument[] }>) {
+    setBusy(true)
+    setError('')
+    try {
+      onChange(await action())
+    } catch (err) {
+      setError(errorText(err))
+    }
+    setBusy(false)
+    if (input.current) input.current.value = ''
+  }
+
+  function choose(file: File | undefined) {
+    if (!file) return
+    if (file.size > 15 * 1024 * 1024) return setError(p.errors['file-too-large'])
+    run(() => uploadAvatar(file))
+  }
+
+  return (
+    <Section title={p.photo}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+        <Avatar name={profile.name} url={profile.avatarUrl} size={88} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: '1 1 260px', minWidth: 0 }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button type="button" onClick={() => input.current?.click()} disabled={busy} className="btn-action btn-action--primary">
+              {busy ? p.photoUploading : profile.avatarUrl ? p.photoChange : p.photoUpload}
+            </button>
+            {profile.avatarUrl && (
+              <button type="button" onClick={() => confirm(p.photoRemoveAsk) && run(removeAvatar)} disabled={busy} className="btn-action btn-action--danger">{p.photoRemove}</button>
+            )}
+          </div>
+          <p style={{ fontSize: 13, color: '#6e6e73', margin: 0, lineHeight: 1.5 }}>{p.photoHint}</p>
+          {error && <p role="alert" style={{ fontSize: 14, color: '#d70015', margin: 0 }}>{error}</p>}
+        </div>
+        <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={e => choose(e.target.files?.[0])} />
+      </div>
     </Section>
   )
 }

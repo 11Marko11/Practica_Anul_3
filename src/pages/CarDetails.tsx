@@ -1,3 +1,4 @@
+import { Avatar } from '../components/Avatar'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import type { Car } from '../data/cars'
@@ -196,9 +197,7 @@ function CarDetailsContent({ car }: { car: Car }) {
                 className="host-card-link"
                 style={{ display: 'flex', alignItems: 'center', gap: 16, background: '#1c1c1e', borderRadius: 18, padding: '20px 22px', textDecoration: 'none' }}
               >
-                <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#3a3a3d', color: '#f5f5f7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 600, flexShrink: 0 }}>
-                  {car.host.name.charAt(0)}
-                </div>
+                <Avatar name={car.host.name} url={car.host.avatarUrl} size={48} background="#3a3a3d" color="#f5f5f7" />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 16, fontWeight: 600, color: '#f5f5f7' }}>{car.host.name}</div>
                   <div style={{ fontSize: 14, color: '#a1a1a6', marginTop: 2 }}>

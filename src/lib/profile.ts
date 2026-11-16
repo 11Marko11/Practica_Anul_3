@@ -15,6 +15,7 @@ export type Profile = {
   verificationSubmittedAt: string | null
   verifiedAt: string | null
   role: 'CUSTOMER' | 'ADMIN'
+  avatarUrl: string | null
   createdAt: string
 }
 type ProfileResponse = { profile: Profile; documents: IdentityDocument[] }
@@ -24,6 +25,31 @@ export const updateProfile = (input: { name: string; phone: string; birthDate: s
 export const changePassword = (current: string, next: string) => api('/profile/password', { body: { current, next } })
 export const removeDocument = (id: string) => api<ProfileResponse>(`/profile/documents/${id}`, { method: 'DELETE' })
 export const submitVerification = () => api<ProfileResponse>('/profile/verification', { method: 'POST' })
+
+export const removeAvatar = () => api<ProfileResponse>('/profile/avatar', { method: 'DELETE' })
+
+// Crops the photo to a centred square of 512 px (JPEG) in the browser, then uploads it.
+export async function uploadAvatar(file: File) {
+  const bitmap = await createImageBitmap(file)
+  const side = Math.min(bitmap.width, bitmap.height)
+  const size = Math.min(512, side)
+  const canvas = document.createElement('canvas')
+  canvas.width = canvas.height = size
+  canvas.getContext('2d')!.drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, size, size)
+  bitmap.close()
+  const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob(b => (b ? resolve(b) : reject(new Error('encode'))), 'image/jpeg', 0.88))
+  const form = new FormData()
+  form.append('file', blob, 'avatar.jpg')
+  let res: Response
+  try {
+    res = await fetch('/api/profile/avatar', { method: 'POST', body: form, credentials: 'same-origin' })
+  } catch {
+    throw new ApiError(0, 'network')
+  }
+  const data = await res.json().catch(() => null)
+  if (!res.ok) throw new ApiError(res.status, (data as { error?: string } | null)?.error ?? 'unknown')
+  return data as ProfileResponse
+}
 
 // The file is served only to its owner and admins; the session cookie goes with the request.
 export const documentUrl = (id: string) => `/api/documents/${id}/file`

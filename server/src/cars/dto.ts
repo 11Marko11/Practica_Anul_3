@@ -6,7 +6,7 @@ import type { HostStats } from './hostStats.js'
 export const LISTED = { status: 'ACTIVE', reviewStatus: 'APPROVED' } as const satisfies Prisma.CarWhereInput
 export const isListed = (car: { status: string; reviewStatus: string }) => car.status === 'ACTIVE' && car.reviewStatus === 'APPROVED'
 
-export const carInclude = { photos: { orderBy: { position: 'asc' } }, host: true } as const satisfies Prisma.CarInclude
+export const carInclude = { photos: { orderBy: { position: 'asc' } }, host: { include: { user: { select: { avatarUrl: true } } } } } as const satisfies Prisma.CarInclude
 type CarRow = Prisma.CarGetPayload<{ include: typeof carInclude }>
 
 // The car as the website uses it (same shape as its `Car` type in src/data/cars.ts).
@@ -31,7 +31,7 @@ export function toCarDto(car: CarRow, host: HostStats) {
     range: car.range ?? undefined,
     location: `${car.city}, Moldova`,
     pickup: { address: car.pickupAddress, lat: car.pickupLat, lng: car.pickupLng },
-    host: { id: car.host.id, name: car.host.name, ...host },
+    host: { id: car.host.id, name: car.host.name, avatarUrl: car.host.user?.avatarUrl ?? null, ...host },
     description: car.description,
     features: car.features,
     defects: car.defects,

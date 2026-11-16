@@ -19,6 +19,9 @@ export function detectType(data: Buffer): string | null {
   return null
 }
 
+// "/api/photos/<id>" → "<id>".
+export const photoId = (url: string | null) => url?.match(/^\/api\/photos\/([0-9a-f-]{36})$/)?.[1] ?? null
+
 const documentMeta = { id: true, type: true, fileName: true, mimeType: true, size: true, createdAt: true } as const
 
 async function profileOf(userId: string) {
@@ -37,6 +40,7 @@ async function profileOf(userId: string) {
       verificationSubmittedAt: u.verificationSubmittedAt?.toISOString() ?? null,
       verifiedAt: u.verifiedAt?.toISOString() ?? null,
       role: u.role,
+      avatarUrl: u.avatarUrl,
       createdAt: u.createdAt.toISOString(),
     },
     documents: documents.map(d => ({ ...d, createdAt: d.createdAt.toISOString() })),
@@ -88,6 +92,37 @@ export async function profileRoutes(app: FastifyInstance) {
     if (!(await verifyPassword(user.passwordHash, body.current))) throw new HttpError(401, 'invalid-credentials')
     await prisma.user.update({ where: { id: user.id }, data: { passwordHash: await hashPassword(body.next) } })
     return { ok: true }
+  })
+
+  // Profile photo (multipart `file`, an image the browser already cropped and shrank). It is
+  // public, like car photos: shown in the menu, on reviews and on a host's page.
+  app.post('/profile/avatar', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async request => {
+    const part = await request.file()
+    if (!part || part.fieldname !== 'file') throw new HttpError(400, 'validation')
+    const data = await part.toBuffer()
+    if (part.file.truncated) throw new HttpError(413, 'file-too-large')
+    const mimeType = detectType(data)
+    if (!mimeType || mimeType === 'application/pdf') throw new HttpError(415, 'unsupported-file')
+    const userId = request.user!.id
+    const old = (await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { avatarUrl: true } })).avatarUrl
+    await prisma.$transaction(async tx => {
+      const photo = await tx.uploadedPhoto.create({ data: { mimeType, size: data.length, data: new Uint8Array(data), uploadedBy: userId }, select: { id: true } })
+      await tx.user.update({ where: { id: userId }, data: { avatarUrl: `/api/photos/${photo.id}` } })
+      const oldId = photoId(old)
+      if (oldId) await tx.uploadedPhoto.deleteMany({ where: { id: oldId } })
+    })
+    return profileOf(userId)
+  })
+
+  app.delete('/profile/avatar', async request => {
+    const userId = request.user!.id
+    const old = (await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { avatarUrl: true } })).avatarUrl
+    const oldId = photoId(old)
+    await prisma.$transaction([
+      prisma.user.update({ where: { id: userId }, data: { avatarUrl: null } }),
+      ...(oldId ? [prisma.uploadedPhoto.deleteMany({ where: { id: oldId } })] : []),
+    ])
+    return profileOf(userId)
   })
 
   // Upload one document (multipart: `type`, then `file`). A verified customer who changes

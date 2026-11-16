@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { api } from './api'
 
-export type Review = { id: string; name: string; rating: number; date: string; text: string; mine: boolean }
+export type Review = { id: string; name: string; avatarUrl?: string | null; rating: number; date: string; text: string; mine: boolean }
 
 // A car's reviews from the API, and whether the signed-in user can add one
 // (only after a completed trip with this car).

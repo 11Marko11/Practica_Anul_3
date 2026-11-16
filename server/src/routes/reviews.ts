@@ -32,13 +32,14 @@ export async function reviewRoutes(app: FastifyInstance) {
     const carId = await findCarId(slugParam.parse(request.params).slug)
     const user = request.user
     const [reviews, booking] = await Promise.all([
-      prisma.review.findMany({ where: { carId }, orderBy: { createdAt: 'desc' } }),
+      prisma.review.findMany({ where: { carId }, include: { user: { select: { avatarUrl: true } } }, orderBy: { createdAt: 'desc' } }),
       user ? reviewableBooking(user.id, carId) : null,
     ])
     return {
       reviews: reviews.map(r => ({
         id: r.id,
         name: r.authorName,
+        avatarUrl: r.user?.avatarUrl ?? null,
         rating: r.rating,
         date: r.createdAt.toISOString().slice(0, 10),
         text: r.text,

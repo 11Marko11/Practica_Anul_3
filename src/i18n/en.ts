@@ -692,6 +692,13 @@ export const en = {
     },
   },
   profile: {
+    photo: 'Profile photo',
+    photoHint: 'Shown in the account menu, on your reviews and, if you are a host, on your public page. JPG, PNG or WEBP; we crop it to a square.',
+    photoUpload: 'Add a photo',
+    photoChange: 'Change photo',
+    photoRemove: 'Remove',
+    photoRemoveAsk: 'Remove your profile photo?',
+    photoUploading: 'Uploading…',
     menu: 'My profile',
     title: 'My profile',
     eyebrow: 'Account',

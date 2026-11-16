@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
+import { Avatar } from './Avatar'
 import { useI18n } from '../i18n/I18nContext'
 import { formatDate } from '../lib/rental'
 import { ApiError } from '../lib/api'
@@ -52,9 +53,7 @@ export function CarReviews({ data }: { data: ReturnType<typeof useReviews> }) {
         {shown.map(r => (
           <li key={r.id} style={{ padding: '20px 0', borderBottom: '1px solid #f0f0f0' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ width: 36, height: 36, borderRadius: '50%', background: '#1c1c1e', color: '#f5f5f7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 600, flexShrink: 0 }}>
-                {r.name.charAt(0).toUpperCase()}
-              </span>
+              <Avatar name={r.name} url={r.avatarUrl} size={36} color="#f5f5f7" />
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ fontSize: 15, fontWeight: 600, color: '#1d1d1f' }}>
                   {r.name}

@@ -5,6 +5,7 @@ import { requireUser } from '../auth/guards.js'
 import { hashPassword, verifyPassword } from '../auth/password.js'
 import { SESSION_COOKIE } from '../auth/session.js'
 import { prisma } from '../db.js'
+import { photoId } from './profile.js'
 import { HttpError } from '../http/errors.js'
 
 // DELETE /api/account: the customer deletes their own account (password required).
@@ -27,12 +28,15 @@ export async function accountRoutes(app: FastifyInstance) {
           deletedEmail: user.email,
           email: `deleted-${user.id}@deleted.invalid`,
           passwordHash: await hashPassword(randomBytes(32).toString('hex')), // nobody knows it
+          avatarUrl: null,
         },
       }),
       prisma.session.deleteMany({ where: { userId: user.id } }),
       // Identity documents are not kept after the account is gone.
       prisma.identityDocument.deleteMany({ where: { userId: user.id } }),
       prisma.hostDocument.deleteMany({ where: { userId: user.id } }),
+      // The profile photo goes too.
+      ...(photoId(user.avatarUrl) ? [prisma.uploadedPhoto.deleteMany({ where: { id: photoId(user.avatarUrl)! } })] : []),
       // A host's cars stay listed; the host profile is just no longer tied to an account.
       prisma.host.updateMany({ where: { userId: user.id }, data: { userId: null } }),
     ])

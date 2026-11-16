@@ -17,7 +17,7 @@ export type Car = {
   location: string // city shown in listings
   pickup: { address: string; lat: number; lng: number } // where the car is collected
   // rating: average of the reviews of the host's cars (null before the first one); trips: completed rentals
-  host: { id?: number; name: string; rating: number | null; reviews?: number; trips: number }
+  host: { id?: number; name: string; avatarUrl?: string | null; rating: number | null; reviews?: number; trips: number }
   description: string // English
   features: string[]
   defects?: string[] // known flaws listed by the host

@@ -692,6 +692,13 @@ export const ru: Dict = {
     },
   },
   profile: {
+    photo: 'Фото профиля',
+    photoHint: 'Видно в меню аккаунта, в ваших отзывах и, если вы владелец, на вашей публичной странице. JPG, PNG или WEBP; мы обрежем его до квадрата.',
+    photoUpload: 'Добавить фото',
+    photoChange: 'Сменить фото',
+    photoRemove: 'Удалить',
+    photoRemoveAsk: 'Удалить фото профиля?',
+    photoUploading: 'Загрузка…',
     menu: 'Мой профиль',
     title: 'Мой профиль',
     eyebrow: 'Аккаунт',

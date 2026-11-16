@@ -68,6 +68,7 @@ model User {
   // (replaced by a placeholder) and kept in deletedEmail for the admin's history.
   deletedAt    DateTime?
   deletedEmail String?
+  avatarUrl    String? // profile photo, "/api/photos/<id>" (an UploadedPhoto)
   phone        String? // normalised "+37369123456"; unique among active accounts (partial index in the migrations)
   birthDate    DateTime? @db.Date
 
