@@ -6,6 +6,7 @@ import { BookingCard } from '../components/BookingCard'
 import { useI18n } from '../i18n/I18nContext'
 import { ApiError } from '../lib/api'
 import { cancelBooking, completeBooking, getBooking, payBooking, type Booking } from '../lib/bookings'
+import { ReturnLocationDialog } from '../components/ReturnLocationDialog'
 import { fmt, formatDate } from '../lib/rental'
 
 // One of the customer's bookings. Stripe sends the customer back here after paying
@@ -20,6 +21,7 @@ export function BookingDetails() {
   const [booking, setBooking] = useState<Booking | null>(null)
   const [notFound, setNotFound] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [ending, setEnding] = useState(false)
   const [error, setError] = useState<keyof typeof t.bookings.errors | null>(null)
 
   useEffect(() => {
@@ -151,7 +153,7 @@ export function BookingDetails() {
                 </button>
               )}
               {booking.canComplete && (
-                <button onClick={() => run(t.bookings.completeAsk, () => completeBooking(id))} disabled={busy} style={{ ...button, background: '#1d1d1f', color: '#fff', opacity: busy ? 0.6 : 1 }}>
+                <button onClick={() => setEnding(true)} disabled={busy} style={{ ...button, background: '#1d1d1f', color: '#fff', opacity: busy ? 0.6 : 1 }}>
                   {t.bookings.complete}
                 </button>
               )}
@@ -167,6 +169,15 @@ export function BookingDetails() {
               )}
             </div>
           </>
+        )}
+        {ending && (
+          <ReturnLocationDialog
+            onClose={() => setEnding(false)}
+            onSubmit={async place => {
+              setBooking(await completeBooking(id, place))
+              setEnding(false)
+            }}
+          />
         )}
       </main>
     </div>

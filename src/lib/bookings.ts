@@ -30,6 +30,7 @@ export type Booking = {
   canComplete: boolean // confirmed, from the pick-up day on: the customer can end it
   cancelled: { by: 'CUSTOMER' | 'ADMIN' | null; reason: CancelReason | null; note: string | null; at: string | null } | null
   customer?: { name: string; email: string } // admin pages only
+  returnLocation: { address: string; lat: number; lng: number; by: 'CUSTOMER' | 'HOST' | 'ADMIN' | null; at: string | null } | null // where the car was left
 }
 
 export type NewBooking = {
@@ -48,7 +49,9 @@ export const myBookings = () => api<{ bookings: Booking[] }>('/bookings').then(r
 export const getBooking = (id: string) => api<{ booking: Booking }>(`/bookings/${id}`).then(r => r.booking)
 export const payBooking = (id: string) => api<{ checkoutUrl: string }>(`/bookings/${id}/pay`, { method: 'POST' })
 export const cancelBooking = (id: string) => api<{ booking: Booking }>(`/bookings/${id}/cancel`, { method: 'POST' }).then(r => r.booking)
-export const completeBooking = (id: string) => api<{ booking: Booking }>(`/bookings/${id}/complete`, { method: 'POST' }).then(r => r.booking)
+// Where the car was left when the trip ends (required to end it).
+export type ReturnPlace = { address: string; lat: number; lng: number }
+export const completeBooking = (id: string, place: ReturnPlace) => api<{ booking: Booking }>(`/bookings/${id}/complete`, { body: place }).then(r => r.booking)
 export const takenDates = (slug: string) => api<{ taken: { from: string; to: string }[] }>(`/cars/${encodeURIComponent(slug)}/availability`).then(r => r.taken)
 
 export const adminBookings = (status?: BookingStatus) =>
@@ -57,5 +60,5 @@ export const adminBookings = (status?: BookingStatus) =>
 // The car's host answers a paid booking: confirm (the money is taken) or reject (the hold is released).
 export const hostConfirmBooking = (id: string) => api(`/host/bookings/${id}/confirm`, { method: 'POST' })
 export const hostRejectBooking = (id: string, input: { reason: CancelReason; note?: string }) => api(`/host/bookings/${id}/reject`, { body: input })
-export const hostCompleteBooking = (id: string) => api(`/host/bookings/${id}/complete`, { method: 'POST' })
+export const hostCompleteBooking = (id: string, place: ReturnPlace) => api(`/host/bookings/${id}/complete`, { body: place })
 export const hostCancelBooking = (id: string, input: { reason: CancelReason; note?: string; refund: number }) => api(`/host/bookings/${id}/cancel`, { body: input })

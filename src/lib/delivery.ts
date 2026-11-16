@@ -45,6 +45,16 @@ export async function searchAddress(query: string, lang: string, signal?: AbortS
   return places.filter((p, i) => places.findIndex(q => q.label === p.label) === i)
 }
 
+// The street address at a point (for "Use my location" when ending a trip), or null.
+export async function addressAt(lat: number, lng: number, lang: string): Promise<string | null> {
+  const url = new URL('https://nominatim.openstreetmap.org/reverse')
+  url.search = new URLSearchParams({ lat: String(lat), lon: String(lng), format: 'json', zoom: '18', addressdetails: '1', 'accept-language': lang }).toString()
+  const res = await fetch(url)
+  if (!res.ok) return null
+  const row = (await res.json()) as Partial<NominatimResult>
+  return row.display_name ? placeLabel(row as NominatimResult) : null
+}
+
 // Which country a point is in (used for "Use my current location"), as a lowercase ISO code.
 export async function countryAt(lat: number, lng: number): Promise<string> {
   const url = new URL('https://nominatim.openstreetmap.org/reverse')

@@ -12,6 +12,8 @@ import { refreshHostAwaiting } from '../lib/hostNotifications'
 import { CountBadge } from '../components/CountBadge'
 import { CloseBookingDialog } from './admin/CloseBookingDialog'
 import { HostFinances } from './HostFinances'
+import { ReturnLocationDialog } from '../components/ReturnLocationDialog'
+import { ReturnLocation } from '../components/ReturnLocation'
 import { fmt, formatDate } from '../lib/rental'
 import { useUrlParams } from '../lib/useUrlParams'
 
@@ -45,6 +47,8 @@ type HostData = {
     earned: number
     refundedAmount: number
     commissionRate: number | null // Rent Motors' share (%) once confirmed
+    canComplete: boolean // confirmed, from the pick-up day on
+    returnLocation: { address: string; lat: number; lng: number; by: string | null } | null // where the car was left
     customer: { name: string; phone: string | null } // the phone only once the booking is confirmed
     holdExpiresAt: string | null // answer before then, or Stripe releases the payment
     createdAt: string
@@ -100,25 +104,13 @@ function HostPanelContent() {
     await Promise.all([load(), refreshHostAwaiting()])
   }
 
-  // The car was returned: the trip counts, and the customer may review the car.
-  async function completeBooking(b: HostData['bookings'][number]) {
-    if (!confirm(t.adminBookings.completeAsk)) return
-    setBusyId(b.id)
-    try {
-      await hostCompleteBooking(b.id)
-    } catch (err) {
-      const code = err instanceof ApiError ? err.code : 'unknown'
-      const errors = t.adminBookings.errors
-      alert(code in errors ? errors[code as keyof typeof errors] : errors.unknown)
-    }
-    setBusyId(null)
-    await load()
-  }
+  // The car was returned: the host says where it was left, then the trip ends.
+  const [ending, setEnding] = useState<HostData['bookings'][number] | null>(null)
   useEffect(() => {
     load()
   }, [])
   // New bookings, reviews and the admin's check of the cars show without a refresh.
-  useLivePoll(() => { api<HostData>('/host').then(next => setData(prev => (same(prev, next) ? prev : next))).catch(() => {}) }, 30_000, !busyId && !closing)
+  useLivePoll(() => { api<HostData>('/host').then(next => setData(prev => (same(prev, next) ? prev : next))).catch(() => {}) }, 30_000, !busyId && !closing && !ending)
 
   // The car leaves the site at once; the server refuses while a booking is still going on.
   async function remove(car: CarRef) {
@@ -238,6 +230,7 @@ function HostPanelContent() {
                         {date(b.pickupDate)} – {date(b.returnDate)} · {t.common.days(b.days)}
                       </div>
                       <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 2 }}>{b.handover === 'DELIVERY' && b.deliveryAddress ? h.delivery(b.deliveryAddress) : h.pickup}</div>
+                      {b.returnLocation && <ReturnLocation location={b.returnLocation} />}
                     </div>
                     <div style={{ flex: '1 1 200px', fontSize: 13, color: '#6e6e73' }}>
                       <div style={{ color: '#86868b' }}>{h.customer}</div>
@@ -264,7 +257,7 @@ function HostPanelContent() {
                     )}
                     {b.status === 'CONFIRMED' && (
                       <div className="row-actions" style={{ flexBasis: '100%' }}>
-                        <button onClick={() => completeBooking(b)} disabled={busyId === b.id} className="btn-action btn-action--primary">{t.adminBookings.complete}</button>
+                        {b.canComplete && <button onClick={() => setEnding(b)} disabled={busyId === b.id} className="btn-action btn-action--primary">{t.returnPlace.submit}</button>}
                         <button onClick={() => setClosing({ booking: b, mode: 'cancel' })} disabled={busyId === b.id} className="btn-action btn-action--danger">{t.adminBookings.cancel}</button>
                       </div>
                     )}
@@ -291,6 +284,16 @@ function HostPanelContent() {
           </>
         )}
       </main>
+      {ending && (
+        <ReturnLocationDialog
+          onClose={() => setEnding(null)}
+          onSubmit={async place => {
+            await hostCompleteBooking(ending.id, place)
+            setEnding(null)
+            await load()
+          }}
+        />
+      )}
       {closing && (
         <CloseBookingDialog
           booking={closing.booking}

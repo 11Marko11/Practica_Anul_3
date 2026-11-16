@@ -4,6 +4,7 @@ import { photoUrl } from '../data/cars'
 import { useI18n } from '../i18n/I18nContext'
 import type { Booking, BookingStatus } from '../lib/bookings'
 import { fmt, formatDate } from '../lib/rental'
+import { ReturnLocation } from './ReturnLocation'
 
 const STATUS_COLORS: Record<BookingStatus, { bg: string; fg: string }> = {
   PENDING_PAYMENT: { bg: '#fff4e0', fg: '#9a5b00' },
@@ -52,6 +53,7 @@ export function BookingCard({ booking: b, to, children }: { booking: Booking; to
           {fmt(b.total)}
           {b.refundedAmount > 0 && <span style={{ fontSize: 13, fontWeight: 400, color: '#6e6e73' }}> · {t.bookings.refunded} {fmt(b.refundedAmount)}</span>}
         </p>
+        {b.returnLocation && <ReturnLocation location={b.returnLocation} />}
         {children}
       </div>
     </article>
