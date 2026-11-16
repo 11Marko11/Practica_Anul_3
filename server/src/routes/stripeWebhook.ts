@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import type Stripe from 'stripe'
 import { markHoldReleased, markUnpaidExpired, syncCheckout } from '../bookings/payment.js'
+import { syncCommissionSession } from '../finance/commissionPayment.js'
 import { env } from '../env.js'
 import { HttpError } from '../http/errors.js'
 import { stripe } from '../payments/stripe.js'
@@ -25,6 +26,8 @@ export async function stripeWebhookRoutes(app: FastifyInstance) {
       case 'checkout.session.completed': {
         const bookingId = event.data.object.metadata?.bookingId
         if (bookingId) await syncCheckout(bookingId)
+        // A host paid a month's commission: the month is marked as paid.
+        if (event.data.object.metadata?.kind === 'commission') await syncCommissionSession(event.data.object.id)
         break
       }
       case 'checkout.session.expired': {

@@ -7,6 +7,7 @@ import { CANCEL_REASONS, REJECT_REASONS } from '../bookings/dto.js'
 import { completeBooking } from '../bookings/payment.js'
 import { ledger } from '../bookings/ledger.js'
 import { hostMonths, moldovaMonth } from '../finance/hostIncome.js'
+import { startCommissionCheckout, syncCommissionSession } from '../finance/commissionPayment.js'
 import { carData, carInclude, hostCarInput, REQUIRED_CAR_DOCUMENTS, type CarInput } from '../cars/dto.js'
 import { prisma } from '../db.js'
 import { HttpError } from '../http/errors.js'
@@ -162,6 +163,21 @@ export async function hostPortalRoutes(app: FastifyInstance) {
       onHold: entries.filter(e => e.type === 'hold').reduce((s, e) => s + e.amount, 0),
       entries: entries.map(e => ({ id: e.id, type: e.type, at: e.at.toISOString(), month: moldovaMonth(e.at), amount: e.amount, rate: e.rate, booking: { id: e.booking.id, car: e.booking.car, customer: e.booking.customer } })),
     }
+  })
+
+  // Pay a finished month's commission by card: answers with the Stripe payment page.
+  app.post('/host/finances/:month/pay', { preHandler: requireHost, config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async request => {
+    const { month } = z.object({ month: z.string().regex(/^\d{4}-\d{2}$/) }).parse(request.params)
+    const { lang } = z.object({ lang: z.string().max(5).default('ro') }).parse(request.body ?? {})
+    return { checkoutUrl: await startCommissionCheckout(hostId(request), month, request.user!.email, lang) }
+  })
+
+  // Back from the payment page: record the payment at once (the webhook does it too).
+  app.post('/host/finances/sync', { preHandler: requireHost }, async request => {
+    const { sessionId } = z.object({ sessionId: z.string().min(10).max(200) }).parse(request.body)
+    const session = await prisma.hostCommissionPayment.findUnique({ where: { stripeSessionId: sessionId }, select: { hostId: true } })
+    if (session && session.hostId !== hostId(request)) throw new HttpError(404, 'not-found')
+    return { month: await syncCommissionSession(sessionId).catch(() => null) }
   })
 
   // How many paid bookings wait for this host's answer, for the menu badge.
