@@ -284,3 +284,10 @@ select:not([multiple]):not([size]) {
 }
 /* Bigger call-to-action button ("See all cars" on the home page). */
 .btn-cta { height: 44px; padding: 0 22px; font-size: 15px; gap: 8px; }
+
+/* Admin sections: a bar fixed under the site menu, centred; on narrow screens it scrolls sideways. */
+.admin-tabs { position: fixed; top: 52px; left: 0; right: 0; z-index: 90; background: rgba(28, 28, 30, 0.92); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid #2c2c2e; overflow-x: auto; scrollbar-width: none; transition: transform 0.3s ease; }
+.admin-tabs::-webkit-scrollbar { display: none; }
+.admin-tabs-inner { display: flex; gap: 4px; width: max-content; margin: 0 auto; padding: 12px 16px; }
+.admin-tabs-inner a { white-space: nowrap; }
+.admin-tabs-space { height: 36px; margin-bottom: 20px; }

@@ -1,6 +1,7 @@
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router'
 import { Avatar } from '../components/Avatar'
 import { useState, useEffect, useRef } from 'react'
+import { NAV_HEIGHT, useNavScroll } from '../lib/useNavScroll'
 import { useAuth } from '../auth/AuthContext'
 import { isAdmin } from '../auth/admin'
 import { useI18n } from '../i18n/I18nContext'
@@ -9,31 +10,6 @@ import { CountBadge } from '../components/CountBadge'
 import { useAwaitingCount } from '../lib/adminNotifications'
 
 const NAV_LINKS = [['marketplace', 'rent'], ['about', 'about'], ['contact', 'contact']] as const
-
-const NAV_HEIGHT = 52
-
-// Hide the nav while scrolling down, bring it back as soon as the user scrolls up.
-function useNavScroll() {
-  const [scrolled, setScrolled] = useState(false)
-  const [hidden, setHidden] = useState(false)
-  const lastY = useRef(0)
-
-  useEffect(() => {
-    const onScroll = () => {
-      const y = window.scrollY
-      const delta = y - lastY.current
-      setScrolled(y > 20)
-      if (y <= NAV_HEIGHT) setHidden(false)
-      else if (delta > 4) setHidden(true)
-      else if (delta < -4) setHidden(false)
-      if (Math.abs(delta) > 4 || y <= NAV_HEIGHT) lastY.current = y
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
-  return { scrolled, hidden }
-}
 
 export function Root() {
   const [menuOpen, setMenuOpen] = useState(false)
