@@ -309,3 +309,7 @@ select:not([multiple]):not([size]) {
 /* Admin and host panel sections: centred at the top of the page header (not fixed); scroll sideways on phones. */
 .host-tabs { position: relative; overflow-x: auto; scrollbar-width: none; margin: 0 -24px; }
 .host-tabs::-webkit-scrollbar { display: none; }
+
+/* Dashboard statistics: three cards side by side, stacked on phones. */
+.stats-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 760px) { .stats-row { grid-template-columns: 1fr; } }

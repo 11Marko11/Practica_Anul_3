@@ -9,8 +9,18 @@ import { useAwaitingCount } from '../../lib/adminNotifications'
 import type { Booking } from '../../lib/bookings'
 import { AdminGuard } from './AdminGuard'
 import { AdminTabs } from './AdminTabs'
+import { IncomeChart } from '../../components/IncomeChart'
+
+type Stats = {
+  income: { month: string; commission: number; turnover: number }[]
+  unpaid: { amount: number; hosts: number }
+  topHosts: { id: number; name: string; rate: number | null; turnover: number; commission: number; bookings: number }[]
+  occupancy: { rented: number; listed: number }
+  growth: { users: number; hostRequests: number; cars: number }
+}
 
 type Dashboard = {
+  stats?: Stats // missing from an API older than the site
   revenueThisMonth: number
   bookingsThisMonth: number
   cars: { active: number; hidden: number }
@@ -80,6 +90,8 @@ function DashboardContent() {
           <Tile to="/admin/users" label={d.tiles.users} value={data ? String(data.users?.total ?? data.customers ?? 0) : '—'} sub={data?.users ? d.tiles.usersSub(data.users.customers, data.users.hosts) : undefined} />
         </div>
 
+        {data?.stats && <Statistics stats={data.stats} />}
+
       </main>
     </div>
   )
@@ -98,3 +110,75 @@ function Tile({ label, value, sub, to, highlight, wide }: { label: string; value
   const className = wide ? 'tile-wide' : undefined
   return to ? <Link to={to} className={className} style={style}>{body}</Link> : <div className={className} style={style}>{body}</div>
 }
+
+// Statistics under the tiles: income by month, commission not collected, cars rented now,
+// this month's growth and the hosts who earned most this month.
+function Statistics({ stats }: { stats: Stats }) {
+  const { t } = useI18n()
+  const s = t.stats
+  const pct = stats.occupancy.listed ? Math.round((stats.occupancy.rented / stats.occupancy.listed) * 100) : 0
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 16 }}>
+      <section style={card}>
+        <h2 style={cardTitle}>{s.incomeTitle}</h2>
+        <p style={{ fontSize: 13, color: '#6e6e73', margin: '4px 0 18px' }}>{s.incomeHint}</p>
+        <IncomeChart data={stats.income} />
+      </section>
+
+      <div className="stats-row">
+        <Link to="/admin/transactions" style={{ ...card, textDecoration: 'none', background: stats.unpaid.amount ? '#fff4e0' : '#f5f5f7' }}>
+          <div style={{ fontSize: 13, color: stats.unpaid.amount ? '#9a5b00' : '#6e6e73' }}>{s.unpaidTitle}</div>
+          <div style={bigValue}><Money value={stats.unpaid.amount} /></div>
+          <div style={{ fontSize: 12, color: '#86868b' }}>{s.unpaidSub(stats.unpaid.hosts)} · {s.seeTransactions} →</div>
+        </Link>
+        <div style={{ ...card, background: '#f5f5f7' }}>
+          <div style={{ fontSize: 13, color: '#6e6e73' }}>{s.occupancyTitle}</div>
+          <div style={bigValue}>{s.occupancyOf(stats.occupancy.rented, stats.occupancy.listed)}</div>
+          <div aria-hidden style={{ height: 6, borderRadius: 3, background: '#e5e5ea', overflow: 'hidden', margin: '2px 0 6px' }}>
+            <div style={{ width: `${pct}%`, height: '100%', background: '#0071e3', borderRadius: 3 }} />
+          </div>
+          <div style={{ fontSize: 12, color: '#86868b' }}>{s.occupancySub(pct)}</div>
+        </div>
+        <div style={{ ...card, background: '#f5f5f7' }}>
+          <div style={{ fontSize: 13, color: '#6e6e73' }}>{s.growthTitle}</div>
+          <ul style={{ listStyle: 'none', margin: '8px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 6, fontSize: 15, color: '#1d1d1f' }}>
+            <li><strong>+</strong> {s.growthUsers(stats.growth.users)}</li>
+            <li><strong>+</strong> {s.growthRequests(stats.growth.hostRequests)}</li>
+            <li><strong>+</strong> {s.growthCars(stats.growth.cars)}</li>
+          </ul>
+        </div>
+      </div>
+
+      <section style={card}>
+        <h2 style={{ ...cardTitle, marginBottom: 12 }}>{s.topTitle}</h2>
+        {stats.topHosts.length === 0 ? (
+          <p style={{ fontSize: 14, color: '#6e6e73', margin: 0 }}>{s.topEmpty}</p>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table className="income-table" style={{ minWidth: 520 }}>
+              <thead><tr><th>#</th><th>{s.host}</th><th className="num">{s.bookings}</th><th className="num">{s.turnover}</th><th className="num">{s.commission}</th></tr></thead>
+              <tbody>
+                {stats.topHosts.map((h, i) => (
+                  <tr key={h.id}>
+                    <td style={{ color: '#86868b' }}>{i + 1}</td>
+                    <td style={{ fontWeight: 600 }}>
+                      <Link to={`/hosts/${h.id}`} style={{ color: '#1d1d1f', textDecoration: 'none' }}>{h.name}</Link>
+                      {h.rate !== null && <span style={{ fontWeight: 400, color: '#86868b' }}> · {h.rate}%</span>}
+                    </td>
+                    <td className="num">{h.bookings}</td>
+                    <td className="num"><Money value={h.turnover} /></td>
+                    <td className="num" style={{ fontWeight: 600 }}><Money value={h.commission} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </div>
+  )
+}
+
+const card: React.CSSProperties = { display: 'block', padding: '18px 20px', borderRadius: 18, border: '1px solid #e5e5ea', minWidth: 0 }
+const cardTitle: React.CSSProperties = { fontSize: 18, fontWeight: 600, letterSpacing: '-0.02em', color: '#1d1d1f', margin: 0 }
+const bigValue: React.CSSProperties = { fontSize: 26, fontWeight: 600, letterSpacing: '-0.03em', color: '#1d1d1f', margin: '6px 0 4px' }
