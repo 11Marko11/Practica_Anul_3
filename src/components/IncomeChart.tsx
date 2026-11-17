@@ -95,9 +95,14 @@ export function IncomeChart({ data }: { data: Point[] }) {
           ))}
         </div>
       </div>
-      <details style={{ marginTop: 12 }}>
-        <summary style={{ fontSize: 13, color: '#0071e3', cursor: 'pointer' }}>{s.table}</summary>
-        <div style={{ overflowX: 'auto', border: '1px solid #e5e5ea', borderRadius: 12, marginTop: 8 }}>
+      <details className="table-toggle" style={{ marginTop: 14 }}>
+        <summary className="btn-action btn-action--neutral">
+          {s.table}
+          <svg className="table-toggle__chevron" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+            <path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </summary>
+        <div style={{ overflowX: 'auto', border: '1px solid #e5e5ea', borderRadius: 12, marginTop: 10 }}>
           <table className="income-table" style={{ minWidth: 0 }}>
             <thead><tr><th>{t.finances.month}</th><th className="num">{s.commission}</th><th className="num">{s.turnover}</th></tr></thead>
             <tbody>

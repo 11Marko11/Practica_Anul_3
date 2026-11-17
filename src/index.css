@@ -313,3 +313,9 @@ select:not([multiple]):not([size]) {
 /* Dashboard statistics: three cards side by side, stacked on phones. */
 .stats-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 @media (max-width: 760px) { .stats-row { grid-template-columns: 1fr; } }
+
+/* "Vezi ca tabel" under the income chart: a pill button with a chevron. */
+.table-toggle > summary { list-style: none; gap: 6px; height: 34px; padding: 0 16px; }
+.table-toggle > summary::-webkit-details-marker { display: none; }
+.table-toggle__chevron { transition: transform 0.15s ease; }
+.table-toggle[open] .table-toggle__chevron { transform: rotate(180deg); }
