@@ -13,7 +13,7 @@ import { refreshHostAwaiting } from '../lib/hostNotifications'
 import { CountBadge } from '../components/CountBadge'
 import { CloseBookingDialog } from './admin/CloseBookingDialog'
 import { HostFinances } from './HostFinances'
-import { HostReviews, type HostReview } from './HostReviews'
+import { HostReviews, shownReviews, type HostReview } from './HostReviews'
 import { ReturnLocationDialog } from '../components/ReturnLocationDialog'
 import { ReturnLocation } from '../components/ReturnLocation'
 import { fmt, formatDate } from '../lib/rental'
@@ -136,6 +136,12 @@ function HostPanelContent() {
     .filter(b => !carId || String(b.car.id) === carId)
     .sort((a, b) => Number(b.status === 'AWAITING_CONFIRMATION') - Number(a.status === 'AWAITING_CONFIRMATION'))
 
+  // On the reviews tab the rating is of the reviews shown there.
+  const rated = data && tab === 'reviews' ? shownReviews(data.reviews, params) : null
+  const rating = rated
+    ? { value: rated.length ? Math.round((rated.reduce((sum, x) => sum + x.rating, 0) / rated.length) * 10) / 10 : null, count: rated.length }
+    : { value: data?.host.rating ?? null, count: data?.host.reviews ?? 0 }
+
   return (
     <div style={{ paddingTop: 52 }}>
       <div style={{ padding: '40px 24px 36px', background: '#1c1c1e' }}>
@@ -156,7 +162,7 @@ function HostPanelContent() {
           <>
             <div className="dashboard-tiles">
               <Tile label={h.tiles.cars} value={String(data.cars.length)} />
-              <Tile label={h.tiles.rating} value={data.host.rating !== null ? `★ ${data.host.rating.toFixed(1)}` : h.noRating} sub={h.reviewsCount(data.host.reviews)} />
+              <Tile label={h.tiles.rating} value={rating.value !== null ? `★ ${rating.value.toFixed(1)}` : h.noRating} sub={h.reviewsCount(rating.count)} />
               <Tile label={h.tiles.trips} value={String(data.host.trips)} />
             </div>
 

@@ -21,6 +21,21 @@ export type HostReview = {
 
 const FILTERS = ['carName', 'client', 'stars', 'from', 'to']
 
+const carName = (x: HostReview) => `${x.car.brand} ${x.car.model}`
+// Names that start with what was typed.
+const starts = (name: string, typed: string) => !typed.trim() || plain(name).startsWith(plain(typed))
+
+// The reviews the filters in the address leave, newest first. The rating tile counts the same ones.
+export function shownReviews(reviews: HostReview[], params: URLSearchParams) {
+  const stars = params.get('stars') ?? ''
+  const from = params.get('from') ?? ''
+  const to = params.get('to') ?? ''
+  return reviews
+    .filter(x => starts(carName(x), params.get('carName') ?? '') && starts(x.name, params.get('client') ?? '') && (!stars || x.rating === Number(stars)))
+    .filter(x => (!from || x.date >= from) && (!to || x.date <= to))
+    .sort((a, b) => b.date.localeCompare(a.date))
+}
+
 // The host's reviews tab: the reviews of their cars, filtered by car, customer, stars and period.
 export function HostReviews({ reviews }: { reviews: HostReview[] }) {
   const { lang, t } = useI18n()
@@ -36,14 +51,8 @@ export function HostReviews({ reviews }: { reviews: HostReview[] }) {
   const from = params.get('from') ?? ''
   const to = params.get('to') ?? ''
 
-  const carName = (x: HostReview) => `${x.car.brand} ${x.car.model}`
   const names = (list: string[]) => [...new Set(list)].sort((a, b) => a.localeCompare(b, lang))
-  // Names that start with what was typed.
-  const starts = (name: string, typed: string) => !typed.trim() || plain(name).startsWith(plain(typed))
-  const shown = reviews
-    .filter(x => starts(carName(x), car) && starts(x.name, client) && (!stars || x.rating === Number(stars)))
-    .filter(x => (!from || x.date >= from) && (!to || x.date <= to))
-    .sort((a, b) => b.date.localeCompare(a.date))
+  const shown = shownReviews(reviews, params)
   const filtering = FILTERS.some(k => params.has(k))
 
   if (reviews.length === 0) return <p style={{ fontSize: 15, color: '#6e6e73', padding: '24px 0' }}>{t.hostPortal.noReviews}</p>
