@@ -6,9 +6,13 @@ import type { HostStats } from './hostStats.js'
 // the admin; a sale contract or power of attorney is optional.
 export const REQUIRED_CAR_DOCUMENTS = ['CAR_REGISTRATION', 'CAR_INSURANCE'] as const
 
-// Cars the public sees and can book: shown by their host and with papers checked by the admin.
-export const LISTED = { status: 'ACTIVE', reviewStatus: 'APPROVED' } as const satisfies Prisma.CarWhereInput
-export const isListed = (car: { status: string; reviewStatus: string }) => car.status === 'ACTIVE' && car.reviewStatus === 'APPROVED'
+// Cars the public sees and can book: shown by their host, with papers checked by the admin and
+// available (not being cleaned, at the garage…).
+export const LISTED = { status: 'ACTIVE', reviewStatus: 'APPROVED', condition: 'READY' } as const satisfies Prisma.CarWhereInput
+export const isListed = (car: { status: string; reviewStatus: string; condition: string }) =>
+  car.status === 'ACTIVE' && car.reviewStatus === 'APPROVED' && car.condition === 'READY'
+
+export const CAR_CONDITIONS = ['READY', 'CLEANING', 'NEEDS_CLEANING', 'NEEDS_CHECK', 'IN_SERVICE', 'DAMAGED', 'OTHER'] as const
 
 export const carInclude = { photos: { orderBy: { position: 'asc' } }, host: { include: { user: { select: { avatarUrl: true } } } } } as const satisfies Prisma.CarInclude
 type CarRow = Prisma.CarGetPayload<{ include: typeof carInclude }>
@@ -45,6 +49,8 @@ export function toCarDto(car: CarRow, host: HostStats) {
     },
     status: car.status,
     reviewStatus: car.reviewStatus, // the admin's check of the car's papers
+    condition: car.condition, // available, or why not (for the admin's list)
+    conditionNote: car.conditionNote,
     createdAt: car.createdAt.toISOString(), // for the admin list's "recently added" order
   }
 }

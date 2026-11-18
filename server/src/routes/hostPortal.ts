@@ -8,7 +8,7 @@ import { completeBooking, returnPlace } from '../bookings/payment.js'
 import { ledger } from '../bookings/ledger.js'
 import { hostMonths, moldovaMonth } from '../finance/hostIncome.js'
 import { startCommissionCheckout, syncCommissionSession } from '../finance/commissionPayment.js'
-import { carData, carInclude, hostCarInput, REQUIRED_CAR_DOCUMENTS, type CarInput } from '../cars/dto.js'
+import { CAR_CONDITIONS, carData, carInclude, hostCarInput, REQUIRED_CAR_DOCUMENTS, type CarInput } from '../cars/dto.js'
 import { prisma } from '../db.js'
 import { HttpError } from '../http/errors.js'
 import { readDocumentUpload } from '../http/upload.js'
@@ -120,6 +120,7 @@ export async function hostPortalRoutes(app: FastifyInstance) {
         id: car.id, slug: car.slug, brand: car.brand, model: car.model, year: car.year,
         photo: car.photos[0]?.url ?? null, pricePerDay: car.pricePerDay, city: car.city, status: car.status,
         reviewStatus: car.reviewStatus, reviewNote: car.reviewNote,
+        condition: car.condition, conditionNote: car.conditionNote, conditionSince: car.conditionSince?.toISOString() ?? null,
         rating: average(car.reviews.map(r => r.rating)),
         reviews: car.reviews.length,
         trips: car.bookings.filter(b => b.status === 'COMPLETED').length,
@@ -285,6 +286,24 @@ export async function hostPortalRoutes(app: FastifyInstance) {
       })
     })
     return { car: await carDto(car) }
+  })
+
+  // The host takes the car off the site for a while (cleaning, garage…) with an optional reason,
+  // or makes it available again. Bookings already made stay as they are.
+  app.post('/host/cars/:id/condition', { preHandler: requireHost }, async request => {
+    const car = await ownCar(request)
+    const body = z.object({ condition: z.enum(CAR_CONDITIONS), note: z.string().trim().max(300).optional() }).parse(request.body)
+    const ready = body.condition === 'READY'
+    if (body.condition === 'OTHER' && !body.note) throw new HttpError(400, 'note-required')
+    await prisma.car.update({
+      where: { id: car.id },
+      data: {
+        condition: body.condition,
+        conditionNote: ready ? null : body.note || null,
+        conditionSince: ready ? null : car.condition === 'READY' ? new Date() : car.conditionSince ?? new Date(),
+      },
+    })
+    return { ok: true }
   })
 
   // The car leaves the site at once. Not while a booking is still going on (the admin

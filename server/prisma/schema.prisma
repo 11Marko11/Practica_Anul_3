@@ -29,6 +29,18 @@ enum Drive {
   FWD
 }
 
+// Whether the car can be rented now, as its host says. Anything but READY takes it off the site
+// until the host makes it available again.
+enum CarCondition {
+  READY // available
+  CLEANING // being cleaned
+  NEEDS_CLEANING
+  NEEDS_CHECK // to be inspected
+  IN_SERVICE // at the garage
+  DAMAGED
+  OTHER // the host's note says why
+}
+
 enum CarStatus {
   ACTIVE // shown on the site
   HIDDEN // kept for past bookings, not bookable
@@ -231,6 +243,9 @@ model Car {
   reviewStatus      CarReviewStatus @default(PENDING)
   reviewNote        String? // why the admin rejected the papers, shown to the host
   reviewSubmittedAt DateTime?
+  condition         CarCondition    @default(READY)
+  conditionNote     String? // the host's reason, when not READY
+  conditionSince    DateTime? // when it was last made unavailable
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
 

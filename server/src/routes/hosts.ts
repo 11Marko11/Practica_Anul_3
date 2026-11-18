@@ -43,7 +43,7 @@ export async function hostRoutes(app: FastifyInstance) {
       hostStats([host.id]),
       prisma.review.findMany({
         where: { car: { hostId: host.id } },
-        include: { car: { select: { slug: true, brand: true, model: true, status: true, reviewStatus: true } }, user: { select: { avatarUrl: true } } },
+        include: { car: { select: { slug: true, brand: true, model: true, status: true, reviewStatus: true, condition: true } }, user: { select: { avatarUrl: true } } },
         orderBy: { createdAt: 'desc' },
         take: 100,
       }),
