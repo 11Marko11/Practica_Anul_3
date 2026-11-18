@@ -48,8 +48,10 @@ async function profileOf(userId: string) {
 }
 
 // What a verification request needs: a driving licence and an ID card or passport.
+// Only customers and hosts who uploaded all three can be verified.
+export const REQUIRED_IDENTITY_DOCUMENTS = ['ID_CARD', 'PASSPORT', 'DRIVING_LICENSE'] as const
 export function hasRequiredDocuments(types: string[]) {
-  return types.includes('DRIVING_LICENSE') && (types.includes('ID_CARD') || types.includes('PASSPORT'))
+  return REQUIRED_IDENTITY_DOCUMENTS.every(t => types.includes(t))
 }
 
 // The signed-in user's profile, documents and identity verification.
@@ -169,10 +171,10 @@ export async function profileRoutes(app: FastifyInstance) {
       // Removing a document from documents being checked or already checked withdraws the
       // verification: the rest go back to the admin, or the account is unverified if none are left.
       if (user.verificationStatus === 'PENDING' || user.verificationStatus === 'VERIFIED') {
-        const left = await tx.identityDocument.count({ where: { userId } })
+        const left = (await tx.identityDocument.findMany({ where: { userId }, select: { type: true } })).map(d => d.type)
         await tx.user.update({
           where: { id: userId },
-          data: left
+          data: hasRequiredDocuments(left)
             ? { verificationStatus: 'PENDING', verificationSubmittedAt: new Date(), verifiedAt: null }
             : { verificationStatus: 'UNVERIFIED', verificationSubmittedAt: null, verifiedAt: null },
         })

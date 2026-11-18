@@ -10,6 +10,7 @@ import { COMMISSION_RATES } from '../hosts/commission.js'
 import { notify } from '../notifications/notify.js'
 import { bookingInclude, toBookingDto } from '../bookings/dto.js'
 import { prisma } from '../db.js'
+import { hasRequiredDocuments } from './profile.js'
 import { HttpError } from '../http/errors.js'
 
 // Money kept from a booking: charged when confirmed, minus refunds.
@@ -133,6 +134,8 @@ export async function adminPeopleRoutes(app: FastifyInstance) {
     const { id } = z.object({ id: z.uuid() }).parse(request.params)
     const user = await customer(id)
     if (user.deletedAt) throw new HttpError(409, 'account-deleted')
+    const types = (await prisma.identityDocument.findMany({ where: { userId: id }, select: { type: true } })).map(d => d.type)
+    if (!hasRequiredDocuments(types)) throw new HttpError(422, 'documents-missing')
     await prisma.user.update({ where: { id }, data: { verificationStatus: 'VERIFIED', verifiedAt: new Date(), verificationNote: null } })
     return { ok: true }
   })

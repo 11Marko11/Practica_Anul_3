@@ -99,7 +99,6 @@ export async function hostRoutes(app: FastifyInstance) {
         user: {
           create: {
             name: input.name, email: input.email, passwordHash: await hashPassword(input.password),
-            verificationStatus: 'VERIFIED', verifiedAt: new Date(),
           },
         },
       },
@@ -120,7 +119,7 @@ export async function hostRoutes(app: FastifyInstance) {
       if (!input.password) throw new HttpError(400, 'validation')
       await prisma.host.update({
         where: { id },
-        data: { user: { create: { name: host.name, email: input.email, passwordHash: await hashPassword(input.password), verificationStatus: 'VERIFIED', verifiedAt: new Date() } } },
+        data: { user: { create: { name: host.name, email: input.email, passwordHash: await hashPassword(input.password) } } },
       })
       return { ok: true }
     }
