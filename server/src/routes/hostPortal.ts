@@ -67,7 +67,7 @@ export async function hostPortalRoutes(app: FastifyInstance) {
           orderBy: [{ brand: 'asc' }, { model: 'asc' }],
           include: {
             photos: { orderBy: { position: 'asc' }, take: 1 },
-            bookings: { where: { status: { in: [...SHOWN] } }, include: { user: { select: { name: true } } }, orderBy: { pickupDate: 'desc' } },
+            bookings: { where: { status: { in: [...SHOWN] } }, include: { user: { select: { name: true, avatarUrl: true } } }, orderBy: { pickupDate: 'desc' } },
             reviews: { orderBy: { createdAt: 'desc' } },
           },
         },
@@ -81,7 +81,7 @@ export async function hostPortalRoutes(app: FastifyInstance) {
         const confirmed = b.status === 'CONFIRMED' || b.status === 'COMPLETED'
         return {
           id: b.id,
-          car: { id: car.id, slug: car.slug, brand: car.brand, model: car.model },
+          car: { id: car.id, slug: car.slug, brand: car.brand, model: car.model, photo: car.photos[0]?.url ?? null },
           pickupDate: isoDate(b.pickupDate),
           returnDate: isoDate(b.returnDate),
           days: b.days,
@@ -95,7 +95,7 @@ export async function hostPortalRoutes(app: FastifyInstance) {
           returnLocation: b.returnAddress ? { address: b.returnAddress, lat: b.returnLat, lng: b.returnLng, by: b.completedBy } : null,
           commissionRate: b.commissionRate,
           // The name helps the host decide; the phone shows once the booking is confirmed.
-          customer: { name: b.user.name, phone: confirmed ? b.phone : null },
+          customer: { name: b.user.name, avatarUrl: b.user.avatarUrl, phone: confirmed ? b.phone : null },
           // Stripe releases the card hold after 7 days: the host must answer before then.
           holdExpiresAt: b.status === 'AWAITING_CONFIRMATION' && b.authorizedAt ? new Date(b.authorizedAt.getTime() + 7 * 86_400_000).toISOString() : null,
           createdAt: b.createdAt.toISOString(),
