@@ -812,6 +812,7 @@ export const ro: Dict = {
     deleted: 'Contul a fost șters, deci nu poate primi rolul de gazdă.',
   },
   hostPortal: {
+    columns: { car: 'Mașina', customer: 'Clientul', total: 'Suma' },
     awaitingTitle: 'Așteaptă răspunsul tău',
     answerBy: (date: string) => `Răspunde până pe ${date}, altfel plata se anulează automat.`,
     confirm: 'Confirmă și încasează',

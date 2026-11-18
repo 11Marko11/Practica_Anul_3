@@ -293,6 +293,14 @@ function HostPanelContent() {
             {tab === 'bookings' && (
               <ul style={list}>
                 {bookings.length === 0 && <Empty text={h.noBookings} />}
+                {/* Column names once, above the bookings (on wide screens, where the columns line up). */}
+                {bookings.length > 0 && (
+                  <li className="booking-cols-head" aria-hidden="true">
+                    <span style={{ flex: '1 1 300px' }}>{h.columns.car}</span>
+                    <span style={{ flex: '1 1 200px' }}>{h.columns.customer}</span>
+                    <span style={{ flex: '0 0 130px', textAlign: 'right' }}>{h.columns.total}</span>
+                  </li>
+                )}
                 {bookings.map(b => (
                   <li key={b.id} style={{ ...row, display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
                     <div style={{ flex: '1 1 300px', minWidth: 0, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
@@ -312,8 +320,7 @@ function HostPanelContent() {
                     </div>
                     </div>
                     <div style={{ flex: '1 1 200px', fontSize: 13, color: '#6e6e73' }}>
-                      <div style={{ color: '#86868b' }}>{h.customer}</div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 6 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <Avatar name={b.customer.name} url={b.customer.avatarUrl} size={40} />
                         <div style={{ color: '#1d1d1f', minWidth: 0 }}>
                           <div style={{ fontSize: 14, fontWeight: 500 }}>{b.customer.name}</div>
@@ -321,7 +328,7 @@ function HostPanelContent() {
                         </div>
                       </div>
                     </div>
-                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <div className="booking-total">
                       <strong style={{ fontSize: 16, color: '#1d1d1f' }}><Money value={b.total} /></strong>
                       {b.earned > 0 && b.earned !== b.total && <div style={{ fontSize: 12, color: '#86868b' }}>{h.earned}: <Money value={b.earned} /></div>}
                     </div>

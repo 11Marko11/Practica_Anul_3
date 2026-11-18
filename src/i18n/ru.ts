@@ -812,6 +812,7 @@ export const ru: Dict = {
     deleted: 'Аккаунт удалён, ему нельзя дать роль владельца.',
   },
   hostPortal: {
+    columns: { car: 'Автомобиль', customer: 'Клиент', total: 'Сумма' },
     awaitingTitle: 'Ждут вашего ответа',
     answerBy: (date: string) => `Ответьте до ${date}, иначе оплата отменится автоматически.`,
     confirm: 'Подтвердить и списать',

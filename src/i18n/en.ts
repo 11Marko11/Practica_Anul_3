@@ -812,6 +812,7 @@ export const en = {
     deleted: 'The account was deleted, so it cannot get the host role.',
   },
   hostPortal: {
+    columns: { car: 'Car', customer: 'Customer', total: 'Amount' },
     awaitingTitle: 'Waiting for your answer',
     answerBy: (date: string) => `Answer by ${date}, otherwise the payment is cancelled automatically.`,
     confirm: 'Confirm and charge',
