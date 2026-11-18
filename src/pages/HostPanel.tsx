@@ -12,6 +12,7 @@ import { hostCompleteBooking, hostConfirmBooking, type BookingStatus } from '../
 import { refreshHostAwaiting } from '../lib/hostNotifications'
 import { CountBadge } from '../components/CountBadge'
 import { CarConditionDialog } from '../components/CarConditionDialog'
+import { HiddenStamp, HiddenVeil } from '../components/HiddenVeil'
 import { CAR_CONDITIONS, CONDITION_COLORS, setCarCondition, type CarCondition } from '../lib/carCondition'
 import { CloseBookingDialog } from './admin/CloseBookingDialog'
 import { HostFinances } from './HostFinances'
@@ -229,14 +230,15 @@ function HostPanelContent() {
                 {data.cars.length === 0 && <Empty text={h.noCars} />}
                 {data.cars.length > 0 && state && !data.cars.some(c => c.condition === state) && <Empty text={t.carCondition.noMatch} />}
                 {data.cars.filter(c => !state || c.condition === state).map(car => (
-                  <li key={car.id} className="admin-row" style={row}>
+                  <li key={car.id} className={`admin-row${car.status === 'HIDDEN' ? ' car-row--hidden' : ''}`} style={row}>
+                    {car.status === 'HIDDEN' && <HiddenVeil />}
                     <div style={{ width: 120, aspectRatio: '16/10', borderRadius: 10, overflow: 'hidden', background: '#e8e8ed', flexShrink: 0 }}>
                       {car.photo && <img src={photoUrl(car.photo, 240, 150)} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
                     </div>
-                    <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ minWidth: 0, flex: 1, position: 'relative' }}>
+                      {car.status === 'HIDDEN' && <HiddenStamp label={t.admin.hidden} />}
                       <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f' }}>
                         {car.brand} {car.model} <span style={{ fontWeight: 400, color: '#6e6e73' }}>· {car.year}</span>
-                        {car.status === 'HIDDEN' && <span style={{ display: 'inline-block', whiteSpace: 'nowrap', verticalAlign: 'middle', marginLeft: 8, fontSize: 11, fontWeight: 500, color: '#6e6e73', background: '#f0f0f0', padding: '2px 8px', borderRadius: 980 }}>{h.hidden}</span>}
                         {car.reviewStatus !== 'APPROVED' && (
                           <span style={{ display: 'inline-block', whiteSpace: 'nowrap', verticalAlign: 'middle', marginLeft: 8, fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 980, ...CAR_REVIEW_COLORS[car.reviewStatus] }}>
                             {t.carPapers.status[car.reviewStatus]}
