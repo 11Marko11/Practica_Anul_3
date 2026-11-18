@@ -178,7 +178,7 @@ function AdminCarsContent() {
             return (
               <li key={car.id} className="admin-row" style={{ padding: '16px 0', borderBottom: '1px solid #f0f0f0' }}>
                 <div className="car-row__main">
-                {car.status === 'HIDDEN' && <HiddenVeil label={t.admin.hidden} />}
+                <HiddenVeil show={car.status === 'HIDDEN'} label={t.admin.hidden} />
                 <div style={{ width: 120, aspectRatio: '16/10', borderRadius: 10, overflow: 'hidden', background: '#e8e8ed', flexShrink: 0 }}>
                   {car.photos.length > 0 && <img src={carImage(car, 240, 150)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
                 </div>

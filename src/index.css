@@ -357,7 +357,12 @@ input[type="search"]::-webkit-search-cancel-button { margin-left: 10px; cursor: 
 /* The veil slides in from the right edge, then the label fades in. */
 @keyframes veil-in { from { clip-path: inset(0 0 0 100% round 14px); } to { clip-path: inset(0 0 0 0 round 14px); } }
 @keyframes veil-label-in { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) { .car-row__veil, .car-row__veil span { animation: none; } }
+/* Shown again: the label fades first, then the veil slides back out to the right. */
+.car-row__veil--leaving { animation: veil-out 0.6s cubic-bezier(0.55, 0, 0.75, 0.2) 0.15s both; }
+.car-row__veil--leaving span { animation: veil-label-out 0.25s ease-in both; }
+@keyframes veil-out { from { clip-path: inset(0 0 0 0 round 14px); } to { clip-path: inset(0 0 0 100% round 14px); } }
+@keyframes veil-label-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(24px); } }
+@media (prefers-reduced-motion: reduce) { .car-row__veil, .car-row__veil span { animation: none; } .car-row__veil--leaving { animation: veil-out 0.01s both; } }
 
 /* Column names above the host's bookings; hidden on phones, where the columns stack. */
 .booking-cols-head { display: flex; gap: 16px; padding: 4px 0 10px; border-bottom: 1px solid #e5e5ea; font-size: 12px; font-weight: 500; color: #86868b; text-transform: uppercase; letter-spacing: 0.04em; }
