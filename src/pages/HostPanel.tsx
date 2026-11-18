@@ -12,7 +12,7 @@ import { hostCompleteBooking, hostConfirmBooking, type BookingStatus } from '../
 import { refreshHostAwaiting } from '../lib/hostNotifications'
 import { CountBadge } from '../components/CountBadge'
 import { CarConditionDialog } from '../components/CarConditionDialog'
-import { HiddenStamp, HiddenVeil } from '../components/HiddenVeil'
+import { HiddenVeil } from '../components/HiddenVeil'
 import { CAR_CONDITIONS, CONDITION_COLORS, setCarCondition, type CarCondition } from '../lib/carCondition'
 import { CloseBookingDialog } from './admin/CloseBookingDialog'
 import { HostFinances } from './HostFinances'
@@ -230,13 +230,13 @@ function HostPanelContent() {
                 {data.cars.length === 0 && <Empty text={h.noCars} />}
                 {data.cars.length > 0 && state && !data.cars.some(c => c.condition === state) && <Empty text={t.carCondition.noMatch} />}
                 {data.cars.filter(c => !state || c.condition === state).map(car => (
-                  <li key={car.id} className={`admin-row${car.status === 'HIDDEN' ? ' car-row--hidden' : ''}`} style={row}>
-                    {car.status === 'HIDDEN' && <HiddenVeil />}
+                  <li key={car.id} className="admin-row" style={row}>
+                    <div className="car-row__main">
+                    {car.status === 'HIDDEN' && <HiddenVeil label={t.admin.hidden} />}
                     <div style={{ width: 120, aspectRatio: '16/10', borderRadius: 10, overflow: 'hidden', background: '#e8e8ed', flexShrink: 0 }}>
                       {car.photo && <img src={photoUrl(car.photo, 240, 150)} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
                     </div>
-                    <div style={{ minWidth: 0, flex: 1, position: 'relative' }}>
-                      {car.status === 'HIDDEN' && <HiddenStamp label={t.admin.hidden} />}
+                    <div style={{ minWidth: 0, flex: 1 }}>
                       <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f' }}>
                         {car.brand} {car.model} <span style={{ fontWeight: 400, color: '#6e6e73' }}>· {car.year}</span>
                         {car.reviewStatus !== 'APPROVED' && (
@@ -271,6 +271,7 @@ function HostPanelContent() {
                       <div style={{ fontSize: 13, marginTop: 4, color: car.rentedNow ? '#b25000' : '#1b7a35' }}>
                         {car.rentedNow ? h.rentedNow(date(car.rentedNow.returnDate)) : car.nextBooking ? <span style={{ color: '#424245' }}>{h.next(date(car.nextBooking.pickupDate), date(car.nextBooking.returnDate))}</span> : h.free}
                       </div>
+                    </div>
                     </div>
                     <div className="host-car-side">
                       <span style={{ fontSize: 12, color: '#86868b' }}>{h.earned}</span>

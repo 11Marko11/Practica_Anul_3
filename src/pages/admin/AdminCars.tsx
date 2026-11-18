@@ -12,7 +12,7 @@ import { CountBadge } from '../../components/CountBadge'
 import { ResetButton } from '../../components/ResetButton'
 import { useUrlParams } from '../../lib/useUrlParams'
 import { CONDITION_COLORS } from '../../lib/carCondition'
-import { HiddenStamp, HiddenVeil } from '../../components/HiddenVeil'
+import { HiddenVeil } from '../../components/HiddenVeil'
 import { useKeepHeight } from '../../lib/useKeepHeight'
 import { pageFrom, Pagination } from '../../components/Pagination'
 import type { Car } from '../../data/cars'
@@ -176,13 +176,13 @@ function AdminCarsContent() {
           {shown.map(car => {
             const name = `${car.brand} ${car.model}`
             return (
-              <li key={car.id} className={`admin-row${car.status === 'HIDDEN' ? ' car-row--hidden' : ''}`} style={{ padding: '16px 0', borderBottom: '1px solid #f0f0f0' }}>
-                {car.status === 'HIDDEN' && <HiddenVeil />}
+              <li key={car.id} className="admin-row" style={{ padding: '16px 0', borderBottom: '1px solid #f0f0f0' }}>
+                <div className="car-row__main">
+                {car.status === 'HIDDEN' && <HiddenVeil label={t.admin.hidden} />}
                 <div style={{ width: 120, aspectRatio: '16/10', borderRadius: 10, overflow: 'hidden', background: '#e8e8ed', flexShrink: 0 }}>
                   {car.photos.length > 0 && <img src={carImage(car, 240, 150)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
                 </div>
-                <div style={{ minWidth: 0, flex: 1, position: 'relative' }}>
-                  {car.status === 'HIDDEN' && <HiddenStamp label={t.admin.hidden} />}
+                <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f' }}>{name} <span style={{ fontWeight: 400, color: '#6e6e73' }}>· {car.year}</span>
                     {car.condition && car.condition !== 'READY' && (
                       <span title={car.conditionNote ?? undefined} style={{ display: 'inline-block', whiteSpace: 'nowrap', verticalAlign: 'middle', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', marginLeft: 8, fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 980, ...CONDITION_COLORS[car.condition] }}>
@@ -201,6 +201,7 @@ function AdminCarsContent() {
                     {car.createdAt && <span style={{ color: '#86868b' }}> · {t.adminCarsList.added(new Date(car.createdAt).toLocaleDateString(lang))}</span>}
                   </div>
                 </div>
+                </div>
                 <div className="row-actions">
                   <button onClick={() => setReviewing(reviewing === car.id ? null : car.id)} className={`btn-action ${car.reviewStatus === 'PENDING' ? 'btn-action--primary' : 'btn-action--neutral'}`}>
                     {reviewing === car.id ? t.carPapers.admin.hide : t.carPapers.admin.review}
@@ -214,7 +215,7 @@ function AdminCarsContent() {
                   </button>
                   <button onClick={() => remove(car.id, name)} className="btn-action btn-action--danger">{t.admin.delete}</button>
                 </div>
-                {reviewing === car.id && <div className="car-row__above" style={{ flexBasis: '100%', minWidth: 0 }}><CarReview carId={car.id} onDone={() => setReviewing(null)} /></div>}
+                {reviewing === car.id && <CarReview carId={car.id} onDone={() => setReviewing(null)} />}
               </li>
             )
           })}
