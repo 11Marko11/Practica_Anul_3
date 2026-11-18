@@ -12,6 +12,7 @@ export const LISTED = { status: 'ACTIVE', reviewStatus: 'APPROVED', condition: '
 export const isListed = (car: { status: string; reviewStatus: string; condition: string }) =>
   car.status === 'ACTIVE' && car.reviewStatus === 'APPROVED' && car.condition === 'READY'
 
+// The states a host can pick; NO_DOCUMENTS is set and cleared by the site, from the car's papers.
 export const CAR_CONDITIONS = ['READY', 'CLEANING', 'NEEDS_CLEANING', 'NEEDS_CHECK', 'IN_SERVICE', 'DAMAGED', 'OTHER'] as const
 
 export const carInclude = { photos: { orderBy: { position: 'asc' } }, host: { include: { user: { select: { avatarUrl: true } } } } } as const satisfies Prisma.CarInclude

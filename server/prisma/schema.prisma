@@ -39,6 +39,7 @@ enum CarCondition {
   IN_SERVICE // at the garage
   DAMAGED
   OTHER // the host's note says why
+  NO_DOCUMENTS // set by the site while the host hasn't uploaded the car's papers
 }
 
 enum CarStatus {

@@ -55,6 +55,13 @@ async function carPapers(request: FastifyRequest, input: CarInput, carId?: numbe
 const forReview = () => ({ reviewStatus: 'PENDING' as const, reviewNote: null, reviewSubmittedAt: new Date() })
 // Without its papers the car is kept but not shown, and not sent to the admin yet.
 const withoutPapers = () => ({ reviewStatus: 'NO_DOCUMENTS' as const, reviewNote: null, reviewSubmittedAt: null })
+// A car without papers is in the "no documents" state; once they are uploaded it is available again.
+const noPapersState = (current?: { condition: string; conditionSince: Date | null }) => ({
+  condition: 'NO_DOCUMENTS' as const,
+  conditionNote: null,
+  conditionSince: current?.condition === 'NO_DOCUMENTS' ? current.conditionSince ?? new Date() : new Date(),
+})
+const papersInState = { condition: 'READY' as const, conditionNote: null, conditionSince: null }
 
 // GET /api/host: everything a host follows on their pages. Customer contact details are
 // shown only once the admin has confirmed the booking. Hosts add, edit and remove their own cars.
@@ -258,7 +265,7 @@ export async function hostPortalRoutes(app: FastifyInstance) {
     const papers = await carPapers(request, input)
     const car = await prisma.$transaction(async tx => {
       const created = await tx.car.create({
-        data: { ...carData(input), ...(papers.complete ? forReview() : withoutPapers()), hostId: hostId(request), slug: await uniqueSlug(input.brand, input.model), photos: { create: photoRows(input.photos) } },
+        data: { ...carData(input), ...(papers.complete ? forReview() : { ...withoutPapers(), ...noPapersState() }), hostId: hostId(request), slug: await uniqueSlug(input.brand, input.model), photos: { create: photoRows(input.photos) } },
         include: carInclude,
       })
       await tx.hostDocument.updateMany({ where: { id: { in: papers.ids } }, data: { carId: created.id } })
@@ -275,13 +282,14 @@ export async function hostPortalRoutes(app: FastifyInstance) {
     // New papers, another car (brand, model, year) or a rejected car being fixed: checked again.
     const recheck = papers.changed || current.reviewStatus === 'REJECTED' || current.reviewStatus === 'NO_DOCUMENTS' || current.brand !== input.brand || current.model !== input.model || current.year !== input.year
     const review = !papers.complete ? withoutPapers() : recheck ? forReview() : {}
+    const state = !papers.complete ? noPapersState(current) : current.condition === 'NO_DOCUMENTS' ? papersInState : {}
     const credits = new Map(current.photos.map(p => [p.url, { credit: p.credit, creditUrl: p.creditUrl }]))
     const car = await prisma.$transaction(async tx => {
       await tx.hostDocument.deleteMany({ where: { carId: current.id, id: { notIn: papers.ids } } })
       await tx.hostDocument.updateMany({ where: { id: { in: papers.ids } }, data: { carId: current.id } })
       return tx.car.update({
         where: { id: current.id },
-        data: { ...carData(input), ...review, photos: { deleteMany: {}, create: photoRows(input.photos, credits) } },
+        data: { ...carData(input), ...review, ...state, photos: { deleteMany: {}, create: photoRows(input.photos, credits) } },
         include: carInclude,
       })
     })
@@ -295,6 +303,8 @@ export async function hostPortalRoutes(app: FastifyInstance) {
     const body = z.object({ condition: z.enum(CAR_CONDITIONS), note: z.string().trim().max(300).optional() }).parse(request.body)
     const ready = body.condition === 'READY'
     if (body.condition === 'OTHER' && !body.note) throw new HttpError(400, 'note-required')
+    // A car without papers stays in that state until they are uploaded.
+    if (car.condition === 'NO_DOCUMENTS') throw new HttpError(409, 'car-documents-missing')
     await prisma.car.update({
       where: { id: car.id },
       data: {
