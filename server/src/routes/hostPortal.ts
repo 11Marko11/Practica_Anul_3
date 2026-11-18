@@ -68,7 +68,7 @@ export async function hostPortalRoutes(app: FastifyInstance) {
           include: {
             photos: { orderBy: { position: 'asc' }, take: 1 },
             bookings: { where: { status: { in: [...SHOWN] } }, include: { user: { select: { name: true, avatarUrl: true } } }, orderBy: { pickupDate: 'desc' } },
-            reviews: { orderBy: { createdAt: 'desc' } },
+            reviews: { orderBy: { createdAt: 'desc' }, include: { user: { select: { avatarUrl: true } } } },
           },
         },
       },
@@ -104,8 +104,10 @@ export async function hostPortalRoutes(app: FastifyInstance) {
     )
     const reviews = host.cars
       .flatMap(car => car.reviews.map(r => ({
-        id: r.id, car: { id: car.id, slug: car.slug, brand: car.brand, model: car.model },
-        name: r.authorName, rating: r.rating, text: r.text, date: isoDate(r.createdAt),
+        id: r.id, car: { id: car.id, slug: car.slug, brand: car.brand, model: car.model, photo: car.photos[0]?.url ?? null },
+        // The customer: their account, or the name alone for the sample reviews.
+        author: r.userId ?? `name:${r.authorName}`,
+        name: r.authorName, avatarUrl: r.user?.avatarUrl ?? null, rating: r.rating, text: r.text, date: isoDate(r.createdAt),
       })))
       .sort((a, b) => b.date.localeCompare(a.date))
 
