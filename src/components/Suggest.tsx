@@ -24,7 +24,7 @@ export function Suggest({ value, onChange, options, placeholder, style }: {
   }
 
   return (
-    <div style={{ position: 'relative', flex: '1 1 200px', maxWidth: '100%' }}>
+    <div style={{ position: 'relative', flex: '1 1 160px', maxWidth: '100%' }}>
       <input
         type="search"
         value={value}

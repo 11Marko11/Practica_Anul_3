@@ -53,12 +53,15 @@ export function HostReviews({ reviews }: { reviews: HostReview[] }) {
       <div className="admin-car-toolbar">
         <Suggest value={car} onChange={v => set('carName', v)} options={names(reviews.map(carName))} placeholder={r.car} style={control} />
         <Suggest value={client} onChange={v => set('client', v)} options={names(reviews.map(x => x.name))} placeholder={r.client} style={control} />
+        {/* "De la" and "Până la" always stay side by side, also on phones. */}
+        <div className="date-range">
+          <label>{mb.from}<input type="date" value={from} max={to || undefined} onChange={e => set('from', e.target.value)} style={control} /></label>
+          <label>{mb.to}<input type="date" value={to} min={from || undefined} onChange={e => set('to', e.target.value)} style={control} /></label>
+        </div>
         <select value={stars} onChange={e => set('stars', e.target.value)} aria-label={r.stars} style={control}>
           <option value="">{r.allStars}</option>
           {[5, 4, 3, 2, 1].map(n => <option key={n} value={n}>{'★'.repeat(n)} {r.starsCount(n)}</option>)}
         </select>
-        <label style={labelStyle}>{mb.from}<input type="date" value={from} max={to || undefined} onChange={e => set('from', e.target.value)} style={control} /></label>
-        <label style={labelStyle}>{mb.to}<input type="date" value={to} min={from || undefined} onChange={e => set('to', e.target.value)} style={control} /></label>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', fontSize: 13, color: '#6e6e73', marginTop: 6 }}>
         {r.found(shown.length)}
@@ -92,4 +95,3 @@ export function HostReviews({ reviews }: { reviews: HostReview[] }) {
 }
 
 const control: React.CSSProperties = { fontSize: 14, padding: '9px 14px', borderRadius: 980, border: '1px solid #d2d2d7', background: '#fff', color: '#1d1d1f', fontFamily: 'inherit', outline: 'none', maxWidth: '100%' }
-const labelStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#6e6e73' }

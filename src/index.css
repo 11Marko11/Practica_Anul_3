@@ -323,3 +323,12 @@ select:not([multiple]):not([size]) {
 /* Car photo on a host's booking card; smaller on phones so the text stays beside it. */
 .booking-thumb { display: block; width: 120px; aspect-ratio: 16 / 10; border-radius: 10px; overflow: hidden; background: #e8e8ed; flex-shrink: 0; }
 @media (max-width: 600px) { .booking-thumb { width: 84px; } }
+
+/* A "from – to" pair of date fields that never wraps apart. */
+.date-range { display: flex; align-items: center; gap: 10px; min-width: 0; max-width: 100%; }
+.date-range label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #6e6e73; white-space: nowrap; min-width: 0; flex: 1 1 0; }
+.date-range input { min-width: 0; flex: 1 1 auto; }
+@media (max-width: 600px) {
+  .date-range { width: 100%; gap: 8px; }
+  .date-range input { padding: 9px 8px !important; font-size: 13px !important; }
+}
