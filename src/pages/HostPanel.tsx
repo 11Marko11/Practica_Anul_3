@@ -173,7 +173,11 @@ function HostPanelContent() {
     : { value: data?.host.rating ?? null, count: data?.host.reviews ?? 0 }
   // …and so are the cars in them and the finished trips that pass the same filters.
   // Without filters, all the host's cars count, also those without reviews.
-  const carCount = rated && FILTERS.some(k => params.has(k)) ? new Set(rated.map(x => x.car.id)).size : data?.cars.length ?? 0
+  const ratedCars = rated && FILTERS.some(k => params.has(k)) ? new Set(rated.map(x => x.car.id)) : null
+  const carCount = ratedCars ? ratedCars.size : data?.cars.length ?? 0
+  // How many of those cars are on the site now (active, papers approved, ready) and how many not.
+  const tileCars = (data?.cars ?? []).filter(c => !ratedCars || ratedCars.has(c.id))
+  const carsOn = tileCars.filter(c => c.status === 'ACTIVE' && c.reviewStatus === 'APPROVED' && c.condition === 'READY').length
   const tripCount = data && tab === 'reviews'
     ? data.bookings.filter(b => b.status === 'COMPLETED' && tripShown(b, data.reviews, params)).length
     : data?.host.trips ?? 0
@@ -199,7 +203,7 @@ function HostPanelContent() {
             {/* Finances has its own summary; the bookings list needs none. */}
             {tab !== 'finances' && tab !== 'bookings' && (
               <div className="dashboard-tiles">
-                <Tile label={h.tiles.cars} value={String(carCount)} />
+                <Tile label={h.tiles.cars} value={String(carCount)} sub={h.carsOnSite(carsOn, carCount - carsOn)} />
                 <Tile label={h.tiles.rating} value={rating.value !== null ? `★ ${rating.value.toFixed(1)}` : h.noRating} sub={h.reviewsCount(rating.count)} />
                 <Tile label={h.tiles.trips} value={String(tripCount)} />
               </div>
