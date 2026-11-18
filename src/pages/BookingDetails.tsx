@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { formatPhone } from '../lib/phone'
 import { same, useLivePoll } from '../lib/livePoll'
 import { Link, Navigate, useLocation, useParams, useSearchParams } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
@@ -111,7 +112,7 @@ export function BookingDetails() {
                   </>
                 )}
                 <dt style={{ color: '#6e6e73' }}>{t.bookings.phone2}</dt>
-                <dd style={{ margin: 0, color: '#1d1d1f' }}>{booking.phone}</dd>
+                <dd style={{ margin: 0, color: '#1d1d1f' }}>{formatPhone(booking.phone)}</dd>
                 {booking.note && (
                   <>
                     <dt style={{ color: '#6e6e73' }}>{t.bookings.note2}</dt>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { PhoneInput } from '../components/PhoneInput'
 import { Navigate, useLocation } from 'react-router'
 import { useAuth, type VerificationStatus } from '../auth/AuthContext'
 import { DeleteAccount } from '../components/DeleteAccount'
@@ -369,7 +370,7 @@ function PersonalDetails({ profile, onSaved, errorText }: { profile: ProfileData
             {p.email}
             <input value={profile.email} disabled style={{ ...inputStyle, background: '#f5f5f7', color: '#6e6e73' }} />
           </label>
-          <label style={labelStyle}>{p.phone}<input type="tel" value={form.phone} onChange={set('phone')} autoComplete="tel" placeholder="+373 69 123 456" style={inputStyle} /></label>
+          <label style={labelStyle}>{p.phone}<PhoneInput value={form.phone} onChange={phone => setForm(f => ({ ...f, phone }))} style={inputStyle} /></label>
           <label style={labelStyle}>{p.birthDate}<input type="date" value={form.birthDate} onChange={set('birthDate')} max={new Date().toISOString().slice(0, 10)} style={inputStyle} /></label>
         </div>
         <p style={{ fontSize: 12, color: '#86868b', margin: 0 }}>{p.emailHint}</p>

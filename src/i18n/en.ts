@@ -61,7 +61,7 @@ export const en = {
     fullName: 'Full name',
     email: 'Email',
     phone: 'Phone number',
-    phoneHint: 'One account per phone number. Moldovan numbers can be written without +373.',
+    phoneHint: 'One account per phone number.',
     password: 'Password',
     slow: 'Waking up the server, this can take up to a minute…',
     passwordHint: 'At least 8 characters',
@@ -190,6 +190,7 @@ export const en = {
     taken: 'Already booked:',
     datesTaken: 'These dates are already booked. Please choose other dates.',
     errors: {
+      'invalid-phone': 'Enter a valid phone number.',
       'dates-unavailable': 'Someone has just booked these dates. Please choose other dates.',
       'invalid-dates': 'Please choose valid dates (up to 60 days, starting today or later).',
       'delivery-outside-country': 'We only deliver inside Moldova.',
@@ -759,6 +760,11 @@ export const en = {
     cancel: 'Cancel',
     saveError: 'The status couldn’t be saved. Try again.',
     noMatch: 'No cars with this status.',
+  },
+  phoneInput: {
+    country: 'Country',
+    moldova: 'Moldovan numbers have 8 digits after +373, e.g. 69 123 456.',
+    tooShort: (n: number) => `Enter at least ${n} digits.`,
   },
   adminHosts: {
     tab: 'Hosts',

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { PhoneInput } from '../../components/PhoneInput'
 import type { VerificationStatus } from '../../auth/AuthContext'
 import { VerificationBadge } from '../Profile'
 import { refreshAwaitingCount } from '../../lib/adminNotifications'
@@ -357,7 +358,7 @@ function UserDetail({ id }: { id: string }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {data.bookings.map(b => (
                 <BookingCard key={b.id} booking={b}>
-                  <div style={{ fontSize: 12, color: '#86868b', marginTop: 8 }}>{t.bookings.bookedOn(date(b.createdAt))} · {b.phone}</div>
+                  <div style={{ fontSize: 12, color: '#86868b', marginTop: 8 }}>{t.bookings.bookedOn(date(b.createdAt))} · {formatPhone(b.phone)}</div>
                   {b.cancelled?.reason && <div style={{ fontSize: 13, color: '#6e6e73' }}>{t.cancelReasons[b.cancelled.reason]}</div>}
                 </BookingCard>
               ))}
@@ -482,7 +483,7 @@ function AccountPanel({ data, onChange }: { data: Detail; onChange: () => Promis
           </label>
           <label style={field}>
             {u.phone}
-            <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} maxLength={40} placeholder="+373…" style={{ ...control, borderRadius: 10 }} />
+            <PhoneInput value={phone} onChange={setPhone} style={{ ...control, borderRadius: 10 }} />
           </label>
           <label style={field}>
             {u.newPassword}
@@ -533,7 +534,7 @@ function HostCard({ host, onDeleted, onChanged, extra }: { host: AdminHost; onDe
         <>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
               <Link to={`/hosts/${host.id}`} style={{ fontSize: 17, fontWeight: 600, color: '#1d1d1f', textDecoration: 'none' }}>{host.name}</Link>
-              {host.phone && <a href={`tel:${host.phone}`} style={{ fontSize: 13, color: '#0071e3', textDecoration: 'none' }}>{host.phone}</a>}
+              {host.phone && <a href={`tel:${host.phone}`} style={{ fontSize: 13, color: '#0071e3', textDecoration: 'none' }}>{formatPhone(host.phone)}</a>}
             </div>
             <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 3 }}>
               {host.rating !== null ? `★ ${host.rating.toFixed(1)} (${h.ratings(host.reviews)})` : h.noRatings} · {t.common.trips(host.trips)} · {h.cars(host.cars.length)}

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { PhoneInput } from '../../components/PhoneInput'
 import { useI18n } from '../../i18n/I18nContext'
 import { ApiError } from '../../lib/api'
 import { COMMISSION_RATES, type AccountInput, type AdminHost, type HostInput } from '../../lib/hosts'
@@ -42,7 +43,7 @@ export function HostEditor({ host, withAccount = false, onSave, onCancel }: {
       </label>
       <label style={field}>
         {h.phone}
-        <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} maxLength={30} placeholder="+373…" style={{ ...control, borderRadius: 10 }} />
+        <PhoneInput value={phone} onChange={setPhone} style={{ ...control, borderRadius: 10 }} />
       </label>
       {withAccount && <AccountFields email={email} password={password} onEmail={setEmail} onPassword={setPassword} passwordLabel={h.password} />}
       {withAccount && <CommissionSelect value={rate} onChange={setRate} />}

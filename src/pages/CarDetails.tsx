@@ -1,4 +1,5 @@
 import { Avatar } from '../components/Avatar'
+import { PhoneInput } from '../components/PhoneInput'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import type { Car } from '../data/cars'
@@ -258,7 +259,7 @@ function CarDetailsContent({ car }: { car: Car }) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 14 }}>
                   <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, color: '#a1a1a6' }}>
                     {t.bookings.phone}
-                    <input required type="tel" autoComplete="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder={t.bookings.phonePlaceholder} style={darkInput} />
+                    <PhoneInput required value={phone} onChange={setPhone} style={darkInput} dark />
                   </label>
                   <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, color: '#a1a1a6' }}>
                     {t.bookings.note}

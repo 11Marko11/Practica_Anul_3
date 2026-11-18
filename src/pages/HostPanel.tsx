@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { formatPhone } from '../lib/phone'
 import { CAR_REVIEW_COLORS, type CarReviewStatus } from '../lib/privateDocuments'
 import { same, useLivePoll } from '../lib/livePoll'
 import { Link, Navigate, useLocation } from 'react-router'
@@ -324,7 +325,7 @@ function HostPanelContent() {
                         <Avatar name={b.customer.name} url={b.customer.avatarUrl} size={40} />
                         <div style={{ color: '#1d1d1f', minWidth: 0 }}>
                           <div style={{ fontSize: 14, fontWeight: 500 }}>{b.customer.name}</div>
-                          {b.customer.phone ? <a href={`tel:${b.customer.phone}`} style={{ color: '#0071e3', textDecoration: 'none' }}>{b.customer.phone}</a> : <div style={{ color: '#6e6e73' }}>{h.contactLater}</div>}
+                          {b.customer.phone ? <a href={`tel:${b.customer.phone}`} style={{ color: '#0071e3', textDecoration: 'none' }}>{formatPhone(b.customer.phone)}</a> : <div style={{ color: '#6e6e73' }}>{h.contactLater}</div>}
                         </div>
                       </div>
                     </div>

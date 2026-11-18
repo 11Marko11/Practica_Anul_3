@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { PhoneInput } from '../components/PhoneInput'
 import { useLocation, useNavigate } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
 import { ApiError } from '../lib/api'
@@ -101,7 +102,7 @@ export function Login() {
           {mode === 'signup' && (
             <div>
               <label htmlFor="phone" style={labelStyle}>{t.login.phone}</label>
-              <input id="phone" required type="tel" autoComplete="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="+373 69 123 456" style={inputStyle} {...focus} />
+              <PhoneInput id="phone" required value={form.phone} onChange={phone => setForm(f => ({ ...f, phone }))} style={inputStyle} />
               <p style={{ fontSize: 12, color: '#86868b', margin: '6px 0 0' }}>{t.login.phoneHint}</p>
             </div>
           )}

@@ -61,7 +61,7 @@ export const ro: Dict = {
     fullName: 'Nume complet',
     email: 'Email',
     phone: 'Număr de telefon',
-    phoneHint: 'Un singur cont pentru fiecare număr. Numerele din Moldova pot fi scrise fără +373.',
+    phoneHint: 'Un singur cont pentru fiecare număr.',
     password: 'Parolă',
     slow: 'Pornim serverul, poate dura până la un minut…',
     passwordHint: 'Cel puțin 8 caractere',
@@ -190,6 +190,7 @@ export const ro: Dict = {
     taken: 'Deja rezervată:',
     datesTaken: 'Aceste date sunt deja rezervate. Alege alte date.',
     errors: {
+      'invalid-phone': 'Introdu un număr de telefon valid.',
       'dates-unavailable': 'Cineva tocmai a rezervat aceste date. Alege alte date.',
       'invalid-dates': 'Alege date valide (maximum 60 de zile, începând de azi).',
       'delivery-outside-country': 'Livrăm doar în Republica Moldova.',
@@ -759,6 +760,11 @@ export const ro: Dict = {
     cancel: 'Renunță',
     saveError: 'Starea nu a putut fi salvată. Încearcă din nou.',
     noMatch: 'Nicio mașină în această stare.',
+  },
+  phoneInput: {
+    country: 'Țara',
+    moldova: 'Numerele din Moldova au 8 cifre după +373, de ex. 69 123 456.',
+    tooShort: (n: number) => `Introdu cel puțin ${n} cifre.`,
   },
   adminHosts: {
     tab: 'Gazde',
