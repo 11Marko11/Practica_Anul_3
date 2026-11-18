@@ -48,9 +48,11 @@ function useStore() {
   return useSyncExternalStore(subscribe, () => state)
 }
 
-const active = (cars: Car[]) => cars.filter(c => (c.status ?? 'ACTIVE') === 'ACTIVE' && (c.reviewStatus ?? 'APPROVED') === 'APPROVED')
+// Shown by their host, with papers approved and available now (not being cleaned, in service…).
+const active = (cars: Car[]) => cars.filter(c =>
+  (c.status ?? 'ACTIVE') === 'ACTIVE' && (c.reviewStatus ?? 'APPROVED') === 'APPROVED' && (c.condition ?? 'READY') === 'READY')
 
-// Active cars, for the public pages.
+// The cars the public sees, for the public pages (also when an admin is signed in).
 export function useCars() {
   return active(useStore().cars)
 }
