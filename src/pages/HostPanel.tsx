@@ -173,15 +173,10 @@ function HostPanelContent() {
     : { value: data?.host.rating ?? null, count: data?.host.reviews ?? 0 }
   // …and so are the cars in them and the finished trips that pass the same filters.
   // Without filters, all the host's cars count, also those without reviews.
-  // On the bookings tab the tiles count the bookings shown: the cars in them, the finished trips
-  // and the money the host got from them.
-  const onBookings = tab === 'bookings'
-  const carCount = onBookings && bFiltering ? new Set(bookings.map(b => b.car.id)).size
-    : rated && FILTERS.some(k => params.has(k)) ? new Set(rated.map(x => x.car.id)).size : data?.cars.length ?? 0
-  const tripCount = data && onBookings ? bookings.filter(b => b.status === 'COMPLETED').length
-    : data && tab === 'reviews' ? data.bookings.filter(b => b.status === 'COMPLETED' && tripShown(b, data.reviews, params)).length
+  const carCount = rated && FILTERS.some(k => params.has(k)) ? new Set(rated.map(x => x.car.id)).size : data?.cars.length ?? 0
+  const tripCount = data && tab === 'reviews'
+    ? data.bookings.filter(b => b.status === 'COMPLETED' && tripShown(b, data.reviews, params)).length
     : data?.host.trips ?? 0
-  const bookedMoney = bookings.reduce((sum, b) => sum + b.earned, 0)
 
   return (
     <div style={{ paddingTop: 52 }}>
@@ -201,13 +196,11 @@ function HostPanelContent() {
         {failed && <p style={{ fontSize: 15, color: '#d70015' }}>{t.marketplace.loadError}</p>}
         {data && (
           <>
-            {/* Finances has its own summary. */}
-            {tab !== 'finances' && (
+            {/* Finances has its own summary; the bookings list needs none. */}
+            {tab !== 'finances' && tab !== 'bookings' && (
               <div className="dashboard-tiles">
                 <Tile label={h.tiles.cars} value={String(carCount)} />
-                {tab === 'bookings'
-                  ? <Tile label={h.earned} value={<Money value={bookedMoney} />} />
-                  : <Tile label={h.tiles.rating} value={rating.value !== null ? `★ ${rating.value.toFixed(1)}` : h.noRating} sub={h.reviewsCount(rating.count)} />}
+                <Tile label={h.tiles.rating} value={rating.value !== null ? `★ ${rating.value.toFixed(1)}` : h.noRating} sub={h.reviewsCount(rating.count)} />
                 <Tile label={h.tiles.trips} value={String(tripCount)} />
               </div>
             )}
