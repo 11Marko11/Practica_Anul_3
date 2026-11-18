@@ -624,7 +624,7 @@ export const en = {
     paying: 'Opening the payment…',
     payError: 'The payment could not be opened. Please try again.',
     paidNow: (month: string) => `The commission payment for ${month} was received. The month is marked as paid.`,
-    payHint: 'You pay the commission online by card. Once paid, the month is marked as paid automatically.',
+    payHint: 'You pay the commission online by card. Once paid, the month is marked as paid automatically. Click a month to see only its transactions below.',
     rateNow: 'Your current commission',
     rateHint: 'The share of your monthly income you pay to Rent Motors. It applies to bookings confirmed after the last change.',
     thisMonth: 'Net income this month',

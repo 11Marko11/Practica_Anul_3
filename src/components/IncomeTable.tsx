@@ -24,7 +24,13 @@ export function monthLabel(month: string, lang: string, short = false) {
 
 // A host's income month by month: charged, refunded, Rent Motors' commission, what the host
 // keeps and whether the commission was paid. `action` adds a cell per month (the admin's button).
-export function IncomeTable({ months, action }: { months: IncomeMonth[]; action?: (m: IncomeMonth) => React.ReactNode }) {
+// With `onSelect`, a click on a month picks it (a second click lets it go) and `selected` is marked.
+export function IncomeTable({ months, action, selected, onSelect }: {
+  months: IncomeMonth[]
+  action?: (m: IncomeMonth) => React.ReactNode
+  selected?: string
+  onSelect?: (month: string) => void
+}) {
   const { lang, t } = useI18n()
   const f = t.finances
   const sum = (key: 'bookings' | 'charged' | 'refunded' | 'commission' | 'income') => months.reduce((s, m) => s + m[key], 0)
@@ -53,7 +59,14 @@ export function IncomeTable({ months, action }: { months: IncomeMonth[]; action?
         </thead>
         <tbody>
           {months.map(m => (
-            <tr key={m.month}>
+            <tr
+              key={m.month}
+              className={onSelect ? 'income-row--pickable' : undefined}
+              aria-selected={onSelect ? selected === m.month : undefined}
+              tabIndex={onSelect ? 0 : undefined}
+              onClick={onSelect ? () => onSelect(selected === m.month ? '' : m.month) : undefined}
+              onKeyDown={onSelect ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(selected === m.month ? '' : m.month) } } : undefined}
+            >
               <td style={{ fontWeight: 600 }}>{monthLabel(m.month, lang, true)}</td>
               <td className="num">{m.bookings}</td>
               <td className="num"><Money value={m.charged} /></td>
@@ -61,7 +74,7 @@ export function IncomeTable({ months, action }: { months: IncomeMonth[]; action?
               <td className="num"><Money value={m.commission} /></td>
               <td className="num" style={{ fontWeight: 600 }}><Money value={m.income} /></td>
               <td>{status(m)}</td>
-              {action && <td style={{ textAlign: 'right' }}>{action(m)}</td>}
+              {action && <td style={{ textAlign: 'right' }} onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>{action(m)}</td>}
             </tr>
           ))}
         </tbody>

@@ -91,6 +91,8 @@ export function HostFinances() {
         ) : (
           <IncomeTable
             months={months}
+            selected={month}
+            onSelect={m => set('month', m)}
             action={m => !m.paid && !m.current && m.commission > 0
               ? <button onClick={() => pay(m.month)} disabled={!!paying} className="btn-action btn-action--primary">{paying === m.month ? f.paying : f.pay}</button>
               : null}

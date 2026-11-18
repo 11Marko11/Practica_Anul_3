@@ -335,3 +335,9 @@ select:not([multiple]):not([size]) {
 
 /* The ✕ that clears a search field keeps a gap from the text. */
 input[type="search"]::-webkit-search-cancel-button { margin-left: 10px; cursor: pointer; }
+
+/* A month row that filters the transactions below when clicked. */
+.income-row--pickable { cursor: pointer; transition: background-color 0.15s; }
+.income-row--pickable:hover { background: #f5f5f7; }
+.income-row--pickable:focus-visible { outline: 2px solid #0071e3; outline-offset: -2px; }
+.income-row--pickable[aria-selected="true"], .income-row--pickable[aria-selected="true"]:hover { background: #e8f1fd; box-shadow: inset 3px 0 0 #0071e3; }
