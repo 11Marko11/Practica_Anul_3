@@ -14,6 +14,8 @@ import { refreshHostAwaiting } from '../lib/hostNotifications'
 import { CountBadge } from '../components/CountBadge'
 import { CarConditionDialog } from '../components/CarConditionDialog'
 import { HiddenVeil } from '../components/HiddenVeil'
+import { plain, Suggest } from '../components/Suggest'
+import { ResetButton } from '../components/ResetButton'
 import { CAR_CONDITIONS, CONDITION_COLORS, setCarCondition, type CarCondition } from '../lib/carCondition'
 import { CloseBookingDialog } from './admin/CloseBookingDialog'
 import { HostFinances } from './HostFinances'
@@ -146,15 +148,22 @@ function HostPanelContent() {
 
   const { params, edit } = useUrlParams()
   const tab: Tab = TABS.includes(params.get('tab') as Tab) ? (params.get('tab') as Tab) : 'cars'
-  const carId = params.get('car') ?? ''
   // The cars tab can show only the cars in one state (cleaning, in service…).
   const state = CAR_CONDITIONS.includes(params.get('state') as CarCondition) ? (params.get('state') as CarCondition) : ''
   const setParam = (key: string, value: string, fallback: string) => edit(p => (value && value !== fallback ? p.set(key, value) : p.delete(key)))
   const date = (iso: string) => formatDate(iso, lang)
 
   // Bookings waiting for an answer come first.
+  // The bookings tab's filters: car and customer names (as typed) and a period the trip overlaps.
+  const bCar = params.get('bcar') ?? ''
+  const bClient = params.get('bclient') ?? ''
+  const bFrom = params.get('bfrom') ?? ''
+  const bTo = params.get('bto') ?? ''
+  const bFiltering = ['bcar', 'bclient', 'bfrom', 'bto'].some(k => params.has(k))
+  const startsWith = (name: string, typed: string) => !typed.trim() || plain(name).startsWith(plain(typed))
   const bookings = (data?.bookings ?? [])
-    .filter(b => !carId || String(b.car.id) === carId)
+    .filter(b => startsWith(`${b.car.brand} ${b.car.model}`, bCar) && startsWith(b.customer.name, bClient)
+      && (!bFrom || b.returnDate >= bFrom) && (!bTo || b.pickupDate <= bTo))
     .sort((a, b) => Number(b.status === 'AWAITING_CONFIRMATION') - Number(a.status === 'AWAITING_CONFIRMATION'))
 
   // On the reviews tab the tiles follow the filters: the rating is of the reviews shown there…
@@ -164,10 +173,15 @@ function HostPanelContent() {
     : { value: data?.host.rating ?? null, count: data?.host.reviews ?? 0 }
   // …and so are the cars in them and the finished trips that pass the same filters.
   // Without filters, all the host's cars count, also those without reviews.
-  const carCount = rated && FILTERS.some(k => params.has(k)) ? new Set(rated.map(x => x.car.id)).size : data?.cars.length ?? 0
-  const tripCount = data && tab === 'reviews'
-    ? data.bookings.filter(b => b.status === 'COMPLETED' && tripShown(b, data.reviews, params)).length
+  // On the bookings tab the tiles count the bookings shown: the cars in them, the finished trips
+  // and the money the host got from them.
+  const onBookings = tab === 'bookings'
+  const carCount = onBookings && bFiltering ? new Set(bookings.map(b => b.car.id)).size
+    : rated && FILTERS.some(k => params.has(k)) ? new Set(rated.map(x => x.car.id)).size : data?.cars.length ?? 0
+  const tripCount = data && onBookings ? bookings.filter(b => b.status === 'COMPLETED').length
+    : data && tab === 'reviews' ? data.bookings.filter(b => b.status === 'COMPLETED' && tripShown(b, data.reviews, params)).length
     : data?.host.trips ?? 0
+  const bookedMoney = bookings.reduce((sum, b) => sum + b.earned, 0)
 
   return (
     <div style={{ paddingTop: 52 }}>
@@ -191,17 +205,30 @@ function HostPanelContent() {
             {tab !== 'finances' && (
               <div className="dashboard-tiles">
                 <Tile label={h.tiles.cars} value={String(carCount)} />
-                <Tile label={h.tiles.rating} value={rating.value !== null ? `★ ${rating.value.toFixed(1)}` : h.noRating} sub={h.reviewsCount(rating.count)} />
+                {tab === 'bookings'
+                  ? <Tile label={h.earned} value={<Money value={bookedMoney} />} />
+                  : <Tile label={h.tiles.rating} value={rating.value !== null ? `★ ${rating.value.toFixed(1)}` : h.noRating} sub={h.reviewsCount(rating.count)} />}
                 <Tile label={h.tiles.trips} value={String(tripCount)} />
               </div>
             )}
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', margin: '32px 0 16px' }}>
-              {tab === 'bookings' && data.cars.length > 1 && (
-                <select value={carId} onChange={e => setParam('car', e.target.value, '')} aria-label={h.allCars} style={{ marginLeft: 'auto', fontSize: 14, padding: '8px 14px', borderRadius: 980, border: '1px solid #d2d2d7', background: '#fff', fontFamily: 'inherit', maxWidth: '100%' }}>
-                  <option value="">{h.allCars}</option>
-                  {data.cars.map(c => <option key={c.id} value={c.id}>{c.brand} {c.model} {c.year}</option>)}
-                </select>
+            <div style={{ margin: '32px 0 16px' }}>
+              {tab === 'bookings' && data.bookings.length > 0 && (
+                <>
+                  <div className="admin-car-toolbar">
+                    <Suggest value={bCar} onChange={v => setParam('bcar', v, '')} options={[...new Set(data.bookings.map(b => `${b.car.brand} ${b.car.model}`))].sort()} placeholder={t.hostReviews.car} style={filterControl} />
+                    <Suggest value={bClient} onChange={v => setParam('bclient', v, '')} options={[...new Set(data.bookings.map(b => b.customer.name))].sort()} placeholder={t.hostReviews.client} style={filterControl} />
+                    {/* "De la" and "Până la" always stay side by side, also on phones. */}
+                    <div className="date-range">
+                      <label>{t.myBookings.from}<input type="date" value={bFrom} max={bTo || undefined} onChange={e => setParam('bfrom', e.target.value, '')} style={filterControl} /></label>
+                      <label>{t.myBookings.to}<input type="date" value={bTo} min={bFrom || undefined} onChange={e => setParam('bto', e.target.value, '')} style={filterControl} /></label>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', fontSize: 13, color: '#6e6e73', marginTop: 6 }}>
+                    {t.myBookings.found(bookings.length)}
+                    {bFiltering && <ResetButton onClick={() => edit(p => ['bcar', 'bclient', 'bfrom', 'bto'].forEach(k => p.delete(k)))}>{t.myBookings.reset}</ResetButton>}
+                  </div>
+                </>
               )}
             </div>
 
@@ -420,6 +447,7 @@ function Empty({ text }: { text: string }) {
 }
 
 const list: React.CSSProperties = { listStyle: 'none', margin: 0, padding: 0 }
+const filterControl: React.CSSProperties = { fontSize: 14, padding: '9px 14px', borderRadius: 980, border: '1px solid #d2d2d7', background: '#fff', color: '#1d1d1f', fontFamily: 'inherit', outline: 'none', maxWidth: '100%' }
 const row: React.CSSProperties = { padding: '16px 0', borderBottom: '1px solid #f0f0f0' }
 
 // The host panel's sections, centred at the top of the page header; they scroll away with it.
