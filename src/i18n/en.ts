@@ -593,6 +593,7 @@ export const en = {
     menu: 'Notifications',
     eyebrow: 'Account',
     empty: 'You have no notifications.',
+    markOne: 'Mark as read',
     markAll: 'Mark all as read',
     open: 'Open',
     unreadLabel: (n: number) => `${n} unread`,

@@ -593,6 +593,7 @@ export const ru: Dict = {
     menu: 'Уведомления',
     eyebrow: 'Аккаунт',
     empty: 'У вас нет уведомлений.',
+    markOne: 'Отметить как прочитанное',
     markAll: 'Отметить все как прочитанные',
     open: 'Открыть',
     unreadLabel: (n: number) => `Непрочитанных: ${n}`,

@@ -593,6 +593,7 @@ export const ro: Dict = {
     menu: 'Notificări',
     eyebrow: 'Cont',
     empty: 'Nu ai notificări.',
+    markOne: 'Marchează ca citit',
     markAll: 'Marchează toate ca citite',
     open: 'Deschide',
     unreadLabel: (n: number) => `${n} necitite`,

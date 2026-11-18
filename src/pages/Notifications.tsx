@@ -5,8 +5,8 @@ import { useI18n } from '../i18n/I18nContext'
 import { same, useLivePoll } from '../lib/livePoll'
 import { getNotifications, markRead, setUnread, type Notification } from '../lib/notifications'
 
-// /notifications: the signed-in user's notification box, newest first. Opening the page marks
-// everything as read; unread ones stay highlighted until the next visit.
+// /notifications: the signed-in user's notification box, newest first. Notifications stay unread
+// until the user marks them (one by one or all at once) or opens them.
 export function Notifications() {
   const { user, loading } = useAuth()
   const location = useLocation()
@@ -22,24 +22,25 @@ function NotificationList() {
   const [items, setItems] = useState<Notification[] | null>(null)
 
   useEffect(() => {
-    getNotifications().then(res => {
-      setItems(res.notifications)
-      if (res.unread) markRead().then(() => setUnread(0)).catch(() => {})
-    }).catch(() => setItems([]))
+    getNotifications().then(res => setItems(res.notifications)).catch(() => setItems([]))
   }, [])
-  // New notifications show without a refresh (and are marked read, since the page is open).
+  // New notifications show without a refresh.
   useLivePoll(() => {
-    getNotifications().then(res => {
-      setItems(prev => {
-        if (!prev) return res.notifications
-        // Keep the "new" highlight of what was unread when the page opened.
-        const seen = new Map(prev.map(x => [x.id, x.read]))
-        const next = res.notifications.map(x => ({ ...x, read: seen.get(x.id) ?? x.read }))
-        return same(prev, next) ? prev : next
-      })
-      if (res.unread) markRead().then(() => setUnread(0)).catch(() => {})
-    }).catch(() => {})
+    getNotifications().then(res => setItems(prev => (prev && same(prev, res.notifications) ? prev : res.notifications))).catch(() => {})
   }, 30_000)
+
+  // Marks the given notifications (all of them when none are given) as read, here and on the bell.
+  const read = (ids?: string[]) => {
+    const marked = (x: Notification) => !ids || ids.includes(x.id)
+    const next = (items ?? []).map(x => (marked(x) ? { ...x, read: true } : x))
+    setItems(next)
+    setUnread(next.filter(x => !x.read).length)
+    markRead(ids).catch(() => {})
+  }
+  const open = (x: Notification) => {
+    if (!x.read) read([x.id])
+    navigate(x.link!)
+  }
 
   const text = (x: Notification) => {
     const fn = (n.text as Record<string, ((d: never) => string) | undefined>)[x.type]
@@ -54,7 +55,12 @@ function NotificationList() {
         <div style={{ maxWidth: 820, margin: '0 auto' }}>
           <p style={{ fontSize: 13, color: '#a1a1a6', margin: '0 0 8px' }}>{n.eyebrow}</p>
           <h1 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#f5f5f7', margin: 0, lineHeight: 1.05 }}>{n.title}</h1>
-          {unread > 0 && <p style={{ fontSize: 14, color: '#a1a1a6', margin: '10px 0 0' }}>{n.unreadLabel(unread)}</p>}
+          {unread > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', marginTop: 12 }}>
+              <p style={{ fontSize: 14, color: '#a1a1a6', margin: 0 }}>{n.unreadLabel(unread)}</p>
+              <button onClick={() => read()} style={{ fontSize: 14, fontWeight: 500, padding: '8px 18px', borderRadius: 980, background: '#f5f5f7', color: '#1c1c1e', border: 'none', cursor: 'pointer' }}>{n.markAll}</button>
+            </div>
+          )}
         </div>
       </div>
       <main style={{ maxWidth: 820, margin: '0 auto', padding: '24px 24px 96px' }}>
@@ -68,9 +74,10 @@ function NotificationList() {
                 <p style={{ fontSize: 15, color: '#1d1d1f', margin: 0, lineHeight: 1.5, overflowWrap: 'anywhere' }}>{text(x)}</p>
                 <p style={{ fontSize: 12, color: '#86868b', margin: '4px 0 0' }}>{time(x.createdAt)}</p>
               </div>
-              {x.link && (
-                <button onClick={() => navigate(x.link!)} className="btn-action btn-action--neutral" style={{ background: '#fff' }}>{n.open}</button>
-              )}
+              <div className="row-actions">
+                {!x.read && <button onClick={() => read([x.id])} className="btn-action btn-action--neutral" style={{ background: '#fff' }}>{n.markOne}</button>}
+                {x.link && <button onClick={() => open(x)} className="btn-action btn-action--neutral" style={{ background: '#fff' }}>{n.open}</button>}
+              </div>
             </li>
           ))}
         </ul>
