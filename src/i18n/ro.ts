@@ -625,6 +625,8 @@ export const ro: Dict = {
     payError: 'Plata nu a putut fi deschisă. Încearcă din nou.',
     paidNow: (month: string) => `Plata comisionului pentru ${month} a fost primită. Luna este marcată ca achitată.`,
     payHint: 'Achiți comisionul online, cu cardul. După plată, luna se marchează automat ca achitată. Apasă pe o lună ca să vezi mai jos doar tranzacțiile ei.',
+    found: (n: number) => countOf('ro', n, { one: 'tranzacție', few: 'tranzacții', other: 'de tranzacții' }),
+    noMatch: 'Nicio tranzacție nu corespunde filtrelor.',
     rateNow: 'Comisionul tău actual',
     rateHint: 'Procentul din venitul lunar pe care îl achiți către Rent Motors. Se aplică rezervărilor confirmate după ultima schimbare.',
     thisMonth: 'Venit net luna aceasta',

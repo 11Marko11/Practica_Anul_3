@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { IncomeTable, monthLabel, type IncomeMonth } from '../components/IncomeTable'
 import { Money } from '../components/Money'
+import { ResetButton } from '../components/ResetButton'
+import { plain, Suggest } from '../components/Suggest'
+import { useKeepHeight } from '../lib/useKeepHeight'
 import { useI18n } from '../i18n/I18nContext'
 import { api } from '../lib/api'
 import { same, useLivePoll } from '../lib/livePoll'
@@ -23,6 +26,12 @@ export function HostFinances() {
   const year = params.get('year') ?? ''
   const month = params.get('month') ?? ''
   const set = (key: string, value: string) => edit(p => (value ? p.set(key, value) : p.delete(key)))
+  // The transactions' own filters (named apart from the reviews tab's, which share the address).
+  const car = params.get('tcar') ?? ''
+  const client = params.get('tclient') ?? ''
+  const from = params.get('tfrom') ?? ''
+  const to = params.get('tto') ?? ''
+  const keep = useKeepHeight<HTMLElement>()
 
   useEffect(() => {
     getFinances().then(setData).catch(() => setData(null))
@@ -60,7 +69,13 @@ export function HostFinances() {
   const months = data.months.filter(m => !year || m.month.startsWith(year))
   const thisMonth = data.months.find(m => m.month === data.currentMonth)
   const entryMonths = [...new Set(data.entries.map(e => e.month))].sort().reverse()
-  const entries = data.entries.filter(e => !month || e.month === month)
+  // Names that start with what was typed; the day of a transaction in Moldova.
+  const starts = (name: string, typed: string) => !typed.trim() || plain(name).startsWith(plain(typed))
+  const day = (iso: string) => new Date(iso).toLocaleDateString('sv-SE', { timeZone: 'Europe/Chisinau' })
+  const names = (list: string[]) => [...new Set(list)].sort((a, b) => a.localeCompare(b, lang))
+  const entries = data.entries.filter(e => (!month || e.month === month) && starts(e.booking.car, car) && starts(e.booking.customer, client)
+    && (!from || day(e.at) >= from) && (!to || day(e.at) <= to))
+  const filtering = ['month', 'tcar', 'tclient', 'tfrom', 'tto'].some(k => params.has(k))
   const time = (iso: string) => new Date(iso).toLocaleString(lang, { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 
   return (
@@ -101,7 +116,7 @@ export function HostFinances() {
         <p style={{ fontSize: 12, color: '#86868b', margin: '10px 0 0' }}>{f.payHint}</p>
       </section>
 
-      <section>
+      <section ref={keep.ref} style={{ minHeight: keep.minHeight }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 12 }}>
           <h2 style={title}>{f.transactions}</h2>
           {entryMonths.length > 0 && (
@@ -111,7 +126,24 @@ export function HostFinances() {
             </select>
           )}
         </div>
-        {entries.length === 0 && <p style={{ fontSize: 15, color: '#6e6e73' }}>{f.noTransactions}</p>}
+        {data.entries.length > 0 && (
+          <>
+            <div className="admin-car-toolbar">
+              <Suggest value={car} onChange={v => set('tcar', v)} options={names(data.entries.map(e => e.booking.car))} placeholder={t.hostReviews.car} style={control} />
+              <Suggest value={client} onChange={v => set('tclient', v)} options={names(data.entries.map(e => e.booking.customer))} placeholder={t.hostReviews.client} style={control} />
+              {/* "De la" and "Până la" always stay side by side, also on phones. */}
+              <div className="date-range">
+                <label>{t.myBookings.from}<input type="date" value={from} max={to || undefined} onChange={e => set('tfrom', e.target.value)} style={control} /></label>
+                <label>{t.myBookings.to}<input type="date" value={to} min={from || undefined} onChange={e => set('tto', e.target.value)} style={control} /></label>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', fontSize: 13, color: '#6e6e73', margin: '6px 0 4px' }}>
+              {f.found(entries.length)}
+              {filtering && <ResetButton onClick={() => edit(p => ['month', 'tcar', 'tclient', 'tfrom', 'tto'].forEach(k => p.delete(k)))}>{t.myBookings.reset}</ResetButton>}
+            </div>
+          </>
+        )}
+        {entries.length === 0 && <p style={{ fontSize: 15, color: '#6e6e73' }}>{data.entries.length ? f.noMatch : f.noTransactions}</p>}
         <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
           {entries.map(e => (
             <li key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', padding: '14px 0', borderBottom: '1px solid #f0f0f0' }}>
