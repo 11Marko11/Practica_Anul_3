@@ -36,6 +36,8 @@ function CarDetailsContent({ car }: { car: Car }) {
   const { user } = useAuth()
   // Only verified customers can book (the server checks it too).
   const verified = !user || user.role === 'ADMIN' || user.verificationStatus === 'VERIFIED'
+  // Hosts can't rent cars (the server checks it too).
+  const isHost = !!user?.host
   const { lang, t } = useI18n()
   const text = carText(car, lang)
   const { pickup, dropoff, days, query, changePickup, changeDropoff } = useRentalDates()
@@ -248,13 +250,18 @@ function CarDetailsContent({ car }: { car: Car }) {
               </div>
             </div>
 
-            {user && !verified && (
+            {isHost && (
+              <div style={{ marginTop: 20, padding: '14px 16px', borderRadius: 14, background: '#2a2a2d', fontSize: 13, lineHeight: 1.5, color: '#f5f5f7' }}>
+                {t.bookings.hostCannotBook}
+              </div>
+            )}
+            {user && !isHost && !verified && (
               <div style={{ marginTop: 20, padding: '14px 16px', borderRadius: 14, background: '#2a2a2d', fontSize: 13, lineHeight: 1.5, color: '#f5f5f7' }}>
                 {t.profile.bookingGate[user.verificationStatus as keyof typeof t.profile.bookingGate]}
                 <Link to="/profile" style={{ display: 'block', marginTop: 10, fontSize: 14, fontWeight: 500, color: '#6cb4ff', textDecoration: 'none' }}>{t.profile.goToProfile} →</Link>
               </div>
             )}
-            {verified && <form onSubmit={book} style={{ marginTop: 20 }}>
+            {verified && !isHost && <form onSubmit={book} style={{ marginTop: 20 }}>
               {user && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 14 }}>
                   <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, color: '#a1a1a6' }}>
@@ -276,12 +283,12 @@ function CarDetailsContent({ car }: { car: Car }) {
               </button>
             </form>}
             {error && <p role="alert" style={{ fontSize: 13, color: '#ff6961', margin: '10px 0 0', lineHeight: 1.5 }}>{t.bookings.errors[error]}</p>}
-            {!canBook && !datesTaken && (
+            {!isHost && !canBook && !datesTaken && (
               <p style={{ fontSize: 12, color: '#a1a1a6', textAlign: 'center', margin: '8px 0 0' }}>
                 {deliveryQuote ? t.car.chooseInCountry : t.car.chooseAddress}
               </p>
             )}
-            {user && verified && <p style={{ fontSize: 12, color: '#a1a1a6', margin: '12px 0 0', lineHeight: 1.5 }}>{t.bookings.holdInfo}</p>}
+            {user && !isHost && verified && <p style={{ fontSize: 12, color: '#a1a1a6', margin: '12px 0 0', lineHeight: 1.5 }}>{t.bookings.holdInfo}</p>}
             <p style={{ fontSize: 12, color: '#86868b', textAlign: 'center', margin: '12px 0 0' }}>
               {t.car.freeCancel} <Link to="/terms" style={{ color: '#a1a1a6' }}>{t.car.terms}</Link>
             </p>

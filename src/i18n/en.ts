@@ -186,6 +186,7 @@ export const en = {
     book: 'Book and pay',
     signInToBook: 'Sign in to book',
     redirecting: 'Opening the payment page…',
+    hostCannotBook: "You're a host on Rent Motors, so you can't book cars.",
     holdInfo: "Your card is only authorised now. You are charged when the car's owner confirms the booking; if they reject it, the hold is released and you pay nothing.",
     taken: 'Already booked:',
     datesTaken: 'These dates are already booked. Please choose other dates.',

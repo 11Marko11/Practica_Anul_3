@@ -97,6 +97,8 @@ export function MyBookings() {
 
   if (loading) return <div style={{ minHeight: '80vh' }} />
   if (!user) return <Navigate to="/login" state={{ from: location.pathname }} replace />
+  // Hosts don't rent cars; their past bookings stay stored but are no longer shown.
+  if (user.host) return <Navigate to="/host" replace />
 
   return (
     <div style={{ paddingTop: 52 }}>

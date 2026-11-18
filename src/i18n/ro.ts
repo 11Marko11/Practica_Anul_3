@@ -186,6 +186,7 @@ export const ro: Dict = {
     book: 'Rezervă și plătește',
     signInToBook: 'Autentifică-te pentru a rezerva',
     redirecting: 'Se deschide pagina de plată…',
+    hostCannotBook: 'Ești gazdă pe Rent Motors, așa că nu poți rezerva mașini.',
     holdInfo: 'Acum suma doar se blochează pe card. Banii se încasează când proprietarul mașinii confirmă rezervarea; dacă o respinge, blocarea se anulează și nu plătești nimic.',
     taken: 'Deja rezervată:',
     datesTaken: 'Aceste date sunt deja rezervate. Alege alte date.',

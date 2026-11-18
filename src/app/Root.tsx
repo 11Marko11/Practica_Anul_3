@@ -205,7 +205,7 @@ function AccountButton({ btnStyle }: { btnStyle: React.CSSProperties }) {
               {t.dashboard.menu} <CountBadge n={awaiting} />
             </MenuLink>
           ) : (
-            <MenuLink to="/bookings">{t.bookings.menu}</MenuLink>
+            !user.host && <MenuLink to="/bookings">{t.bookings.menu}</MenuLink>
           )}
           {user.host && <MenuLink to="/host">{t.hostPortal.menu} <CountBadge n={hostAwaiting} /></MenuLink>}
           <button
@@ -264,7 +264,7 @@ function MobileMenu() {
           {t.dashboard.menu} <CountBadge n={awaiting} />
         </NavLink>
       ) : (
-        user && <NavLink to="/bookings" end style={item}>{t.bookings.menu}</NavLink>
+        user && !user.host && <NavLink to="/bookings" end style={item}>{t.bookings.menu}</NavLink>
       )}
       {user?.host && <NavLink to="/host" style={item}>{t.hostPortal.menu} <CountBadge n={hostAwaiting} /></NavLink>}
       {loading ? null : user ? (

@@ -49,6 +49,7 @@ export function BookingDetails() {
 
   if (loading) return <div style={{ minHeight: '80vh' }} />
   if (!user) return <Navigate to="/login" state={{ from: location.pathname + location.search }} replace />
+  if (user.host) return <Navigate to="/host" replace />
 
   function fail(err: unknown) {
     const code = err instanceof ApiError ? err.code : 'unknown'
