@@ -37,7 +37,7 @@ export function IncomeTable({ months, action, selected, onSelect }: {
 
   const status = (m: IncomeMonth) => {
     if (m.paid) return <span style={{ ...pill, background: '#e3f6e8', color: '#1b7a35' }}>✓ {f.paid(formatDate(m.paid.paidAt.slice(0, 10), lang))}</span>
-    if (m.current) return <span style={{ ...pill, background: '#f2f2f4', color: '#6e6e73' }}>{f.current}</span>
+    if (m.current) return null // the month is still going on: nothing to pay yet
     if (m.commission > 0) return <span style={{ ...pill, background: '#fff4e0', color: '#9a5b00' }}>{f.unpaid}</span>
     return <span style={{ color: '#86868b' }}>{f.nothing}</span>
   }
