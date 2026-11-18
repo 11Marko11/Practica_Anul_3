@@ -8,6 +8,7 @@ import { completeBooking, returnPlace } from '../bookings/payment.js'
 import { syncCheckout } from '../bookings/payment.js'
 import { assertInMoldova, deliveryQuote } from '../bookings/pricing.js'
 import { isListed } from '../cars/dto.js'
+import { normalizePhone } from '../auth/phone.js'
 import { prisma } from '../db.js'
 import { env } from '../env.js'
 import { HttpError } from '../http/errors.js'
@@ -26,7 +27,7 @@ const createBody = z.object({
     z.object({ mode: z.literal('PICKUP') }),
     z.object({ mode: z.literal('DELIVERY'), address: z.string().trim().min(3).max(300), lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) }),
   ]),
-  phone: z.string().trim().regex(/^\+?[0-9 ()-]{6,20}$/),
+  phone: z.string().trim().max(40),
   note: z.string().trim().max(1000).optional(),
   lang: z.enum(['ro', 'en', 'ru']).default('ro'),
 })
@@ -78,6 +79,9 @@ export async function bookingRoutes(app: FastifyInstance) {
     const days = daysBetween(body.pickupDate, body.returnDate)
     if (body.pickupDate < today || body.pickupDate > addDays(today, BOOK_AHEAD_DAYS)) throw new HttpError(422, 'invalid-dates')
     if (days < 1 || days > MAX_DAYS) throw new HttpError(422, 'invalid-dates')
+    // Stored as "+37369123456", like the numbers of accounts.
+    const phone = normalizePhone(body.phone)
+    if (!phone) throw new HttpError(422, 'invalid-phone')
 
     const car = await prisma.car.findUnique({ where: { slug: body.carSlug } })
     if (!car || !isListed(car)) throw new HttpError(404, 'car-not-found')
@@ -104,7 +108,7 @@ export async function bookingRoutes(app: FastifyInstance) {
         data: {
           userId: user.id, carId: car.id, pickupDate, returnDate, days, handover: body.handover.mode,
           deliveryAddress: delivery?.address, deliveryLat: delivery?.lat, deliveryLng: delivery?.lng, deliveryKm: delivery?.km,
-          rentalPrice, deliveryFee: delivery?.fee ?? 0, total, phone: body.phone, note: body.note || null, paymentExpiresAt,
+          rentalPrice, deliveryFee: delivery?.fee ?? 0, total, phone, note: body.note || null, paymentExpiresAt,
         },
       })
     })

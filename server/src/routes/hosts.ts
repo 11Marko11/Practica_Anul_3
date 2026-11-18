@@ -9,11 +9,18 @@ import { HttpError } from '../http/errors.js'
 import { removeHost } from '../hosts/removeHost.js'
 import { COMMISSION_RATES } from '../hosts/commission.js'
 import { notify } from '../notifications/notify.js'
+import { normalizePhone } from '../auth/phone.js'
 
 const idParam = z.object({ id: z.coerce.number().int().positive() })
 const hostInput = z.object({
   name: z.string().trim().min(1).max(80),
-  phone: z.string().trim().max(30).optional().transform(v => v || null),
+  // Stored as "+37369123456"; a number that can't be read is refused.
+  phone: z.string().trim().max(40).optional().transform((v, ctx) => {
+    if (!v) return null
+    const phone = normalizePhone(v)
+    if (!phone) ctx.addIssue({ code: 'custom', message: 'invalid-phone' })
+    return phone
+  }),
 })
 const email = z.string().trim().toLowerCase().max(254).pipe(z.email())
 const password = z.string().min(8).max(200)
