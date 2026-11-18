@@ -1,5 +1,6 @@
 import type Stripe from 'stripe'
 import { z } from 'zod'
+import { cityOf } from '../cars/cities.js'
 import { prisma } from '../db.js'
 import { carName, notify } from '../notifications/notify.js'
 import { stripe } from '../payments/stripe.js'
@@ -52,8 +53,13 @@ export async function completeBooking(bookingId: string, place: ReturnPlace, by:
     data: { status: 'COMPLETED', returnAddress: place.address, returnLat: place.lat, returnLng: place.lng, completedAt: new Date(), completedBy: by },
   })
   if (!done.count) return
+  const b = await prisma.booking.findUniqueOrThrow({ where: { id: bookingId }, select: { userId: true, carId: true, car: { select: { brand: true, model: true, host: { select: { userId: true } } } } } })
+  // The next customer picks the car up where it was left.
+  await prisma.car.update({
+    where: { id: b.carId },
+    data: { pickupAddress: place.address, pickupLat: place.lat, pickupLng: place.lng, city: cityOf(place.address, place.lat, place.lng) },
+  })
   // Tell the other side where the car is.
-  const b = await prisma.booking.findUniqueOrThrow({ where: { id: bookingId }, select: { userId: true, car: { select: { brand: true, model: true, host: { select: { userId: true } } } } } })
   if (by === 'CUSTOMER') await notify(b.car.host.userId, 'booking-returned', { car: carName(b.car), address: place.address }, '/host?tab=bookings')
   else await notify(b.userId, 'booking-completed', { car: carName(b.car), address: place.address }, `/bookings/${bookingId}`)
 }
