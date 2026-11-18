@@ -189,7 +189,7 @@ function AdminCarsContent() {
                         {t.carCondition.names[car.condition]}{car.conditionNote && ` · ${car.conditionNote.length > 40 ? `${car.conditionNote.slice(0, 40)}…` : car.conditionNote}`}
                       </span>
                     )}
-                    {car.reviewStatus && car.reviewStatus !== 'APPROVED' && (
+                    {car.reviewStatus && car.reviewStatus !== 'APPROVED' && car.reviewStatus !== 'NO_DOCUMENTS' && (
                       <span style={{ display: 'inline-block', whiteSpace: 'nowrap', verticalAlign: 'middle', marginLeft: 8, fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 980, ...CAR_REVIEW_COLORS[car.reviewStatus] }}>
                         {t.carPapers.status[car.reviewStatus]}
                       </span>
