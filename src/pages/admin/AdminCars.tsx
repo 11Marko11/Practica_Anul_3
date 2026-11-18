@@ -11,6 +11,7 @@ import { AdminTabs } from './AdminTabs'
 import { CountBadge } from '../../components/CountBadge'
 import { ResetButton } from '../../components/ResetButton'
 import { useUrlParams } from '../../lib/useUrlParams'
+import { CONDITION_COLORS } from '../../lib/carCondition'
 import { useKeepHeight } from '../../lib/useKeepHeight'
 import { pageFrom, Pagination } from '../../components/Pagination'
 import type { Car } from '../../data/cars'
@@ -181,6 +182,11 @@ function AdminCarsContent() {
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f' }}>{name} <span style={{ fontWeight: 400, color: '#6e6e73' }}>· {car.year}</span>
                     {car.status === 'HIDDEN' && <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 500, color: '#6e6e73', background: '#f0f0f0', padding: '2px 8px', borderRadius: 980 }}>{t.admin.hidden}</span>}
+                    {car.condition && car.condition !== 'READY' && (
+                      <span title={car.conditionNote ?? undefined} style={{ marginLeft: 8, fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 980, ...CONDITION_COLORS[car.condition] }}>
+                        {t.carCondition.names[car.condition]}{car.conditionNote && ` · ${car.conditionNote.length > 40 ? `${car.conditionNote.slice(0, 40)}…` : car.conditionNote}`}
+                      </span>
+                    )}
                     {car.reviewStatus && car.reviewStatus !== 'APPROVED' && (
                       <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 980, ...CAR_REVIEW_COLORS[car.reviewStatus] }}>
                         {t.carPapers.status[car.reviewStatus]}

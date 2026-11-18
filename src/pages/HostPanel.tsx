@@ -11,6 +11,8 @@ import { api, ApiError } from '../lib/api'
 import { hostCompleteBooking, hostConfirmBooking, type BookingStatus } from '../lib/bookings'
 import { refreshHostAwaiting } from '../lib/hostNotifications'
 import { CountBadge } from '../components/CountBadge'
+import { CarConditionDialog } from '../components/CarConditionDialog'
+import { CAR_CONDITIONS, CONDITION_COLORS, setCarCondition, type CarCondition } from '../lib/carCondition'
 import { CloseBookingDialog } from './admin/CloseBookingDialog'
 import { HostFinances } from './HostFinances'
 import { FILTERS, HostReviews, shownReviews, tripShown, type HostReview } from './HostReviews'
@@ -31,6 +33,9 @@ type HostData = {
     status: 'ACTIVE' | 'HIDDEN'
     reviewStatus: CarReviewStatus // the admin's check of the car's papers
     reviewNote: string | null
+    condition: CarCondition // available, or why not (cleaning, garage…)
+    conditionNote: string | null
+    conditionSince: string | null
     rating: number | null
     reviews: number
     trips: number
@@ -108,11 +113,23 @@ function HostPanelContent() {
 
   // The car was returned: the host says where it was left, then the trip ends.
   const [ending, setEnding] = useState<HostData['bookings'][number] | null>(null)
+  // The car whose state (cleaning, garage…) the host is changing.
+  const [changing, setChanging] = useState<HostData['cars'][number] | null>(null)
   useEffect(() => {
     load()
   }, [])
   // New bookings, reviews and the admin's check of the cars show without a refresh.
-  useLivePoll(() => { api<HostData>('/host').then(next => setData(prev => (same(prev, next) ? prev : next))).catch(() => {}) }, 30_000, !busyId && !closing && !ending)
+  useLivePoll(() => { api<HostData>('/host').then(next => setData(prev => (same(prev, next) ? prev : next))).catch(() => {}) }, 30_000, !busyId && !closing && !ending && !changing)
+
+  // The car is back on the site (if its papers are approved and it isn't hidden).
+  async function makeReady(car: HostData['cars'][number]) {
+    try {
+      await setCarCondition(car.id, 'READY')
+      await load()
+    } catch {
+      alert(t.carCondition.saveError)
+    }
+  }
 
   // The car leaves the site at once; the server refuses while a booking is still going on.
   async function remove(car: CarRef) {
@@ -128,6 +145,8 @@ function HostPanelContent() {
   const { params, edit } = useUrlParams()
   const tab: Tab = TABS.includes(params.get('tab') as Tab) ? (params.get('tab') as Tab) : 'cars'
   const carId = params.get('car') ?? ''
+  // The cars tab can show only the cars in one state (cleaning, in service…).
+  const state = CAR_CONDITIONS.includes(params.get('state') as CarCondition) ? (params.get('state') as CarCondition) : ''
   const setParam = (key: string, value: string, fallback: string) => edit(p => (value && value !== fallback ? p.set(key, value) : p.delete(key)))
   const date = (iso: string) => formatDate(iso, lang)
 
@@ -184,10 +203,32 @@ function HostPanelContent() {
               )}
             </div>
 
+            {tab === 'cars' && data.cars.length > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+                {(['', ...CAR_CONDITIONS] as const)
+                  .filter(k => !k || k === 'READY' || data.cars.some(c => c.condition === k) || k === state)
+                  .map(k => {
+                    const on = state === k
+                    const n = k ? data.cars.filter(c => c.condition === k).length : data.cars.length
+                    return (
+                      <button
+                        key={k || 'all'}
+                        onClick={() => setParam('state', k, '')}
+                        aria-pressed={on}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, padding: '7px 14px', borderRadius: 980, border: '1px solid', borderColor: on ? '#1d1d1f' : '#d2d2d7', background: on ? '#1d1d1f' : 'transparent', color: on ? '#fff' : '#424245', cursor: 'pointer' }}
+                      >
+                        {k && <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: '50%', background: CONDITION_COLORS[k].color }} />}
+                        {k ? t.carCondition.names[k] : t.carCondition.filterAll} ({n})
+                      </button>
+                    )
+                  })}
+              </div>
+            )}
             {tab === 'cars' && (
               <ul style={list}>
                 {data.cars.length === 0 && <Empty text={h.noCars} />}
-                {data.cars.map(car => (
+                {data.cars.length > 0 && state && !data.cars.some(c => c.condition === state) && <Empty text={t.carCondition.noMatch} />}
+                {data.cars.filter(c => !state || c.condition === state).map(car => (
                   <li key={car.id} className="admin-row" style={row}>
                     <div style={{ width: 120, aspectRatio: '16/10', borderRadius: 10, overflow: 'hidden', background: '#e8e8ed', flexShrink: 0 }}>
                       {car.photo && <img src={photoUrl(car.photo, 240, 150)} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
@@ -202,6 +243,20 @@ function HostPanelContent() {
                           </span>
                         )}
                       </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 500, padding: '2px 9px', borderRadius: 980, ...CONDITION_COLORS[car.condition] }}>
+                          <span aria-hidden="true" style={{ width: 7, height: 7, borderRadius: '50%', background: CONDITION_COLORS[car.condition].color }} />
+                          {t.carCondition.names[car.condition]}
+                        </span>
+                        {car.condition !== 'READY' && (
+                          <span style={{ fontSize: 12, color: '#6e6e73' }}>
+                            {t.carCondition.offSite}{car.conditionSince && ` · ${t.carCondition.since(date(car.conditionSince.slice(0, 10)))}`}
+                          </span>
+                        )}
+                      </div>
+                      {car.condition !== 'READY' && car.conditionNote && (
+                        <div style={{ fontSize: 13, color: '#424245', marginTop: 2, overflowWrap: 'anywhere' }}>„{car.conditionNote}”</div>
+                      )}
                       {car.reviewStatus === 'NO_DOCUMENTS' && (
                         <div style={{ fontSize: 13, color: '#424245', marginTop: 2 }}>{t.carPapers.noDocsShort}</div>
                       )}
@@ -215,11 +270,14 @@ function HostPanelContent() {
                         {car.rentedNow ? h.rentedNow(date(car.rentedNow.returnDate)) : car.nextBooking ? <span style={{ color: '#424245' }}>{h.next(date(car.nextBooking.pickupDate), date(car.nextBooking.returnDate))}</span> : h.free}
                       </div>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
+                    <div className="host-car-side">
                       <span style={{ fontSize: 12, color: '#86868b' }}>{h.earned}</span>
                       <strong style={{ fontSize: 16, color: '#1d1d1f' }}><Money value={car.earned} /></strong>
                       <div className="row-actions" style={{ justifyContent: 'flex-end', marginTop: 4 }}>
-                        {car.status === 'ACTIVE' && car.reviewStatus === 'APPROVED' && <Link to={`/cars/${car.slug}`} className="btn-action btn-action--neutral">{h.view}</Link>}
+                        {car.condition === 'READY'
+                          ? <button onClick={() => setChanging(car)} className="btn-action btn-action--neutral">{t.carCondition.change}</button>
+                          : <button onClick={() => makeReady(car)} className="btn-action btn-action--neutral">{t.carCondition.makeReady}</button>}
+                        {car.status === 'ACTIVE' && car.reviewStatus === 'APPROVED' && car.condition === 'READY' && <Link to={`/cars/${car.slug}`} className="btn-action btn-action--neutral">{h.view}</Link>}
                         <Link to={`/host/cars/${car.id}`} className="btn-action btn-action--primary">{h.edit}</Link>
                         <button onClick={() => remove(car)} className="btn-action btn-action--danger">{h.delete}</button>
                       </div>
@@ -293,6 +351,16 @@ function HostPanelContent() {
           </>
         )}
       </main>
+      {changing && (
+        <CarConditionDialog
+          car={changing}
+          onClose={() => setChanging(null)}
+          onDone={async () => {
+            setChanging(null)
+            await load()
+          }}
+        />
+      )}
       {ending && (
         <ReturnLocationDialog
           onClose={() => setEnding(null)}
