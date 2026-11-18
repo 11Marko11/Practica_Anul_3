@@ -14,6 +14,7 @@ import { createHostWithAccount, deleteHost, updateCommission, updateHostAccount,
 import type { Booking } from '../../lib/bookings'
 import { formatDate } from '../../lib/rental'
 import { useUrlParams } from '../../lib/useUrlParams'
+import { useKeepHeight } from '../../lib/useKeepHeight'
 import { AdminGuard } from './AdminGuard'
 import { AdminTabs } from './AdminTabs'
 import { Avatar } from '../../components/Avatar'
@@ -138,6 +139,8 @@ function UserList() {
   const navigate = useNavigate()
 
   const { params, edit } = useUrlParams()
+  // Typing in the search doesn't make the page jump up as the list gets shorter.
+  const keep = useKeepHeight<HTMLElement>()
   const role: Role = ROLES.includes(params.get('role') as Role) ? (params.get('role') as Role) : 'all'
   const status: Status = STATUSES.includes(params.get('status') as Status) ? (params.get('status') as Status) : 'all'
   const query = params.get('q') ?? ''
@@ -186,7 +189,7 @@ function UserList() {
           {t.adminHosts.add}
         </button>
       </Header>
-      <main style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 24px 96px' }}>
+      <main ref={keep.ref} style={{ minHeight: keep.minHeight, maxWidth: 1100, margin: '0 auto', padding: '24px 24px 96px' }}>
         {adding && (
           <div style={{ padding: 20, borderRadius: 16, background: '#f5f5f7', marginBottom: 20 }}>
             <HostEditor withAccount onSave={addHost} onCancel={() => setAdding(false)} />

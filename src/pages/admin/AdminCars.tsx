@@ -11,6 +11,7 @@ import { AdminTabs } from './AdminTabs'
 import { CountBadge } from '../../components/CountBadge'
 import { ResetButton } from '../../components/ResetButton'
 import { useUrlParams } from '../../lib/useUrlParams'
+import { useKeepHeight } from '../../lib/useKeepHeight'
 import { pageFrom, Pagination } from '../../components/Pagination'
 import type { Car } from '../../data/cars'
 import { api } from '../../lib/api'
@@ -62,6 +63,8 @@ function AdminCarsContent() {
 
   // Sorting and filters live in the URL, so they are kept after adding or editing a car.
   const { params, edit } = useUrlParams()
+  // Typing in the search doesn't make the page jump up as the list gets shorter.
+  const keep = useKeepHeight<HTMLElement>()
   const sort: Sort = SORTS.includes(params.get('sort') as Sort) ? (params.get('sort') as Sort) : 'recent'
   const status = STATUS_FILTERS.includes(params.get('status') as never) ? (params.get('status') as (typeof STATUS_FILTERS)[number]) : 'all'
   const brand = params.get('brand') ?? ''
@@ -121,7 +124,7 @@ function AdminCarsContent() {
         </div>
       </div>
 
-      <main style={{ maxWidth: 1000, margin: '0 auto', padding: '24px 24px 96px' }}>
+      <main ref={keep.ref} style={{ minHeight: keep.minHeight, maxWidth: 1000, margin: '0 auto', padding: '24px 24px 96px' }}>
         <div className="admin-car-toolbar">
           <input
             type="search"

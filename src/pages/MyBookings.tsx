@@ -9,6 +9,7 @@ import { useCars } from '../lib/carStore'
 import { recommendCars, useUnavailableCars } from '../lib/carFilters'
 import { useRentalDates } from '../lib/useRentalDates'
 import { useUrlParams } from '../lib/useUrlParams'
+import { useKeepHeight } from '../lib/useKeepHeight'
 import { ResetButton } from '../components/ResetButton'
 import { same, useLivePoll } from '../lib/livePoll'
 import { formatDate } from '../lib/rental'
@@ -66,6 +67,8 @@ export function MyBookings() {
 
   // Filters live in the URL, so Back from a booking keeps them.
   const { params, edit } = useUrlParams()
+  // Typing in the search doesn't make the page jump up as the list gets shorter.
+  const keep = useKeepHeight<HTMLElement>()
   const pick = <T extends string>(key: string, list: readonly T[], fallback: T) => (list.includes(params.get(key) as T) ? (params.get(key) as T) : fallback)
   const group = pick('show', GROUPS, 'all')
   const period = pick('period', PERIODS, 'all')
@@ -103,7 +106,7 @@ export function MyBookings() {
           <h1 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#f5f5f7', margin: 0, lineHeight: 1.05 }}>{t.bookings.title}</h1>
         </div>
       </div>
-      <main style={{ maxWidth: 900, margin: '0 auto', padding: '32px 24px 96px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <main ref={keep.ref} style={{ minHeight: keep.minHeight, maxWidth: 900, margin: '0 auto', padding: '32px 24px 96px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         {failed && <p style={{ fontSize: 15, color: '#d70015' }}>{t.bookings.errors.network}</p>}
         {!bookings && !failed && <p style={{ fontSize: 15, color: '#6e6e73' }}>{t.bookings.loading}</p>}
         {bookings?.length === 0 && (

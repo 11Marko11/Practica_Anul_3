@@ -6,6 +6,7 @@ import { photoUrl } from '../data/cars'
 import { useI18n } from '../i18n/I18nContext'
 import { formatDate } from '../lib/rental'
 import { useUrlParams } from '../lib/useUrlParams'
+import { useKeepHeight } from '../lib/useKeepHeight'
 
 export type HostReview = {
   id: string
@@ -26,6 +27,7 @@ export function HostReviews({ reviews }: { reviews: HostReview[] }) {
   const r = t.hostReviews
   const mb = t.myBookings
   const { params, edit } = useUrlParams()
+  const keep = useKeepHeight<HTMLDivElement>()
   const set = (key: string, value: string, fallback = '') => edit(p => (value && value !== fallback ? p.set(key, value) : p.delete(key)))
 
   const car = params.get('carName') ?? ''
@@ -47,7 +49,7 @@ export function HostReviews({ reviews }: { reviews: HostReview[] }) {
   if (reviews.length === 0) return <p style={{ fontSize: 15, color: '#6e6e73', padding: '24px 0' }}>{t.hostPortal.noReviews}</p>
 
   return (
-    <>
+    <div ref={keep.ref} style={{ minHeight: keep.minHeight }}>
       <div className="admin-car-toolbar">
         <Suggest value={car} onChange={v => set('carName', v)} options={names(reviews.map(carName))} placeholder={r.car} style={control} />
         <Suggest value={client} onChange={v => set('client', v)} options={names(reviews.map(x => x.name))} placeholder={r.client} style={control} />
@@ -85,7 +87,7 @@ export function HostReviews({ reviews }: { reviews: HostReview[] }) {
           </li>
         ))}
       </ul>
-    </>
+    </div>
   )
 }
 
