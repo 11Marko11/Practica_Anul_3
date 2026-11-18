@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 import { Avatar } from '../components/Avatar'
+import { plain, Suggest } from '../components/Suggest'
 import { ResetButton } from '../components/ResetButton'
 import { photoUrl } from '../data/cars'
 import { useI18n } from '../i18n/I18nContext'
@@ -17,37 +18,30 @@ export type HostReview = {
   date: string
 }
 
-const SORTS = ['newest', 'oldest', 'best', 'worst'] as const
-type Sort = (typeof SORTS)[number]
-const COMPARE: Record<Sort, (a: HostReview, b: HostReview) => number> = {
-  newest: (a, b) => b.date.localeCompare(a.date),
-  oldest: (a, b) => a.date.localeCompare(b.date),
-  best: (a, b) => b.rating - a.rating || b.date.localeCompare(a.date),
-  worst: (a, b) => a.rating - b.rating || b.date.localeCompare(a.date),
-}
-const FILTERS = ['car', 'client', 'stars', 'from', 'to', 'sort']
+const FILTERS = ['carName', 'client', 'stars', 'from', 'to']
 
 // The host's reviews tab: the reviews of their cars, filtered by car, customer, stars and period.
-export function HostReviews({ reviews, cars }: { reviews: HostReview[]; cars: { id: number; brand: string; model: string; year: number }[] }) {
+export function HostReviews({ reviews }: { reviews: HostReview[] }) {
   const { lang, t } = useI18n()
   const r = t.hostReviews
   const mb = t.myBookings
   const { params, edit } = useUrlParams()
   const set = (key: string, value: string, fallback = '') => edit(p => (value && value !== fallback ? p.set(key, value) : p.delete(key)))
 
-  const car = params.get('car') ?? ''
+  const car = params.get('carName') ?? ''
   const client = params.get('client') ?? ''
   const stars = params.get('stars') ?? ''
   const from = params.get('from') ?? ''
   const to = params.get('to') ?? ''
-  const sort: Sort = SORTS.includes(params.get('sort') as Sort) ? (params.get('sort') as Sort) : 'newest'
 
-  // Each customer once, by name.
-  const clients = [...new Map(reviews.map(x => [x.author, x.name])).entries()].sort((a, b) => a[1].localeCompare(b[1], lang))
+  const carName = (x: HostReview) => `${x.car.brand} ${x.car.model}`
+  const names = (list: string[]) => [...new Set(list)].sort((a, b) => a.localeCompare(b, lang))
+  // Names that start with what was typed.
+  const starts = (name: string, typed: string) => !typed.trim() || plain(name).startsWith(plain(typed))
   const shown = reviews
-    .filter(x => (!car || String(x.car.id) === car) && (!client || x.author === client) && (!stars || x.rating === Number(stars)))
+    .filter(x => starts(carName(x), car) && starts(x.name, client) && (!stars || x.rating === Number(stars)))
     .filter(x => (!from || x.date >= from) && (!to || x.date <= to))
-    .sort(COMPARE[sort])
+    .sort((a, b) => b.date.localeCompare(a.date))
   const filtering = FILTERS.some(k => params.has(k))
 
   if (reviews.length === 0) return <p style={{ fontSize: 15, color: '#6e6e73', padding: '24px 0' }}>{t.hostPortal.noReviews}</p>
@@ -55,26 +49,14 @@ export function HostReviews({ reviews, cars }: { reviews: HostReview[]; cars: { 
   return (
     <>
       <div className="admin-car-toolbar">
-        <select value={car} onChange={e => set('car', e.target.value)} aria-label={r.car} style={control}>
-          <option value="">{t.hostPortal.allCars}</option>
-          {cars.map(c => <option key={c.id} value={c.id}>{c.brand} {c.model} {c.year}</option>)}
-        </select>
-        <select value={client} onChange={e => set('client', e.target.value)} aria-label={r.client} style={control}>
-          <option value="">{r.allClients}</option>
-          {clients.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
-        </select>
+        <Suggest value={car} onChange={v => set('carName', v)} options={names(reviews.map(carName))} placeholder={r.car} style={control} />
+        <Suggest value={client} onChange={v => set('client', v)} options={names(reviews.map(x => x.name))} placeholder={r.client} style={control} />
         <select value={stars} onChange={e => set('stars', e.target.value)} aria-label={r.stars} style={control}>
           <option value="">{r.allStars}</option>
           {[5, 4, 3, 2, 1].map(n => <option key={n} value={n}>{'★'.repeat(n)} {r.starsCount(n)}</option>)}
         </select>
         <label style={labelStyle}>{mb.from}<input type="date" value={from} max={to || undefined} onChange={e => set('from', e.target.value)} style={control} /></label>
         <label style={labelStyle}>{mb.to}<input type="date" value={to} min={from || undefined} onChange={e => set('to', e.target.value)} style={control} /></label>
-        <label style={labelStyle}>
-          {mb.sortBy}
-          <select value={sort} onChange={e => set('sort', e.target.value, 'newest')} style={control}>
-            {SORTS.map(o => <option key={o} value={o}>{r.sorts[o]}</option>)}
-          </select>
-        </label>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', fontSize: 13, color: '#6e6e73', marginTop: 6 }}>
         {r.found(shown.length)}

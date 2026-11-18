@@ -274,7 +274,7 @@ function HostPanelContent() {
 
             {tab === 'finances' && <HostFinances />}
 
-            {tab === 'reviews' && <HostReviews reviews={data.reviews} cars={data.cars} />}
+            {tab === 'reviews' && <HostReviews reviews={data.reviews} />}
           </>
         )}
       </main>
