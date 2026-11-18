@@ -73,6 +73,8 @@ export async function bookingRoutes(app: FastifyInstance) {
     const user = request.user!
     // Only customers whose documents the admin has checked can rent a car.
     if (user.role !== 'ADMIN' && user.verificationStatus !== 'VERIFIED') throw new HttpError(403, 'account-not-verified')
+    // Hosts don't rent cars.
+    if (user.host) throw new HttpError(403, 'host-cannot-book')
     const payments = stripe() // fail early if payments are not configured
 
     const today = todayInMoldova()
@@ -150,6 +152,8 @@ export async function bookingRoutes(app: FastifyInstance) {
 
   app.get('/bookings', { preHandler: requireUser }, async request => {
     const user = request.user!
+    // A host's bookings from before they became a host stay stored but are no longer shown.
+    if (user.host) return { bookings: [] }
     const pending = await prisma.booking.findMany({ where: { userId: user.id, status: 'PENDING_PAYMENT' }, select: { id: true } })
     await Promise.all(pending.map(b => syncCheckout(b.id).catch(err => request.log.warn(err, 'Checkout sync failed'))))
     const bookings = await prisma.booking.findMany({ where: { userId: user.id }, include: bookingInclude, orderBy: { createdAt: 'desc' } })
