@@ -295,9 +295,7 @@ function HostPanelContent() {
                     </div>
                     </div>
                     <div className="host-car-side">
-                      <span style={{ fontSize: 12, color: '#86868b' }}>{h.earned}</span>
-                      <strong style={{ fontSize: 16, color: '#1d1d1f' }}><Money value={car.earned} /></strong>
-                      <div className="row-actions" style={{ justifyContent: 'flex-end', marginTop: 4 }}>
+                      <div className="row-actions" style={{ justifyContent: 'flex-end' }}>
                         {car.condition === 'READY'
                           ? <button onClick={() => setChanging(car)} className="btn-action btn-action--neutral">{t.carCondition.change}</button>
                           : <button onClick={() => makeReady(car)} className="btn-action btn-action--neutral">{t.carCondition.makeReady}</button>}
