@@ -13,7 +13,7 @@ import { refreshHostAwaiting } from '../lib/hostNotifications'
 import { CountBadge } from '../components/CountBadge'
 import { CloseBookingDialog } from './admin/CloseBookingDialog'
 import { HostFinances } from './HostFinances'
-import { HostReviews, shownReviews, type HostReview } from './HostReviews'
+import { FILTERS, HostReviews, shownReviews, tripShown, type HostReview } from './HostReviews'
 import { ReturnLocationDialog } from '../components/ReturnLocationDialog'
 import { ReturnLocation } from '../components/ReturnLocation'
 import { fmt, formatDate } from '../lib/rental'
@@ -136,11 +136,17 @@ function HostPanelContent() {
     .filter(b => !carId || String(b.car.id) === carId)
     .sort((a, b) => Number(b.status === 'AWAITING_CONFIRMATION') - Number(a.status === 'AWAITING_CONFIRMATION'))
 
-  // On the reviews tab the rating is of the reviews shown there.
+  // On the reviews tab the tiles follow the filters: the rating is of the reviews shown there…
   const rated = data && tab === 'reviews' ? shownReviews(data.reviews, params) : null
   const rating = rated
     ? { value: rated.length ? Math.round((rated.reduce((sum, x) => sum + x.rating, 0) / rated.length) * 10) / 10 : null, count: rated.length }
     : { value: data?.host.rating ?? null, count: data?.host.reviews ?? 0 }
+  // …and so are the cars in them and the finished trips that pass the same filters.
+  // Without filters, all the host's cars count, also those without reviews.
+  const carCount = rated && FILTERS.some(k => params.has(k)) ? new Set(rated.map(x => x.car.id)).size : data?.cars.length ?? 0
+  const tripCount = data && tab === 'reviews'
+    ? data.bookings.filter(b => b.status === 'COMPLETED' && tripShown(b, data.reviews, params)).length
+    : data?.host.trips ?? 0
 
   return (
     <div style={{ paddingTop: 52 }}>
@@ -161,9 +167,9 @@ function HostPanelContent() {
         {data && (
           <>
             <div className="dashboard-tiles">
-              <Tile label={h.tiles.cars} value={String(data.cars.length)} />
+              <Tile label={h.tiles.cars} value={String(carCount)} />
               <Tile label={h.tiles.rating} value={rating.value !== null ? `★ ${rating.value.toFixed(1)}` : h.noRating} sub={h.reviewsCount(rating.count)} />
-              <Tile label={h.tiles.trips} value={String(data.host.trips)} />
+              <Tile label={h.tiles.trips} value={String(tripCount)} />
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', margin: '32px 0 16px' }}>

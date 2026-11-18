@@ -12,6 +12,7 @@ export type HostReview = {
   id: string
   car: { id: number; slug: string; brand: string; model: string; photo: string | null }
   author: string // the same for all reviews of one customer
+  bookingId: string | null // the trip it is about
   name: string
   avatarUrl: string | null
   rating: number
@@ -19,11 +20,26 @@ export type HostReview = {
   date: string
 }
 
-const FILTERS = ['carName', 'client', 'stars', 'from', 'to']
+export const FILTERS = ['carName', 'client', 'stars', 'from', 'to']
 
 const carName = (x: HostReview) => `${x.car.brand} ${x.car.model}`
 // Names that start with what was typed.
 const starts = (name: string, typed: string) => !typed.trim() || plain(name).startsWith(plain(typed))
+
+// Whether a finished trip passes the same filters: its car, its customer, its return day in the
+// period and, when stars are chosen, a review with that many stars.
+export function tripShown(
+  trip: { id: string; car: { brand: string; model: string }; customer: { name: string }; returnDate: string },
+  reviews: HostReview[],
+  params: URLSearchParams,
+) {
+  const stars = params.get('stars') ?? ''
+  const from = params.get('from') ?? ''
+  const to = params.get('to') ?? ''
+  return starts(`${trip.car.brand} ${trip.car.model}`, params.get('carName') ?? '') && starts(trip.customer.name, params.get('client') ?? '')
+    && (!from || trip.returnDate >= from) && (!to || trip.returnDate <= to)
+    && (!stars || reviews.some(x => x.bookingId === trip.id && x.rating === Number(stars)))
+}
 
 // The reviews the filters in the address leave, newest first. The rating tile counts the same ones.
 export function shownReviews(reviews: HostReview[], params: URLSearchParams) {

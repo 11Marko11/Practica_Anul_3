@@ -107,6 +107,7 @@ export async function hostPortalRoutes(app: FastifyInstance) {
         id: r.id, car: { id: car.id, slug: car.slug, brand: car.brand, model: car.model, photo: car.photos[0]?.url ?? null },
         // The customer: their account, or the name alone for the sample reviews.
         author: r.userId ?? `name:${r.authorName}`,
+        bookingId: r.bookingId, // the trip the review is about
         name: r.authorName, avatarUrl: r.user?.avatarUrl ?? null, rating: r.rating, text: r.text, date: isoDate(r.createdAt),
       })))
       .sort((a, b) => b.date.localeCompare(a.date))
