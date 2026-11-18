@@ -3,7 +3,6 @@ import { Avatar } from '../components/Avatar'
 import { ResetButton } from '../components/ResetButton'
 import { photoUrl } from '../data/cars'
 import { useI18n } from '../i18n/I18nContext'
-import { PERIODS, periodRange, type PeriodChoice } from '../lib/periods'
 import { formatDate } from '../lib/rental'
 import { useUrlParams } from '../lib/useUrlParams'
 
@@ -26,7 +25,7 @@ const COMPARE: Record<Sort, (a: HostReview, b: HostReview) => number> = {
   best: (a, b) => b.rating - a.rating || b.date.localeCompare(a.date),
   worst: (a, b) => a.rating - b.rating || b.date.localeCompare(a.date),
 }
-const FILTERS = ['car', 'client', 'stars', 'period', 'from', 'to', 'sort']
+const FILTERS = ['car', 'client', 'stars', 'from', 'to', 'sort']
 
 // The host's reviews tab: the reviews of their cars, filtered by car, customer, stars and period.
 export function HostReviews({ reviews, cars }: { reviews: HostReview[]; cars: { id: number; brand: string; model: string; year: number }[] }) {
@@ -39,17 +38,15 @@ export function HostReviews({ reviews, cars }: { reviews: HostReview[]; cars: { 
   const car = params.get('car') ?? ''
   const client = params.get('client') ?? ''
   const stars = params.get('stars') ?? ''
-  const period: PeriodChoice = PERIODS.includes(params.get('period') as PeriodChoice) ? (params.get('period') as PeriodChoice) : 'all'
   const from = params.get('from') ?? ''
   const to = params.get('to') ?? ''
   const sort: Sort = SORTS.includes(params.get('sort') as Sort) ? (params.get('sort') as Sort) : 'newest'
 
   // Each customer once, by name.
   const clients = [...new Map(reviews.map(x => [x.author, x.name])).entries()].sort((a, b) => a[1].localeCompare(b[1], lang))
-  const [start, end] = periodRange(period, from, to)
   const shown = reviews
     .filter(x => (!car || String(x.car.id) === car) && (!client || x.author === client) && (!stars || x.rating === Number(stars)))
-    .filter(x => (!start || x.date >= start) && (!end || x.date <= end))
+    .filter(x => (!from || x.date >= from) && (!to || x.date <= to))
     .sort(COMPARE[sort])
   const filtering = FILTERS.some(k => params.has(k))
 
@@ -70,12 +67,8 @@ export function HostReviews({ reviews, cars }: { reviews: HostReview[]; cars: { 
           <option value="">{r.allStars}</option>
           {[5, 4, 3, 2, 1].map(n => <option key={n} value={n}>{'★'.repeat(n)} {r.starsCount(n)}</option>)}
         </select>
-        <label style={labelStyle}>
-          {mb.period}
-          <select value={period} onChange={e => set('period', e.target.value, 'all')} style={control}>
-            {PERIODS.map(o => <option key={o} value={o}>{mb.periods[o]}</option>)}
-          </select>
-        </label>
+        <label style={labelStyle}>{mb.from}<input type="date" value={from} max={to || undefined} onChange={e => set('from', e.target.value)} style={control} /></label>
+        <label style={labelStyle}>{mb.to}<input type="date" value={to} min={from || undefined} onChange={e => set('to', e.target.value)} style={control} /></label>
         <label style={labelStyle}>
           {mb.sortBy}
           <select value={sort} onChange={e => set('sort', e.target.value, 'newest')} style={control}>
@@ -83,12 +76,6 @@ export function HostReviews({ reviews, cars }: { reviews: HostReview[]; cars: { 
           </select>
         </label>
       </div>
-      {period === 'custom' && (
-        <div className="admin-car-toolbar">
-          <label style={labelStyle}>{mb.from}<input type="date" value={from} max={to || undefined} onChange={e => set('from', e.target.value)} style={control} /></label>
-          <label style={labelStyle}>{mb.to}<input type="date" value={to} min={from || undefined} onChange={e => set('to', e.target.value)} style={control} /></label>
-        </div>
-      )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', fontSize: 13, color: '#6e6e73', marginTop: 6 }}>
         {r.found(shown.length)}
         {filtering && <ResetButton onClick={() => edit(p => FILTERS.forEach(k => p.delete(k)))}>{mb.reset}</ResetButton>}
