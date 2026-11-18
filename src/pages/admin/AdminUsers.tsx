@@ -3,7 +3,7 @@ import { PhoneInput } from '../../components/PhoneInput'
 import type { VerificationStatus } from '../../auth/AuthContext'
 import { VerificationBadge } from '../Profile'
 import { refreshAwaitingCount } from '../../lib/adminNotifications'
-import { documentUrl, type IdentityDocument } from '../../lib/profile'
+import { documentUrl, hasRequiredDocuments, type IdentityDocument } from '../../lib/profile'
 import { formatPhone } from '../../lib/phone'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { BookingCard } from '../../components/BookingCard'
@@ -581,6 +581,8 @@ function VerificationPanel({ data, onChange }: { data: Detail; onChange: () => v
   const time = (iso: string) => new Date(iso).toLocaleString(lang, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })
   const age = c.birthDate ? Math.floor((Date.now() - new Date(`${c.birthDate}T00:00:00Z`).getTime()) / (365.25 * 86_400_000)) : null
 
+  // Verified only with the ID card, the passport and the driving licence (the server checks it too).
+  const complete = !!data && hasRequiredDocuments(data.documents)
   async function decide(action: 'verify' | 'reject') {
     if (action === 'verify' && !confirm(v.verifyAsk)) return
     setBusy(true)
@@ -647,10 +649,11 @@ function VerificationPanel({ data, onChange }: { data: Detail; onChange: () => v
           ) : (
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {c.verificationStatus !== 'VERIFIED' && (
-                <button onClick={() => decide('verify')} disabled={busy || data.documents.length === 0} style={{ ...actionButton, background: '#1b7a35', color: '#fff', opacity: data.documents.length ? 1 : 0.4 }}>
+                <button onClick={() => decide('verify')} disabled={busy || !complete} style={{ ...actionButton, background: '#1b7a35', color: '#fff', opacity: complete ? 1 : 0.4 }}>
                   ✓ {v.verify}
                 </button>
               )}
+              {c.verificationStatus !== 'VERIFIED' && !complete && <p style={{ flexBasis: '100%', fontSize: 13, color: '#6e6e73', margin: 0 }}>{v.needAllDocuments}</p>}
               {c.verificationStatus !== 'REJECTED' && c.verificationStatus !== 'UNVERIFIED' && (
                 <button onClick={() => setRejecting(true)} style={{ ...actionButton, background: '#fff', color: '#d70015', border: '1px solid #f0c4c4' }}>
                   {c.verificationStatus === 'VERIFIED' ? v.revoke : v.reject}

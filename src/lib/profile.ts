@@ -70,6 +70,6 @@ export async function uploadDocument(type: DocumentType, file: File) {
   return (data as { document: IdentityDocument }).document
 }
 
-// Same rule as the server: a driving licence and an ID card or passport.
+// Same rule as the server: the ID card, the passport and the driving licence.
 export const hasRequiredDocuments = (docs: IdentityDocument[]) =>
-  docs.some(d => d.type === 'DRIVING_LICENSE') && docs.some(d => d.type === 'ID_CARD' || d.type === 'PASSPORT')
+  (['ID_CARD', 'PASSPORT', 'DRIVING_LICENSE'] as const).every(type => docs.some(d => d.type === type))
