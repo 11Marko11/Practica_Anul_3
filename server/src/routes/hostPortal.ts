@@ -138,7 +138,6 @@ export async function hostPortalRoutes(app: FastifyInstance) {
         trips: allCars.reduce((s, c) => s + c.trips, 0),
         earned: allCars.reduce((s, c) => s + c.earned, 0),
         awaiting: bookings.filter(b => b.status === 'AWAITING_CONFIRMATION').length,
-        upcoming: bookings.filter(b => (b.status === 'CONFIRMED' || b.status === 'AWAITING_CONFIRMATION') && b.returnDate >= today).length,
       },
       cars,
       bookings: bookings.sort((a, b) => b.pickupDate.localeCompare(a.pickupDate)),

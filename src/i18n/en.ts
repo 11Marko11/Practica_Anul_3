@@ -789,7 +789,7 @@ export const en = {
     menu: 'Host panel',
     eyebrow: 'Host panel',
     intro: 'Your cars, bookings and reviews. You confirm or reject paid bookings; the money is taken on confirmation, and the customer’s phone shows after that.',
-    tiles: { cars: 'Cars', rating: 'Rating', trips: 'Trips', earned: 'Earned', upcoming: 'Upcoming bookings' },
+    tiles: { cars: 'Cars', rating: 'Rating', trips: 'Trips', earned: 'Earned' },
     noRating: '—',
     reviewsCount: (n: number) => countOf('en', n, { one: 'review', other: 'reviews' }),
     tabs: { cars: 'Cars', bookings: 'Bookings', finances: 'Finances', reviews: 'Reviews' },

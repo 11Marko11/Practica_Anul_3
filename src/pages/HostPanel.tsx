@@ -21,7 +21,7 @@ import { useUrlParams } from '../lib/useUrlParams'
 type CarRef = { id: number; slug: string; brand: string; model: string }
 type Period = { pickupDate: string; returnDate: string }
 type HostData = {
-  host: { id: number; name: string; phone: string | null; rating: number | null; reviews: number; trips: number; earned: number; awaiting: number; upcoming: number }
+  host: { id: number; name: string; phone: string | null; rating: number | null; reviews: number; trips: number; earned: number; awaiting: number }
   cars: (CarRef & {
     year: number
     photo: string | null
@@ -160,7 +160,6 @@ function HostPanelContent() {
               <Tile label={h.tiles.trips} value={String(data.host.trips)} />
               <Tile label={h.tiles.earned} value={<Money value={data.host.earned} />} />
               <Tile label={h.awaitingTile} value={String(data.host.awaiting)} />
-              <Tile label={h.tiles.upcoming} value={String(data.host.upcoming)} />
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', margin: '32px 0 16px' }}>

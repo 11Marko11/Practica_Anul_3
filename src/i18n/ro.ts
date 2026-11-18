@@ -789,7 +789,7 @@ export const ro: Dict = {
     menu: 'Panoul gazdei',
     eyebrow: 'Panoul gazdei',
     intro: 'Mașinile, rezervările și recenziile tale. Tu confirmi sau respingi rezervările plătite; banii se încasează la confirmare, iar telefonul clientului apare după aceea.',
-    tiles: { cars: 'Mașini', rating: 'Rating', trips: 'Curse', earned: 'Încasări', upcoming: 'Rezervări viitoare' },
+    tiles: { cars: 'Mașini', rating: 'Rating', trips: 'Curse', earned: 'Încasări' },
     noRating: '—',
     reviewsCount: (n: number) => countOf('ro', n, { one: 'recenzie', few: 'recenzii', other: 'de recenzii' }),
     tabs: { cars: 'Mașini', bookings: 'Rezervări', finances: 'Finanțe', reviews: 'Recenzii' },
