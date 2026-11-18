@@ -352,5 +352,5 @@ input[type="search"]::-webkit-search-cancel-button { margin-left: 10px; cursor: 
 /* A car row's photo and details; for a hidden car they are darkened, with "Ascunsă" in large
    letters across them, up to the buttons. */
 .car-row__main { position: relative; display: flex; align-items: center; gap: 16px; flex: 1 1 320px; min-width: 0; }
-.car-row__veil { position: absolute; inset: -8px -10px; border-radius: 14px; background: linear-gradient(to left, rgba(29, 29, 31, 0.05), rgba(29, 29, 31, 0.65)); display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 1; }
+.car-row__veil { position: absolute; inset: -8px -10px; border-radius: 14px; background: linear-gradient(to left, rgba(29, 29, 31, 0) 0%, rgba(29, 29, 31, 0.08) 25%, rgba(29, 29, 31, 0.65) 100%); display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 1; }
 .car-row__veil span { color: #fff; font-size: clamp(22px, 4vw, 34px); font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; text-shadow: 0 2px 14px rgba(0, 0, 0, 0.45); }
