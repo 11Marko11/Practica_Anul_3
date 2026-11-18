@@ -630,6 +630,7 @@ export const en = {
     rateNow: 'Your current commission',
     rateHint: 'The share of your monthly income you pay to Rent Motors. It applies to bookings confirmed after the last change.',
     thisMonth: 'Net income this month',
+    shownIncome: 'Net income of the transactions shown',
     due: 'Commission to pay',
     dueHint: 'For finished months not paid yet',
     onHold: 'On hold, not confirmed',

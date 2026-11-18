@@ -630,6 +630,7 @@ export const ro: Dict = {
     rateNow: 'Comisionul tău actual',
     rateHint: 'Procentul din venitul lunar pe care îl achiți către Rent Motors. Se aplică rezervărilor confirmate după ultima schimbare.',
     thisMonth: 'Venit net luna aceasta',
+    shownIncome: 'Venit net din tranzacțiile afișate',
     due: 'Comision de achitat',
     dueHint: 'Pentru lunile încheiate, neachitate încă',
     onHold: 'Sume blocate, neconfirmate',

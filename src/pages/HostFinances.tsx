@@ -76,13 +76,20 @@ export function HostFinances() {
   const entries = data.entries.filter(e => (!month || e.month === month) && starts(e.booking.car, car) && starts(e.booking.customer, client)
     && (!from || day(e.at) >= from) && (!to || day(e.at) <= to))
   const filtering = ['month', 'tcar', 'tclient', 'tfrom', 'tto'].some(k => params.has(k))
+  // With filters on, the income tile counts the transactions shown: what was charged minus what
+  // was refunded, less each booking's commission (as the monthly table does).
+  const moved = entries.filter(e => e.type === 'charge' || e.type === 'refund')
+  const shownNet = moved.reduce((sum, e) => sum + e.amount, 0)
+  const shownIncome = shownNet - Math.max(0, Math.round(moved.reduce((sum, e) => sum + (e.amount * e.rate) / 100, 0)))
   const time = (iso: string) => new Date(iso).toLocaleString(lang, { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
       <div className="dashboard-tiles">
         <Tile label={f.rateNow} value={`${data.rate}%`} sub={f.rateHint} />
-        <Tile label={f.thisMonth} value={<Money value={thisMonth?.income ?? 0} />} sub={monthLabel(data.currentMonth, lang)} />
+        {filtering
+          ? <Tile label={f.shownIncome} value={<Money value={shownIncome} />} sub={f.found(entries.length)} />
+          : <Tile label={f.thisMonth} value={<Money value={thisMonth?.income ?? 0} />} sub={monthLabel(data.currentMonth, lang)} />}
         <Tile label={f.due} value={<Money value={data.due} />} sub={f.dueHint} warn={data.due > 0} />
         <Tile label={f.onHold} value={<Money value={data.onHold} />} />
       </div>
