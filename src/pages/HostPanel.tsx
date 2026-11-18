@@ -5,6 +5,7 @@ import { Link, Navigate, useLocation } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
 import { Money } from '../components/Money'
 import { photoUrl } from '../data/cars'
+import { Avatar } from '../components/Avatar'
 import { useI18n } from '../i18n/I18nContext'
 import { api, ApiError } from '../lib/api'
 import { hostCompleteBooking, hostConfirmBooking, type BookingStatus } from '../lib/bookings'
@@ -38,7 +39,7 @@ type HostData = {
   })[]
   bookings: (Period & {
     id: string
-    car: CarRef
+    car: CarRef & { photo: string | null }
     days: number
     handover: 'PICKUP' | 'DELIVERY'
     deliveryAddress: string | null
@@ -49,7 +50,7 @@ type HostData = {
     commissionRate: number | null // Rent Motors' share (%) once confirmed
     canComplete: boolean // confirmed, from the pick-up day on
     returnLocation: { address: string; lat: number; lng: number; by: string | null } | null // where the car was left
-    customer: { name: string; phone: string | null } // the phone only once the booking is confirmed
+    customer: { name: string; avatarUrl: string | null; phone: string | null } // the phone only once the booking is confirmed
     holdExpiresAt: string | null // answer before then, or Stripe releases the payment
     createdAt: string
   })[]
@@ -221,7 +222,11 @@ function HostPanelContent() {
                 {bookings.length === 0 && <Empty text={h.noBookings} />}
                 {bookings.map(b => (
                   <li key={b.id} style={{ ...row, display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-                    <div style={{ flex: '1 1 260px', minWidth: 0 }}>
+                    <div style={{ flex: '1 1 300px', minWidth: 0, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                    <Link to={`/cars/${b.car.slug}`} className="booking-thumb">
+                      {b.car.photo && <img src={photoUrl(b.car.photo, 240, 150)} alt={`${b.car.brand} ${b.car.model}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
+                    </Link>
+                    <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                         <strong style={{ fontSize: 15, fontWeight: 600, color: '#1d1d1f' }}>{b.car.brand} {b.car.model}</strong>
                         <StatusPill status={b.status} />
@@ -232,11 +237,15 @@ function HostPanelContent() {
                       <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 2 }}>{b.handover === 'DELIVERY' && b.deliveryAddress ? h.delivery(b.deliveryAddress) : h.pickup}</div>
                       {b.returnLocation && <ReturnLocation location={b.returnLocation} />}
                     </div>
+                    </div>
                     <div style={{ flex: '1 1 200px', fontSize: 13, color: '#6e6e73' }}>
                       <div style={{ color: '#86868b' }}>{h.customer}</div>
-                      <div style={{ color: '#1d1d1f', marginTop: 2 }}>
-                        {b.customer.name}
-                        {b.customer.phone ? <> · <a href={`tel:${b.customer.phone}`} style={{ color: '#0071e3', textDecoration: 'none' }}>{b.customer.phone}</a></> : <div style={{ color: '#6e6e73' }}>{h.contactLater}</div>}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 6 }}>
+                        <Avatar name={b.customer.name} url={b.customer.avatarUrl} size={40} />
+                        <div style={{ color: '#1d1d1f', minWidth: 0 }}>
+                          <div style={{ fontSize: 14, fontWeight: 500 }}>{b.customer.name}</div>
+                          {b.customer.phone ? <a href={`tel:${b.customer.phone}`} style={{ color: '#0071e3', textDecoration: 'none' }}>{b.customer.phone}</a> : <div style={{ color: '#6e6e73' }}>{h.contactLater}</div>}
+                        </div>
                       </div>
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>

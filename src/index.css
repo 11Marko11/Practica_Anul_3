@@ -319,3 +319,7 @@ select:not([multiple]):not([size]) {
 .table-toggle > summary::-webkit-details-marker { display: none; }
 .table-toggle__chevron { transition: transform 0.15s ease; }
 .table-toggle[open] .table-toggle__chevron { transform: rotate(180deg); }
+
+/* Car photo on a host's booking card; smaller on phones so the text stays beside it. */
+.booking-thumb { display: block; width: 120px; aspect-ratio: 16 / 10; border-radius: 10px; overflow: hidden; background: #e8e8ed; flex-shrink: 0; }
+@media (max-width: 600px) { .booking-thumb { width: 84px; } }
