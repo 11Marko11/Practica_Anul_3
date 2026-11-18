@@ -332,3 +332,6 @@ select:not([multiple]):not([size]) {
   .date-range { width: 100%; gap: 8px; }
   .date-range input { padding: 9px 8px !important; font-size: 13px !important; }
 }
+
+/* The ✕ that clears a search field keeps a gap from the text. */
+input[type="search"]::-webkit-search-cancel-button { margin-left: 10px; cursor: pointer; }
