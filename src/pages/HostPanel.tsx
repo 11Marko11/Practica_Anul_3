@@ -166,11 +166,14 @@ function HostPanelContent() {
         {failed && <p style={{ fontSize: 15, color: '#d70015' }}>{t.marketplace.loadError}</p>}
         {data && (
           <>
-            <div className="dashboard-tiles">
-              <Tile label={h.tiles.cars} value={String(carCount)} />
-              <Tile label={h.tiles.rating} value={rating.value !== null ? `★ ${rating.value.toFixed(1)}` : h.noRating} sub={h.reviewsCount(rating.count)} />
-              <Tile label={h.tiles.trips} value={String(tripCount)} />
-            </div>
+            {/* Finances has its own summary. */}
+            {tab !== 'finances' && (
+              <div className="dashboard-tiles">
+                <Tile label={h.tiles.cars} value={String(carCount)} />
+                <Tile label={h.tiles.rating} value={rating.value !== null ? `★ ${rating.value.toFixed(1)}` : h.noRating} sub={h.reviewsCount(rating.count)} />
+                <Tile label={h.tiles.trips} value={String(tripCount)} />
+              </div>
+            )}
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', margin: '32px 0 16px' }}>
               {tab === 'bookings' && data.cars.length > 1 && (
