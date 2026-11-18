@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useI18n } from '../i18n/I18nContext'
-import { CAR_CONDITIONS, CONDITION_COLORS, setCarCondition, type CarCondition } from '../lib/carCondition'
+import { HOST_CONDITIONS, CONDITION_COLORS, setCarCondition, type CarCondition } from '../lib/carCondition'
 
 // The host says whether the car can be rented now; any other state takes it off the site,
 // with a reason the host can write (required for "other").
@@ -49,7 +49,7 @@ export function CarConditionDialog({ car, onClose, onDone }: {
 
         <fieldset style={{ border: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
           <legend style={{ fontSize: 13, color: '#6e6e73', padding: 0, marginBottom: 8 }}>{c.state}</legend>
-          {CAR_CONDITIONS.map(k => (
+          {HOST_CONDITIONS.map(k => (
             <label key={k} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: '#1d1d1f', cursor: 'pointer', padding: '6px 10px', borderRadius: 12, background: condition === k ? '#f5f5f7' : 'transparent' }}>
               <input type="radio" name="condition" checked={condition === k} onChange={() => { setCondition(k); setError('') }} style={{ accentColor: '#1d1d1f' }} />
               <span style={{ width: 10, height: 10, borderRadius: '50%', background: CONDITION_COLORS[k].color, flexShrink: 0 }} aria-hidden="true" />

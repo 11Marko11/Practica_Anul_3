@@ -741,7 +741,7 @@ export const ro: Dict = {
     noMatch: 'Nicio recenzie nu corespunde filtrelor.',
   },
   carCondition: {
-    names: { READY: 'Disponibilă', CLEANING: 'La curățat', NEEDS_CLEANING: 'Necesită curățare', NEEDS_CHECK: 'Necesită verificare', IN_SERVICE: 'În service', DAMAGED: 'Defectă', OTHER: 'Alt motiv' },
+    names: { READY: 'Disponibilă', CLEANING: 'La curățat', NEEDS_CLEANING: 'Necesită curățare', NEEDS_CHECK: 'Necesită verificare', IN_SERVICE: 'În service', DAMAGED: 'Defectă', OTHER: 'Alt motiv', NO_DOCUMENTS: 'Fără acte' },
     filterAll: 'Toate',
     change: 'Schimbă starea',
     makeReady: 'Fă disponibilă',

@@ -741,7 +741,7 @@ export const ru: Dict = {
     noMatch: 'Нет отзывов, подходящих под фильтры.',
   },
   carCondition: {
-    names: { READY: 'Доступна', CLEANING: 'На чистке', NEEDS_CLEANING: 'Нужна чистка', NEEDS_CHECK: 'Нужна проверка', IN_SERVICE: 'В сервисе', DAMAGED: 'Неисправна', OTHER: 'Другая причина' },
+    names: { READY: 'Доступна', CLEANING: 'На чистке', NEEDS_CLEANING: 'Нужна чистка', NEEDS_CHECK: 'Нужна проверка', IN_SERVICE: 'В сервисе', DAMAGED: 'Неисправна', OTHER: 'Другая причина', NO_DOCUMENTS: 'Без документов' },
     filterAll: 'Все',
     change: 'Изменить статус',
     makeReady: 'Сделать доступной',

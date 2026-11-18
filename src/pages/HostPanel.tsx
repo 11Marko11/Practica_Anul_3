@@ -260,7 +260,7 @@ function HostPanelContent() {
                     <div style={{ minWidth: 0, flex: 1 }}>
                       <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f' }}>
                         {car.brand} {car.model} <span style={{ fontWeight: 400, color: '#6e6e73' }}>· {car.year}</span>
-                        {car.reviewStatus !== 'APPROVED' && (
+                        {car.reviewStatus !== 'APPROVED' && car.reviewStatus !== 'NO_DOCUMENTS' && (
                           <span style={{ display: 'inline-block', whiteSpace: 'nowrap', verticalAlign: 'middle', marginLeft: 8, fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 980, ...CAR_REVIEW_COLORS[car.reviewStatus] }}>
                             {t.carPapers.status[car.reviewStatus]}
                           </span>
@@ -296,7 +296,9 @@ function HostPanelContent() {
                     </div>
                     <div className="host-car-side">
                       <div className="row-actions" style={{ justifyContent: 'flex-end' }}>
-                        {car.condition === 'READY'
+                        {car.condition === 'NO_DOCUMENTS'
+                          ? null
+                          : car.condition === 'READY'
                           ? <button onClick={() => setChanging(car)} className="btn-action btn-action--neutral">{t.carCondition.change}</button>
                           : <button onClick={() => makeReady(car)} className="btn-action btn-action--neutral">{t.carCondition.makeReady}</button>}
                         {car.status === 'ACTIVE' && car.reviewStatus === 'APPROVED' && car.condition === 'READY' && <Link to={`/cars/${car.slug}`} className="btn-action btn-action--neutral">{h.view}</Link>}

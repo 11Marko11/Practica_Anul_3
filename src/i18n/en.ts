@@ -741,7 +741,7 @@ export const en = {
     noMatch: 'No reviews match the filters.',
   },
   carCondition: {
-    names: { READY: 'Available', CLEANING: 'Being cleaned', NEEDS_CLEANING: 'Needs cleaning', NEEDS_CHECK: 'Needs a check', IN_SERVICE: 'In service', DAMAGED: 'Damaged', OTHER: 'Other reason' },
+    names: { READY: 'Available', CLEANING: 'Being cleaned', NEEDS_CLEANING: 'Needs cleaning', NEEDS_CHECK: 'Needs a check', IN_SERVICE: 'In service', DAMAGED: 'Damaged', OTHER: 'Other reason', NO_DOCUMENTS: 'No documents' },
     filterAll: 'All',
     change: 'Change status',
     makeReady: 'Make available',
