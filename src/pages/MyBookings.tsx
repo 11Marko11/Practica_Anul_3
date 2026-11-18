@@ -14,17 +14,15 @@ import { same, useLivePoll } from '../lib/livePoll'
 import { formatDate } from '../lib/rental'
 import { Money } from '../components/Money'
 import { pageFrom, Pagination } from '../components/Pagination'
+import { PERIODS, periodRange, today, type PeriodChoice } from '../lib/periods'
 
 const GROUPS = ['all', 'active', 'waiting', 'completed', 'cancelled'] as const
-const PERIODS = ['all', 'month', 'last3', 'year', 'custom'] as const
 const SORTS = ['newest', 'oldest', 'priceDesc', 'priceAsc'] as const
 type Group = (typeof GROUPS)[number]
-type Period = (typeof PERIODS)[number]
+type Period = PeriodChoice
 type Sort = (typeof SORTS)[number]
 const PAGE_SIZE = 10
 
-// Today in Moldova, "YYYY-MM-DD", like the dates of a booking.
-const today = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Chisinau' })
 const daysUntil = (date: string) => Math.round((Date.parse(date) - Date.parse(today())) / 86_400_000)
 
 function groupOf(b: Booking): Exclude<Group, 'all'> {
@@ -33,18 +31,6 @@ function groupOf(b: Booking): Exclude<Group, 'all'> {
   // Confirmed bookings count as in progress, also before the pick-up day (the card says when it starts).
   if (b.status === 'CONFIRMED') return 'active'
   return 'waiting' // waiting for the payment or for our confirmation
-}
-
-// The first and last day of a preset period; null means no limit.
-function periodRange(period: Period, from: string, to: string): [string | null, string | null] {
-  const now = today()
-  const [y, m] = now.split('-').map(Number)
-  const iso = (year: number, month: number, day: number) => new Date(Date.UTC(year, month - 1, day)).toISOString().slice(0, 10)
-  if (period === 'month') return [iso(y, m, 1), iso(y, m + 1, 0)]
-  if (period === 'last3') return [iso(y, m - 2, 1), iso(y, m + 1, 0)]
-  if (period === 'year') return [`${y}-01-01`, `${y}-12-31`]
-  if (period === 'custom') return [from || null, to || null]
-  return [null, null]
 }
 
 const COMPARE: Record<Sort, (a: Booking, b: Booking) => number> = {

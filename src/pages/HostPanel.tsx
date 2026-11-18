@@ -13,6 +13,7 @@ import { refreshHostAwaiting } from '../lib/hostNotifications'
 import { CountBadge } from '../components/CountBadge'
 import { CloseBookingDialog } from './admin/CloseBookingDialog'
 import { HostFinances } from './HostFinances'
+import { HostReviews, type HostReview } from './HostReviews'
 import { ReturnLocationDialog } from '../components/ReturnLocationDialog'
 import { ReturnLocation } from '../components/ReturnLocation'
 import { fmt, formatDate } from '../lib/rental'
@@ -54,7 +55,7 @@ type HostData = {
     holdExpiresAt: string | null // answer before then, or Stripe releases the payment
     createdAt: string
   })[]
-  reviews: { id: string; car: CarRef; name: string; rating: number; text: string; date: string }[]
+  reviews: HostReview[]
 }
 
 const TABS = ['cars', 'bookings', 'finances', 'reviews'] as const
@@ -134,7 +135,6 @@ function HostPanelContent() {
   const bookings = (data?.bookings ?? [])
     .filter(b => !carId || String(b.car.id) === carId)
     .sort((a, b) => Number(b.status === 'AWAITING_CONFIRMATION') - Number(a.status === 'AWAITING_CONFIRMATION'))
-  const reviews = (data?.reviews ?? []).filter(r => !carId || String(r.car.id) === carId)
 
   return (
     <div style={{ paddingTop: 52 }}>
@@ -158,12 +158,10 @@ function HostPanelContent() {
               <Tile label={h.tiles.cars} value={String(data.cars.length)} />
               <Tile label={h.tiles.rating} value={data.host.rating !== null ? `★ ${data.host.rating.toFixed(1)}` : h.noRating} sub={h.reviewsCount(data.host.reviews)} />
               <Tile label={h.tiles.trips} value={String(data.host.trips)} />
-              <Tile label={h.tiles.earned} value={<Money value={data.host.earned} />} />
-              <Tile label={h.awaitingTile} value={String(data.host.awaiting)} />
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', margin: '32px 0 16px' }}>
-              {(tab === 'bookings' || tab === 'reviews') && data.cars.length > 1 && (
+              {tab === 'bookings' && data.cars.length > 1 && (
                 <select value={carId} onChange={e => setParam('car', e.target.value, '')} aria-label={h.allCars} style={{ marginLeft: 'auto', fontSize: 14, padding: '8px 14px', borderRadius: 980, border: '1px solid #d2d2d7', background: '#fff', fontFamily: 'inherit', maxWidth: '100%' }}>
                   <option value="">{h.allCars}</option>
                   {data.cars.map(c => <option key={c.id} value={c.id}>{c.brand} {c.model} {c.year}</option>)}
@@ -276,19 +274,7 @@ function HostPanelContent() {
 
             {tab === 'finances' && <HostFinances />}
 
-            {tab === 'reviews' && (
-              <ul style={list}>
-                {reviews.length === 0 && <Empty text={h.noReviews} />}
-                {reviews.map(r => (
-                  <li key={r.id} style={row}>
-                    <div style={{ fontSize: 14, color: '#1d1d1f' }}>
-                      <strong style={{ fontWeight: 600 }}>{r.car.brand} {r.car.model}</strong> · <span style={{ color: '#ff9f0a' }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span> · {r.name} · <span style={{ color: '#86868b' }}>{date(r.date)}</span>
-                    </div>
-                    <p style={{ fontSize: 14, color: '#424245', margin: '6px 0 0', whiteSpace: 'pre-line' }}>{r.text}</p>
-                  </li>
-                ))}
-              </ul>
-            )}
+            {tab === 'reviews' && <HostReviews reviews={data.reviews} cars={data.cars} />}
           </>
         )}
       </main>
