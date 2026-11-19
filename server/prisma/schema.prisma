@@ -100,6 +100,7 @@ model User {
   reviews   Review[]
   // What hosts wrote about this customer after their trips.
   hostReviews CustomerReview[]
+  favorites   Favorite[]
   messages  ContactMessage[]
   documents IdentityDocument[]
   host      Host? // set when the admin gave this user the host role
@@ -259,6 +260,7 @@ model Car {
 
   host      Host           @relation(fields: [hostId], references: [id], onDelete: Restrict)
   photos    CarPhoto[]
+  favorites Favorite[]
   bookings  Booking[]
   reviews   Review[]
   documents HostDocument[]
@@ -387,6 +389,19 @@ model Review {
   booking Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
 
   @@index([carId, createdAt])
+}
+
+// A car the user saved to their favourites (the heart). Guests keep theirs in the browser until
+// they sign in; then they are added here.
+model Favorite {
+  userId    String
+  carId     Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  car  Car  @relation(fields: [carId], references: [id], onDelete: Cascade)
+
+  @@id([userId, carId])
 }
 
 // The host's review of the customer after a finished trip: stars and a comment, once per trip.

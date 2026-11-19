@@ -24,6 +24,7 @@ import { notificationRoutes } from './routes/notifications.js'
 import { photoRoutes } from './routes/photos.js'
 import { reviewRoutes } from './routes/reviews.js'
 import { customerProfileRoutes } from './routes/customerProfile.js'
+import { favoriteRoutes } from './routes/favorites.js'
 import { statsRoutes } from './routes/stats.js'
 import { stripeWebhookRoutes } from './routes/stripeWebhook.js'
 import { financeRoutes, transactionRoutes } from './routes/transactions.js'
@@ -70,6 +71,7 @@ export function buildApp() {
       await api.register(photoRoutes)
       await api.register(reviewRoutes)
       await api.register(customerProfileRoutes)
+      await api.register(favoriteRoutes)
       await api.register(statsRoutes)
       await api.register(bookingRoutes)
       await api.register(adminBookingRoutes)
