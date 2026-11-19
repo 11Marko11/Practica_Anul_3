@@ -28,8 +28,8 @@ export function Favorites() {
       <main style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 24px 96px' }}>
         {status !== 'loading' && shown.length === 0 && (
           <div style={{ textAlign: 'center', padding: '48px 0' }}>
-            <p style={{ fontSize: 16, color: '#6e6e73', margin: '0 0 20px' }}>{f.empty}</p>
-            <Link to={`/marketplace${query}`} className="btn-action btn-action--primary">{f.browse}</Link>
+            <p style={{ fontSize: 20, color: '#6e6e73', margin: '0 0 24px', lineHeight: 1.5 }}>{f.empty}</p>
+            <Link to={`/marketplace${query}`} className="btn-action btn-action--primary" style={{ fontSize: 18, fontWeight: 600, height: 52, padding: '0 32px' }}>{f.browse}</Link>
           </div>
         )}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(340px, 100%), 1fr))', gap: 20 }}>
