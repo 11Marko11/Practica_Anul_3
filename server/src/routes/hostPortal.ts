@@ -4,7 +4,7 @@ import { requireHost } from '../auth/guards.js'
 import { isoDate, todayInMoldova } from '../bookings/dates.js'
 import { cancelBooking, confirmBooking, rejectBooking } from '../bookings/decisions.js'
 import { CANCEL_REASONS, customerCanComplete, REJECT_REASONS } from '../bookings/dto.js'
-import { completeBooking, returnPlace } from '../bookings/payment.js'
+import { completeBooking, returnBody } from '../bookings/payment.js'
 import { ledger } from '../bookings/ledger.js'
 import { hostMonths, moldovaMonth } from '../finance/hostIncome.js'
 import { startCommissionCheckout, syncCommissionSession } from '../finance/commissionPayment.js'
@@ -88,7 +88,7 @@ export async function hostPortalRoutes(app: FastifyInstance) {
         const confirmed = b.status === 'CONFIRMED' || b.status === 'COMPLETED'
         return {
           id: b.id,
-          car: { id: car.id, slug: car.slug, brand: car.brand, model: car.model, photo: car.photos[0]?.url ?? null },
+          car: { id: car.id, slug: car.slug, brand: car.brand, model: car.model, photo: car.photos[0]?.url ?? null, freeReturn: car.freeReturn, pickupAddress: car.pickupAddress },
           pickupDate: isoDate(b.pickupDate),
           returnDate: isoDate(b.returnDate),
           days: b.days,
@@ -227,7 +227,7 @@ export async function hostPortalRoutes(app: FastifyInstance) {
   // was left. The trip counts, and the customer may review the car.
   app.post('/host/bookings/:id/complete', { preHandler: requireHost }, async request => {
     const id = await ownBooking(request)
-    const place = returnPlace.parse(request.body)
+    const place = returnBody.parse(request.body ?? undefined)
     const booking = await prisma.booking.findUniqueOrThrow({ where: { id }, select: { status: true, pickupDate: true } })
     if (!customerCanComplete(booking)) throw new HttpError(409, booking.status === 'CONFIRMED' ? 'too-early-to-complete' : 'not-confirmed')
     await completeBooking(id, place, 'HOST')

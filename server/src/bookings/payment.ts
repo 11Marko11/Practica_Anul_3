@@ -2,6 +2,7 @@ import type Stripe from 'stripe'
 import { z } from 'zod'
 import { cityOf } from '../cars/cities.js'
 import { prisma } from '../db.js'
+import { HttpError } from '../http/errors.js'
 import { carName, notify } from '../notifications/notify.js'
 import { stripe } from '../payments/stripe.js'
 
@@ -43,11 +44,17 @@ export function markHoldReleased(paymentIntentId: string) {
 // Where the car was left at the end of a trip. Only inside Moldova (a rough box around the country).
 export const returnPlace = z.object({ address: z.string().trim().min(3).max(300), lat: z.number().min(45.4).max(48.6), lng: z.number().min(26.5).max(30.3) })
 export type ReturnPlace = z.infer<typeof returnPlace>
+// The request body: the place, or nothing when the car goes back to its pick-up address.
+export const returnBody = z.preprocess(b => (b && typeof b === 'object' && Object.keys(b).length ? b : undefined), returnPlace.optional())
 
 // Ends a confirmed trip (the car was returned) with where the car was left; it then counts as a
 // trip for the host and the customer may review the car. Only the customer who rented the car or
 // the car's host can do it; only one wins if both do it at the same moment.
-export async function completeBooking(bookingId: string, place: ReturnPlace, by: 'CUSTOMER' | 'HOST') {
+// A car whose host wants it back where it was taken is always left at its pick-up address.
+export async function completeBooking(bookingId: string, given: ReturnPlace | undefined, by: 'CUSTOMER' | 'HOST') {
+  const { car } = await prisma.booking.findUniqueOrThrow({ where: { id: bookingId }, select: { car: { select: { freeReturn: true, pickupAddress: true, pickupLat: true, pickupLng: true } } } })
+  const place = car.freeReturn ? given : { address: car.pickupAddress, lat: car.pickupLat, lng: car.pickupLng }
+  if (!place) throw new HttpError(400, 'validation')
   const done = await prisma.booking.updateMany({
     where: { id: bookingId, status: 'CONFIRMED' },
     data: { status: 'COMPLETED', returnAddress: place.address, returnLat: place.lat, returnLng: place.lng, completedAt: new Date(), completedBy: by },

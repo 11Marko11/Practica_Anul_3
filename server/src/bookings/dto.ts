@@ -2,7 +2,7 @@ import type { Prisma } from '../generated/prisma/client.js'
 import { isoDate, todayInMoldova } from './dates.js'
 
 export const bookingInclude = {
-  car: { select: { slug: true, brand: true, model: true, pricePerDay: true, photos: { orderBy: { position: 'asc' }, take: 1 } } },
+  car: { select: { slug: true, brand: true, model: true, pricePerDay: true, freeReturn: true, pickupAddress: true, photos: { orderBy: { position: 'asc' }, take: 1 } } },
   user: { select: { name: true, email: true } },
 } as const satisfies Prisma.BookingInclude
 
@@ -26,7 +26,7 @@ export function toBookingDto(b: BookingRow, options: { forAdmin?: boolean } = {}
   return {
     id: b.id,
     status: b.status,
-    car: { slug: b.car.slug, brand: b.car.brand, model: b.car.model, photo: b.car.photos[0]?.url ?? null },
+    car: { slug: b.car.slug, brand: b.car.brand, model: b.car.model, photo: b.car.photos[0]?.url ?? null, freeReturn: b.car.freeReturn, pickupAddress: b.car.pickupAddress },
     pickupDate: isoDate(b.pickupDate),
     returnDate: isoDate(b.returnDate),
     days: b.days,
