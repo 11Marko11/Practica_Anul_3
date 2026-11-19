@@ -1143,6 +1143,7 @@ export const ru: Dict = {
   common: {
     deliveryBadge: 'Доставка по вашему адресу',
     returnBadge: 'Можно оставить где удобно',
+    bothBadge: 'Доставка и возврат где удобно',
     fuelCar: { Electric: 'Электромобиль', Hybrid: 'Гибридный автомобиль', Petrol: 'Бензиновый автомобиль', Diesel: 'Дизельный автомобиль' },
     days: (n: number) => countOf('ru', n, { one: 'день', few: 'дня', many: 'дней', other: 'дня' }),
     trips: (n: number) => countOf('ru', n, { one: 'поездка', few: 'поездки', many: 'поездок', other: 'поездки' }),

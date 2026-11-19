@@ -235,8 +235,13 @@ export function CarCard({ car, days, query }: { car: Car; days: number; query: s
         {/* Dots in the corner: the fuel, and whether the host delivers / lets the car be left anywhere. */}
         <div className="card-badges">
           <FuelBadge fuel={car.fuel} />
-          {car.delivery !== false && <InfoBadge kind="delivery" />}
-          {car.freeReturn !== false && <InfoBadge kind="return" />}
+          {/* Both: one oval with the two icons instead of two dots. */}
+          {car.delivery !== false && car.freeReturn !== false
+            ? <InfoBadge kind="both" />
+            : <>
+              {car.delivery !== false && <InfoBadge kind="delivery" />}
+              {car.freeReturn !== false && <InfoBadge kind="return" />}
+            </>}
         </div>
       </div>
       <div style={{ padding: '20px 20px 22px' }}>
@@ -281,12 +286,13 @@ const INFO_ICONS = {
   return: <path d="M7 0a4.7 4.7 0 0 0-4.7 4.7C2.3 8.3 7 14 7 14s4.7-5.7 4.7-9.3A4.7 4.7 0 0 0 7 0zm0 6.6a1.9 1.9 0 1 1 0-3.8 1.9 1.9 0 0 1 0 3.8z" fill="currentColor" />,
 }
 
-function InfoBadge({ kind }: { kind: keyof typeof INFO_ICONS }) {
+function InfoBadge({ kind }: { kind: keyof typeof INFO_ICONS | 'both' }) {
   const { t } = useI18n()
-  const label = kind === 'delivery' ? t.common.deliveryBadge : t.common.returnBadge
+  const label = kind === 'both' ? t.common.bothBadge : kind === 'delivery' ? t.common.deliveryBadge : t.common.returnBadge
+  const icons = kind === 'both' ? (['delivery', 'return'] as const) : [kind]
   return (
     <span className={`ev-badge ev-badge--${kind}`} aria-label={label}>
-      <svg width="13" height="14" viewBox="0 0 14 14" aria-hidden="true">{INFO_ICONS[kind]}</svg>
+      {icons.map(k => <svg key={k} width="13" height="14" viewBox="0 0 14 14" aria-hidden="true">{INFO_ICONS[k]}</svg>)}
       <span className="ev-badge__label">{label}</span>
     </span>
   )

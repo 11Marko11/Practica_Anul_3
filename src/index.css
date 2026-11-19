@@ -381,9 +381,12 @@ input[type="search"]::-webkit-search-cancel-button { margin-left: 10px; cursor: 
 .ev-badge { display: inline-flex; align-items: center; height: 28px; min-width: 28px; padding: 0 8px; border-radius: 980px; background: #c9f2d4; color: #137a32; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12); cursor: default; outline: none; }
 .ev-badge svg { flex-shrink: 0; margin: 0 -1px; }
 .ev-badge__label { max-width: 0; overflow: hidden; white-space: nowrap; font-size: 11px; font-weight: 600; opacity: 0; transition: max-width 0.25s ease, opacity 0.2s ease, margin 0.25s ease; }
-.ev-badge:hover .ev-badge__label, .ev-badge:focus-visible .ev-badge__label { max-width: 140px; opacity: 1; margin-left: 6px; }
+.ev-badge:hover .ev-badge__label, .ev-badge:focus-visible .ev-badge__label { max-width: 280px; opacity: 1; margin-left: 6px; }
 .ev-badge--hybrid { background: #cfe6ff; color: #0058b0; }
 .ev-badge--petrol { background: #ffe2c4; color: #a84a00; }
 .ev-badge--diesel { background: #e3e3e8; color: #3a3a3c; }
 .ev-badge--delivery { background: #e8defc; color: #5b3aa8; }
 .ev-badge--return { background: #fff1b8; color: #8a6200; }
+/* Delivery and leaving it anywhere: one wider oval with both icons. */
+.ev-badge--both { background: #d4f3f1; color: #0b6b66; padding: 0 10px; }
+.ev-badge--both svg + svg { margin-left: 5px; }

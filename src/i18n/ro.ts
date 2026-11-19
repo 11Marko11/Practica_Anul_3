@@ -1143,6 +1143,7 @@ export const ro: Dict = {
   common: {
     deliveryBadge: 'Livrare la adresa dorită',
     returnBadge: 'O lași unde dorești',
+    bothBadge: 'Livrare și lăsare unde dorești',
     fuelCar: { Electric: 'Mașină electrică', Hybrid: 'Mașină hibridă', Petrol: 'Mașină pe benzină', Diesel: 'Mașină pe motorină' },
     days: (n: number) => countOf('ro', n, { one: 'zi', few: 'zile', other: 'de zile' }),
     trips: (n: number) => countOf('ro', n, { one: 'călătorie', few: 'călătorii', other: 'de călătorii' }),
