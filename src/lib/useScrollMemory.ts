@@ -14,16 +14,19 @@ export function useScrollMemory() {
     if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
   }, [])
 
-  // Remember where this history entry is scrolled to.
+  // Remember where each history entry is scrolled to. The entry is read from a ref switched just
+  // before the new page scrolls, so a late scroll event of the change itself (the new page is
+  // shorter, or goes to the top) never overwrites the position of the page being left.
+  const current = useRef(location.key)
   useEffect(() => {
-    const key = location.key
-    const save = () => positions.current.set(key, window.scrollY)
+    const save = () => positions.current.set(current.current, window.scrollY)
     window.addEventListener('scroll', save, { passive: true })
     return () => window.removeEventListener('scroll', save)
-  }, [location.key])
+  }, [])
 
   // Before the new page is painted: back to the saved spot, or to the top of a new page.
   useLayoutEffect(() => {
+    current.current = location.key
     const pathChanged = lastPath.current !== location.pathname
     lastPath.current = location.pathname
     const saved = navigation === 'POP' ? positions.current.get(location.key) : undefined
@@ -32,12 +35,12 @@ export function useScrollMemory() {
       return
     }
     window.scrollTo(0, saved)
-    // Parts of the page (reviews, lists) may still be loading: try again for a moment until the
+    // Parts of the page (reviews, lists) may still be loading: try again for a few seconds until the
     // page is tall enough, unless the user scrolls meanwhile.
     let frame = 0
     const started = performance.now()
     const retry = () => {
-      if (Math.abs(window.scrollY - saved) < 2 || performance.now() - started > 1500) return
+      if (Math.abs(window.scrollY - saved) < 2 || performance.now() - started > 4000) return
       window.scrollTo(0, saved)
       frame = requestAnimationFrame(retry)
     }
