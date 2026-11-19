@@ -38,7 +38,7 @@ export function CarGallery({ car }: { car: Car }) {
   return (
     <div>
       <div
-        onClick={e => { if (!(e.target as HTMLElement).closest('button, .photo-credit')) setOpen(true) }}
+        onClick={e => { if (!(e.target as HTMLElement).closest('button')) setOpen(true) }}
         title={t.gallery.enlarge}
         onTouchStart={e => (touchX.current = e.touches[0].clientX)}
         onTouchEnd={e => {
@@ -65,7 +65,6 @@ export function CarGallery({ car }: { car: Car }) {
         <span style={{ position: 'absolute', right: 14, bottom: 14, fontSize: 12, fontWeight: 500, color: '#fff', background: 'rgba(28,28,30,0.7)', backdropFilter: 'blur(8px)', padding: '5px 11px', borderRadius: 980 }}>
           {index + 1} / {count}
         </span>
-        <PhotoCredit credit={car.photoCredits?.[index]} label={t.gallery.photo} />
       </div>
 
 
@@ -98,21 +97,6 @@ export function CarGallery({ car }: { car: Car }) {
         ))}
       </div>
     </div>
-  )
-}
-
-// Who took the photo, for the licences that ask for it (e.g. Wikimedia Commons): only a small
-// "i" in the photo's corner, which opens to the credit on hover or tap.
-function PhotoCredit({ credit, label }: { credit?: { text: string; url?: string | null } | null; label: string }) {
-  if (!credit) return null
-  return (
-    <span className="photo-credit" tabIndex={0} aria-label={`${label}: ${credit.text}`}>
-      <span aria-hidden="true" className="photo-credit__i">i</span>
-      <span className="photo-credit__text">
-        {label}:{' '}
-        {credit.url ? <a href={credit.url} target="_blank" rel="noopener noreferrer">{credit.text}</a> : credit.text}
-      </span>
-    </span>
   )
 }
 
