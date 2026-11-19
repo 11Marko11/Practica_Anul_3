@@ -821,6 +821,16 @@ export const en = {
     deliveryNo: "I don't deliver",
     deliveryNoHint: 'The customer collects the car from the pick-up address.',
   },
+  favorites: {
+    menu: 'Favourites',
+    eyebrow: 'Your favourite cars',
+    title: 'Favourites',
+    count: (n: number) => (n === 1 ? '1 car' : `${n} cars`),
+    empty: 'No favourite cars yet. Tap the heart on a car to save it here.',
+    browse: 'Browse cars',
+    add: 'Add to favourites',
+    remove: 'Remove from favourites',
+  },
   adminHosts: {
     tab: 'Hosts',
     title: 'Hosts',

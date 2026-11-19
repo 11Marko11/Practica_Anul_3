@@ -2,6 +2,8 @@ import { Outlet, NavLink, useLocation, useNavigate } from 'react-router'
 import { Avatar } from '../components/Avatar'
 import { useState, useEffect, useRef } from 'react'
 import { useScrollMemory } from '../lib/useScrollMemory'
+import { useFavorites, useFavoritesSync } from '../lib/favorites'
+import { HeartIcon } from '../components/FavoriteButton'
 import { NAV_HEIGHT, useNavScroll } from '../lib/useNavScroll'
 import { useAuth } from '../auth/AuthContext'
 import { isAdmin } from '../auth/admin'
@@ -38,6 +40,7 @@ export function Root() {
   }, [user, justSignedOut, navigate])
 
   useScrollMemory()
+  useFavoritesSync()
   useEffect(() => {
     setMenuOpen(false)
   }, [location.pathname])
@@ -87,6 +90,7 @@ export function Root() {
           </div>
           <div className="nav-account" style={{ alignItems: 'center', gap: 14 }}>
             <LanguageSwitcher />
+            <FavoritesLink />
             <NotificationBell />
             <AccountButton btnStyle={btnStyle} />
           </div>
@@ -126,6 +130,18 @@ export function Root() {
         </div>
       </footer>
     </div>
+  )
+}
+
+// The heart between the language and the bell: the favourite cars, with their number.
+function FavoritesLink() {
+  const { t } = useI18n()
+  const count = useFavorites().length
+  return (
+    <NavLink to="/favorites" aria-label={t.favorites.menu} title={t.favorites.menu} style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 42, height: 42, borderRadius: '50%', color: '#f5f5f7', background: 'rgba(255,255,255,0.12)' }}>
+      <HeartIcon size={21} />
+      {count > 0 && <span style={{ position: 'absolute', top: -4, right: -6, minWidth: 18, height: 18, padding: '0 5px', borderRadius: 9, background: '#ff375f', color: '#fff', fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{count}</span>}
+    </NavLink>
   )
 }
 
@@ -246,6 +262,7 @@ function MobileMenu() {
   // Bookings waiting for a host's answer.
   const hostAwaiting = useHostAwaiting(!!user?.host)
   const unread = useUnreadNotifications(!!user)
+  const favorites = useFavorites().length
   const item = ({ isActive }: { isActive: boolean }) => ({ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 0', fontSize: 20, fontWeight: 500, letterSpacing: '-0.02em', color: isActive ? '#fff' : 'rgba(255,255,255,0.7)', textDecoration: 'none', borderBottom: '1px solid #2c2c2e' })
   return (
     <div className="mobile-menu" style={{ background: '#1c1c1e', borderTop: '1px solid #2c2c2e', padding: '8px 24px 24px' }}>
@@ -258,6 +275,7 @@ function MobileMenu() {
           {t.nav[key]}
         </NavLink>
       ))}
+      <NavLink to="/favorites" style={item}>{t.favorites.menu} {favorites > 0 && <span style={{ fontSize: 14, color: '#a1a1a6' }}>{favorites}</span>}</NavLink>
       {user && <NavLink to="/profile" style={item}>{t.profile.menu}</NavLink>}
       {user && <NavLink to="/notifications" style={item}>{t.notifications.menu} <CountBadge n={unread} /></NavLink>}
       {isAdmin(user) ? (

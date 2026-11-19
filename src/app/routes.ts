@@ -20,6 +20,7 @@ import { HostPanel } from '../pages/HostPanel'
 import { HostProfile } from '../pages/HostProfile'
 import { MyBookings } from '../pages/MyBookings'
 import { CustomerProfile } from '../pages/CustomerProfile'
+import { Favorites } from '../pages/Favorites'
 import { BookingDetails } from '../pages/BookingDetails'
 import { Profile } from '../pages/Profile'
 import { Notifications } from '../pages/Notifications'
@@ -50,6 +51,7 @@ export const router = createBrowserRouter([
       { path: 'host', Component: HostPanel },
       { path: 'hosts/:id', Component: HostProfile },
       { path: 'customers/:id', Component: CustomerProfile },
+      { path: 'favorites', Component: Favorites },
       { path: 'host/cars/new', Component: HostCarForm },
       { path: 'host/cars/:id', Component: HostCarForm },
       { path: 'admin/bookings', Component: () => createElement(Navigate, { to: '/admin', replace: true }) },

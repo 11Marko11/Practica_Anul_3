@@ -821,6 +821,16 @@ export const ro: Dict = {
     deliveryNo: 'Nu fac livrare',
     deliveryNoHint: 'Clientul ridică mașina de la adresa de preluare.',
   },
+  favorites: {
+    menu: 'Favorite',
+    eyebrow: 'Mașinile tale preferate',
+    title: 'Favorite',
+    count: (n: number) => (n === 1 ? '1 mașină' : `${n} mașini`),
+    empty: 'Nu ai încă mașini favorite. Apasă pe inimă la o mașină ca s-o salvezi aici.',
+    browse: 'Vezi mașinile',
+    add: 'Adaugă la favorite',
+    remove: 'Scoate din favorite',
+  },
   adminHosts: {
     tab: 'Gazde',
     title: 'Gazde',
