@@ -256,7 +256,7 @@ export function CarCard({ car, days, query }: { car: Car; days: number; query: s
         <p style={{ fontSize: 13, color: '#6e6e73', margin: '8px 0 0' }}>
           {t.marketplace.totalFor(fmt(car.pricePerDay * days), days)}
         </p>
-        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, height: 40, marginTop: 16, borderRadius: 12, fontSize: 14, fontWeight: 500, color: '#fff', background: hov ? '#3a3a3c' : '#1d1d1f', transition: 'background-color 0.15s' }}>
+        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, height: 40, marginTop: 16, borderRadius: 12, fontSize: 16, fontWeight: 700, color: '#fff', background: hov ? '#3a3a3c' : '#1d1d1f', transition: 'background-color 0.15s' }}>
           {t.marketplace.viewDetails}
         </span>
       </div>
