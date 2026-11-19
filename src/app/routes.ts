@@ -19,6 +19,7 @@ import { AdminPromotions } from '../pages/admin/AdminPromotions'
 import { HostPanel } from '../pages/HostPanel'
 import { HostProfile } from '../pages/HostProfile'
 import { MyBookings } from '../pages/MyBookings'
+import { CustomerProfile } from '../pages/CustomerProfile'
 import { BookingDetails } from '../pages/BookingDetails'
 import { Profile } from '../pages/Profile'
 import { Notifications } from '../pages/Notifications'
@@ -48,6 +49,7 @@ export const router = createBrowserRouter([
       { path: 'admin/hosts', Component: () => createElement(Navigate, { to: '/admin/users?role=host', replace: true }) },
       { path: 'host', Component: HostPanel },
       { path: 'hosts/:id', Component: HostProfile },
+      { path: 'customers/:id', Component: CustomerProfile },
       { path: 'host/cars/new', Component: HostCarForm },
       { path: 'host/cars/:id', Component: HostCarForm },
       { path: 'admin/bookings', Component: () => createElement(Navigate, { to: '/admin', replace: true }) },

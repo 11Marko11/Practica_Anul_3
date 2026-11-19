@@ -369,3 +369,7 @@ input[type="search"]::-webkit-search-cancel-button { margin-left: 10px; cursor: 
 @media (max-width: 700px) { .booking-cols-head { display: none; } }
 .booking-total { flex: 0 0 130px; text-align: right; }
 @media (max-width: 700px) { .booking-total { flex: 1 1 100%; text-align: left; } }
+
+/* On a customer's profile: their review of the car and the host's review of them, side by side. */
+.customer-review-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 640px) { .customer-review-pair { grid-template-columns: 1fr; } }
