@@ -7,7 +7,8 @@ import type { BookingStatus } from '../../lib/bookings'
 import { fmt } from '../../lib/rental'
 import { AdminGuard } from './AdminGuard'
 import { AdminTabs } from './AdminTabs'
-import { CompanyIncome } from './CompanyIncome'
+import { CompanyIncome, type IncomeFilters } from './CompanyIncome'
+import { useUrlParams } from '../../lib/useUrlParams'
 
 type EntryType = 'hold' | 'charge' | 'refund' | 'release'
 type Entry = {
@@ -16,6 +17,7 @@ type Entry = {
   at: string
   amount: number
   booking: { id: string; status: BookingStatus; car: string; customer: string; email: string }
+  hostId: number
 }
 type Response = {
   entries: Entry[]
@@ -27,7 +29,8 @@ const FILTERS = ['all', 'charge', 'refund', 'hold', 'release'] as const
 const TYPE_COLORS: Record<EntryType, string> = { charge: '#1b7a35', refund: '#b3261e', hold: '#0058b8', release: '#86868b' }
 
 // History of every money movement from bookings (/admin/transactions), opened from the
-// dashboard's "Charged this month" tile. Defaults to the current month.
+// dashboard's "Charged this month" tile. The movements follow the host income filters above
+// (host, month, paid or not), kept in the URL: ?host=&month=&status=.
 export function AdminTransactions() {
   return (
     <AdminGuard>
@@ -39,23 +42,36 @@ export function AdminTransactions() {
 function TransactionsContent() {
   const { lang, t } = useI18n()
   const tr = t.transactions
-  // The current month in Moldova (not UTC), like the server's dashboard.
-  const thisMonth = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Chisinau', year: 'numeric', month: '2-digit' }).format(new Date()).slice(0, 7)
-  const [month, setMonth] = useState<string>(thisMonth)
+  const { params, edit } = useUrlParams()
+  const status = params.get('status')
+  const filters: IncomeFilters = {
+    host: params.get('host') ?? '',
+    month: params.get('month') ?? '',
+    status: status === 'paid' || status === 'unpaid' ? status : 'all',
+  }
+  const onFilter = (key: keyof IncomeFilters, value: string) => edit(p => { if (value && value !== 'all') p.set(key, value); else p.delete(key) })
+  const month = filters.month
+  // The host rows shown above, as "host|month": with "paid" or "unpaid" only their movements show.
+  const [rowKeys, setRowKeys] = useState<Set<string>>(new Set())
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>('all')
   const [data, setData] = useState<Response | null>(null)
 
   useEffect(() => {
-    setData(null)
-    api<Response>(`/admin/transactions${month ? `?month=${month}` : ''}`).then(setData).catch(() => setData({ entries: [], totals: { charged: 0, refunded: 0, net: 0, onHold: 0 }, months: [] }))
-  }, [month])
+    api<Response>('/admin/transactions').then(setData).catch(() => setData({ entries: [], totals: { charged: 0, refunded: 0, net: 0, onHold: 0 }, months: [] }))
+  }, [])
 
-  const entries = (data?.entries ?? []).filter(e => filter === 'all' || e.type === filter)
+  const entries = (data?.entries ?? []).filter(e => {
+    const m = moldovaMonth(e.at)
+    return (filter === 'all' || e.type === filter)
+      && (!filters.host || String(e.hostId) === filters.host)
+      && (!month || m === month)
+      && (filters.status === 'all' || rowKeys.has(`${e.hostId}|${m}`))
+  })
   // The tiles add up the movements on screen, so they follow the month and the type filter.
   const sum = (type: EntryType) => entries.filter(e => e.type === type).reduce((s, e) => s + e.amount, 0)
   const charged = sum('charge')
   const refunded = -sum('refund')
-  const months = [...new Set([thisMonth, ...(data?.months ?? [])])].sort().reverse()
+  const months = [...new Set([moldovaMonth(new Date().toISOString()), ...(data?.months ?? []), ...(month ? [month] : [])])].sort().reverse()
   const monthName = (m: string) => new Date(`${m}-15T12:00:00Z`).toLocaleDateString(lang, { month: 'long', year: 'numeric' })
   const time = (iso: string) => new Date(iso).toLocaleString(lang, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 
@@ -82,11 +98,11 @@ function TransactionsContent() {
       </div>
 
       <main style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 24px 96px' }}>
-        <CompanyIncome />
+        <CompanyIncome filters={filters} onFilter={onFilter} onRows={keys => setRowKeys(new Set(keys))} />
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginTop: 16 }}>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, color: '#6e6e73' }}>
             {tr.month}
-            <select value={month} onChange={e => setMonth(e.target.value)} style={{ fontSize: 14, padding: '9px 14px', borderRadius: 980, border: '1px solid #d2d2d7', background: '#fff', fontFamily: 'inherit' }}>
+            <select value={month} onChange={e => onFilter('month', e.target.value)} style={{ fontSize: 14, padding: '9px 14px', borderRadius: 980, border: '1px solid #d2d2d7', background: '#fff', fontFamily: 'inherit' }}>
               {months.map(m => <option key={m} value={m}>{monthName(m)}</option>)}
               <option value="">{tr.allTime}</option>
             </select>
@@ -154,4 +170,9 @@ function Total({ label, value, strong, muted }: { label: string; value?: number;
       </div>
     </div>
   )
+}
+
+// The month (YYYY-MM) of a moment in Moldova (not UTC), like the server's.
+function moldovaMonth(iso: string) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Chisinau', year: 'numeric', month: '2-digit' }).format(new Date(iso)).slice(0, 7)
 }

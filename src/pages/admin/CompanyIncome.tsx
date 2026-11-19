@@ -13,20 +13,36 @@ type Finances = { company: CompanyMonth[]; hosts: HostRow[] }
 
 const getFinances = () => api<Finances>('/admin/finances')
 
+export type IncomeFilters = { host: string; month: string; status: 'all' | 'unpaid' | 'paid' }
+
 // Admin > Transactions, top: Rent Motors' income (the hosts' commission) by month, and every
 // host's income month by month. Hosts pay the commission by card; a month turns paid by itself.
-export function CompanyIncome() {
+// The filters live in the page (the URL), which shows the money movements behind the rows shown;
+// a click on a month in "By month" picks it (a second click lets it go).
+export function CompanyIncome({ filters, onFilter, onRows }: {
+  filters: IncomeFilters
+  onFilter: (key: keyof IncomeFilters, value: string) => void
+  // The "host|month" keys of the host rows shown.
+  onRows: (keys: string[]) => void
+}) {
   const { lang, t } = useI18n()
   const a = t.adminFinances
   const f = t.finances
   const [data, setData] = useState<Finances | null>(null)
-  const [host, setHost] = useState('')
-  const [month, setMonth] = useState('')
-  const [status, setStatus] = useState<'all' | 'unpaid' | 'paid'>('all')
+  const { host, month, status } = filters
+  const setHost = (v: string) => onFilter('host', v)
+  const setMonth = (v: string) => onFilter('month', v)
+  const setStatus = (v: string) => onFilter('status', v)
 
   const load = () => getFinances().then(next => setData(prev => (same(prev, next) ? prev : next)))
   useEffect(() => { load().catch(() => setData({ company: [], hosts: [] })) }, [])
   useLivePoll(() => { load().catch(() => {}) }, 30_000)
+
+  const rows = (data?.hosts ?? []).filter(h =>
+    (!host || String(h.host.id) === host) && (!month || h.month === month) &&
+    (status === 'all' || (status === 'paid' ? !!h.paid : !h.paid && !h.current && h.commission > 0)))
+  const rowKeys = rows.map(r => `${r.host.id}|${r.month}`).join(',')
+  useEffect(() => { onRows(rowKeys ? rowKeys.split(',') : []) }, [rowKeys]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!data) return <p style={{ fontSize: 15, color: '#6e6e73' }}>{t.bookings.loading}</p>
 
@@ -35,9 +51,6 @@ export function CompanyIncome() {
   const toCollect = data.company.filter(c => !c.current).reduce((s, c) => s + c.unpaid, 0)
   const hosts = [...new Map(data.hosts.map(h => [h.host.id, h.host.name])).entries()].sort((x, y) => x[1].localeCompare(y[1]))
   const months = [...new Set(data.hosts.map(h => h.month))].sort().reverse()
-  const rows = data.hosts.filter(h =>
-    (!host || String(h.host.id) === host) && (!month || h.month === month) &&
-    (status === 'all' || (status === 'paid' ? !!h.paid : !h.paid && !h.current && h.commission > 0)))
 
 
 
@@ -67,7 +80,14 @@ export function CompanyIncome() {
                 </thead>
                 <tbody>
                   {data.company.map(c => (
-                    <tr key={c.month}>
+                    <tr
+                      key={c.month}
+                      className="income-row--pickable"
+                      aria-selected={month === c.month}
+                      tabIndex={0}
+                      onClick={() => setMonth(month === c.month ? '' : c.month)}
+                      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMonth(month === c.month ? '' : c.month) } }}
+                    >
                       <td style={{ fontWeight: 600 }}>{monthLabel(c.month, lang, true)}{c.current && <span style={{ fontWeight: 400, color: '#86868b' }}> · {f.current}</span>}</td>
                       <td className="num">{c.hosts}</td>
                       <td className="num"><Money value={c.charged} /></td>
