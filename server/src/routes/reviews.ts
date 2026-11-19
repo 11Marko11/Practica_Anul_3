@@ -31,6 +31,8 @@ export async function reviewRoutes(app: FastifyInstance) {
   app.get('/cars/:slug/reviews', async request => {
     const carId = await findCarId(slugParam.parse(request.params).slug)
     const user = request.user
+    // Admins and hosts can open the profile of the customers who wrote the reviews.
+    const seesProfiles = !!user && (user.role === 'ADMIN' || !!user.host)
     const [reviews, booking] = await Promise.all([
       prisma.review.findMany({ where: { carId }, include: { user: { select: { avatarUrl: true } } }, orderBy: { createdAt: 'desc' } }),
       user ? reviewableBooking(user.id, carId) : null,
@@ -44,6 +46,7 @@ export async function reviewRoutes(app: FastifyInstance) {
         date: r.createdAt.toISOString().slice(0, 10),
         text: r.text,
         mine: !!user && r.userId === user.id,
+        authorId: seesProfiles ? r.userId : null,
       })),
       canReview: !!booking,
     }
