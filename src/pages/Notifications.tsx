@@ -50,7 +50,7 @@ function NotificationList() {
   const unread = (items ?? []).filter(x => !x.read).length
 
   return (
-    <div style={{ paddingTop: 52 }}>
+    <div style={{ paddingTop: 64 }}>
       <div style={{ padding: '56px 24px 36px', background: '#1c1c1e' }}>
         <div style={{ maxWidth: 820, margin: '0 auto' }}>
           <p style={{ fontSize: 13, color: '#a1a1a6', margin: '0 0 8px' }}>{n.eyebrow}</p>

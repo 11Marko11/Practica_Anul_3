@@ -68,7 +68,7 @@ function PromotionList() {
     p.startsOn && p.endsOn ? a.dates(day(p.startsOn), day(p.endsOn)) : p.startsOn ? `${a.from(day(p.startsOn))} · ${a.always}` : p.endsOn ? a.until(day(p.endsOn)) : a.always
 
   return (
-    <div style={{ paddingTop: 52 }}>
+    <div style={{ paddingTop: 64 }}>
       <Header title={a.title} />
       <main style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 24px 96px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
@@ -165,7 +165,7 @@ function PromotionEditor({ id }: { id: string }) {
   const preview = { id: 0, texts: form.texts, imageUrl: form.imageUrl || null, linkUrl: form.linkUrl || null }
 
   return (
-    <div style={{ paddingTop: 52 }}>
+    <div style={{ paddingTop: 64 }}>
       <Header title={isNew ? a.newTitle : a.editTitle} />
       <main style={{ maxWidth: 900, margin: '0 auto', padding: '24px 24px 96px' }}>
         <Link to="/admin/promotions" className="btn-action btn-action--neutral btn-back">{a.back}</Link>

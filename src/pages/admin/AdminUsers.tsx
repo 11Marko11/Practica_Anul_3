@@ -184,7 +184,7 @@ function UserList() {
   }
 
   return (
-    <div style={{ paddingTop: 52 }}>
+    <div style={{ paddingTop: 64 }}>
       <Header title={u.title}>
         <button onClick={() => setAdding(true)} style={{ fontSize: 15, fontWeight: 500, padding: '12px 24px', borderRadius: 980, background: '#f5f5f7', color: '#1c1c1e', border: 'none', cursor: 'pointer' }}>
           {t.adminHosts.add}
@@ -311,7 +311,7 @@ function UserDetail({ id }: { id: string }) {
   const reloadAll = () => Promise.all([load(), reloadHosts()])
 
   return (
-    <div style={{ paddingTop: 52 }}>
+    <div style={{ paddingTop: 64 }}>
       <Header title={data?.customer.name ?? (missing ? u.notFound : '…')} />
       <main style={{ maxWidth: 900, margin: '0 auto', padding: '24px 24px 96px' }}>
         {/* Back on the left; the customer's profile (rentals and reviews) on the right. */}
@@ -403,7 +403,7 @@ function HostOnlyDetail({ hostId }: { hostId: number }) {
   }
 
   return (
-    <div style={{ paddingTop: 52 }}>
+    <div style={{ paddingTop: 64 }}>
       <Header title={host?.name ?? (hosts ? u.notFound : '…')} />
       <main style={{ maxWidth: 900, margin: '0 auto', padding: '24px 24px 96px' }}>
         <Link to="/admin/users" className="btn-action btn-action--neutral btn-back">{u.back}</Link>

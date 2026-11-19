@@ -44,7 +44,7 @@ export function Marketplace() {
   const priceMax = Math.ceil(Math.max(...prices, 100) / 100) * 100
 
   return (
-    <div style={{ paddingTop: 52 }}>
+    <div style={{ paddingTop: 64 }}>
       {/* Page header */}
       <div style={{ padding: '56px 24px 24px', background: '#1c1c1e' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
@@ -156,7 +156,7 @@ export function Marketplace() {
       </div>
 
       {/* Grid */}
-      <main ref={gridTop} style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 24px 96px', scrollMarginTop: 52 }}>
+      <main ref={gridTop} style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 24px 96px', scrollMarginTop: 64 }}>
         <PromoBanner placement="MARKETPLACE" style={{ marginBottom: 32 }} />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(340px, 100%), 1fr))', gap: 20 }}>
           {shown.map(car => <CarCard key={car.id} car={car} days={days} query={query} />)}

@@ -165,13 +165,16 @@ body {
   gap: 12px;
 }
 
-@media (min-width: 761px) {
+/* The larger nav bar needs room: below 1000px its links and account move into the menu. */
+@media (min-width: 1001px) {
   .mobile-menu { display: none; }
+}
+@media (max-width: 1000px) {
+  .nav-links, .nav-account { display: none; }
+  .nav-toggle { display: flex; }
 }
 
 @media (max-width: 760px) {
-  .nav-links, .nav-account { display: none; }
-  .nav-toggle { display: flex; }
 
   .stats-grid { grid-template-columns: repeat(2, 1fr); row-gap: 8px; }
   .stats-grid > * + * { border-left: none; }

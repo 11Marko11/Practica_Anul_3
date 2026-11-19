@@ -35,7 +35,7 @@ export function HostProfile() {
   if (data === undefined) return <div style={{ minHeight: '80vh' }} />
   if (data === null) {
     return (
-      <div style={{ paddingTop: 52, textAlign: 'center', padding: '140px 24px' }}>
+      <div style={{ paddingTop: 64, textAlign: 'center', padding: '140px 24px' }}>
         <h1 style={{ fontSize: 28, fontWeight: 600, color: '#1d1d1f', margin: '0 0 20px' }}>{h.notFound}</h1>
         <Link to="/marketplace" className="btn-action btn-action--neutral btn-back">{h.back}</Link>
       </div>
@@ -46,7 +46,7 @@ export function HostProfile() {
   const sinceDate = formatDate(host.since, lang)
 
   return (
-    <div style={{ paddingTop: 52 }}>
+    <div style={{ paddingTop: 64 }}>
       <div style={{ padding: '48px 24px 40px', background: '#1c1c1e' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>

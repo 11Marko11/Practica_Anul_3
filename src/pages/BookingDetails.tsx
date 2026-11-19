@@ -85,7 +85,7 @@ export function BookingDetails() {
   const time = (iso: string) => new Date(iso).toLocaleString(lang, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })
 
   return (
-    <div style={{ paddingTop: 52 }}>
+    <div style={{ paddingTop: 64 }}>
       <main style={{ maxWidth: 760, margin: '0 auto', padding: '32px 24px 96px' }}>
         <Link to="/bookings" className="btn-action btn-action--neutral btn-back">{t.bookings.back}</Link>
 

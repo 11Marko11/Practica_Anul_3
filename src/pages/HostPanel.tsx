@@ -84,7 +84,7 @@ export function HostPanel() {
   if (!user) return <Navigate to="/login" state={{ from: location.pathname }} replace />
   if (!user.host) {
     return (
-      <div style={{ paddingTop: 52, textAlign: 'center', padding: '140px 24px' }}>
+      <div style={{ paddingTop: 64, textAlign: 'center', padding: '140px 24px' }}>
         <h1 style={{ fontSize: 32, fontWeight: 600, letterSpacing: '-0.03em', color: '#1d1d1f', margin: '0 0 8px' }}>{t.hostPortal.notHost}</h1>
         <p style={{ fontSize: 16, color: '#6e6e73', margin: '0 0 24px' }}>{t.hostPortal.notHostText}</p>
         <Link to="/" style={{ fontSize: 15, fontWeight: 500, padding: '12px 28px', borderRadius: 980, background: '#1d1d1f', color: '#fff', textDecoration: 'none' }}>{t.admin.backHome}</Link>
@@ -188,7 +188,7 @@ function HostPanelContent() {
     : data?.host.trips ?? 0
 
   return (
-    <div style={{ paddingTop: 52 }}>
+    <div style={{ paddingTop: 64 }}>
       <div style={{ padding: '40px 24px 36px', background: '#1c1c1e' }}>
         <div style={{ maxWidth: 1000, margin: '0 auto' }}>
           <HostTabs tab={tab} onTab={x => setParam('tab', x, 'cars')} awaiting={data?.host.awaiting ?? 0} />

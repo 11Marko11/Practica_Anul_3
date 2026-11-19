@@ -66,15 +66,15 @@ export function Root() {
       }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', height: NAV_HEIGHT, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
           <NavLink to="/" aria-label="Rent Motors" style={{ display: 'flex', alignItems: 'center', height: NAV_HEIGHT }}>
-            <img src="/brand/logo-white.png" alt="Rent Motors" width={92} height={40} style={{ height: 40, width: 'auto', display: 'block' }} />
+            <img src="/brand/logo-white.png" alt="Rent Motors" width={110} height={48} style={{ height: 48, width: 'auto', display: 'block' }} />
           </NavLink>
-          <div className="nav-links" style={{ gap: 28, alignItems: 'center' }}>
+          <div className="nav-links" style={{ gap: 34, alignItems: 'center' }}>
             {NAV_LINKS.map(([path, key]) => (
               <NavLink
                 key={path}
                 to={`/${path}`}
                 style={({ isActive }) => ({
-                  fontSize: 14,
+                  fontSize: 17,
                   color: isActive ? '#fff' : linkColor,
                   textDecoration: 'none',
                   fontWeight: isActive ? 500 : 400,
@@ -85,7 +85,7 @@ export function Root() {
               </NavLink>
             ))}
           </div>
-          <div className="nav-account" style={{ alignItems: 'center', gap: 12 }}>
+          <div className="nav-account" style={{ alignItems: 'center', gap: 14 }}>
             <LanguageSwitcher />
             <NotificationBell />
             <AccountButton btnStyle={btnStyle} />
@@ -136,8 +136,8 @@ function NotificationBell() {
   const unread = useUnreadNotifications(!!user)
   if (!user) return null
   return (
-    <NavLink to="/notifications" aria-label={t.notifications.title} title={t.notifications.title} style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, borderRadius: '50%', color: '#f5f5f7', background: 'rgba(255,255,255,0.12)' }}>
-      <svg width="17" height="17" viewBox="0 0 20 20" aria-hidden>
+    <NavLink to="/notifications" aria-label={t.notifications.title} title={t.notifications.title} style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 42, height: 42, borderRadius: '50%', color: '#f5f5f7', background: 'rgba(255,255,255,0.12)' }}>
+      <svg width="21" height="21" viewBox="0 0 20 20" aria-hidden>
         <path d="M10 2.5a5 5 0 0 0-5 5v3.2L3.5 13.5h13L15 10.7V7.5a5 5 0 0 0-5-5ZM8 16a2 2 0 0 0 4 0" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
       {unread > 0 && <span style={{ position: 'absolute', top: -4, right: -6 }}><CountBadge n={unread} /></span>}
@@ -166,10 +166,10 @@ function AccountButton({ btnStyle }: { btnStyle: React.CSSProperties }) {
     return () => document.removeEventListener('mousedown', close)
   }, [open])
 
-  const pill = { fontSize: 13, fontWeight: 500, borderRadius: 980, padding: '8px 18px', cursor: 'pointer', transition: 'all 0.3s', ...btnStyle }
+  const pill = { fontSize: 16, fontWeight: 500, borderRadius: 980, padding: '10px 22px', cursor: 'pointer', transition: 'all 0.3s', ...btnStyle }
 
   // Until the server says who is signed in, keep the space empty instead of flashing "Sign In".
-  if (loading) return <span style={{ display: 'inline-block', width: 86 }} />
+  if (loading) return <span style={{ display: 'inline-block', width: 110 }} />
 
   if (!user) {
     return (
@@ -185,9 +185,9 @@ function AccountButton({ btnStyle }: { btnStyle: React.CSSProperties }) {
         onClick={() => setOpen(o => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
-        style={{ ...pill, display: 'flex', alignItems: 'center', gap: 8, padding: '5px 14px 5px 5px' }}
+        style={{ ...pill, display: 'flex', alignItems: 'center', gap: 10, padding: '5px 18px 5px 5px' }}
       >
-        <Avatar name={user.name} url={user.avatarUrl} size={24} background="#0071e3" />
+        <Avatar name={user.name} url={user.avatarUrl} size={32} background="#0071e3" />
         {user.name.split(' ')[0]}
         <CountBadge n={awaiting + hostAwaiting} />
       </button>

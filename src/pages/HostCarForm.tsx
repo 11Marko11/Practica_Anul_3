@@ -60,7 +60,7 @@ function HostCarFormContent({ id }: { id?: string }) {
 function NotFound({ backUrl, backLabel }: { backUrl: string; backLabel: string }) {
   const { t } = useI18n()
   return (
-    <div style={{ paddingTop: 52, textAlign: 'center', padding: '140px 24px' }}>
+    <div style={{ paddingTop: 64, textAlign: 'center', padding: '140px 24px' }}>
       <h1 style={{ fontSize: 28, fontWeight: 600, color: '#1d1d1f', margin: '0 0 20px' }}>{t.car.notFound}</h1>
       <Link to={backUrl} className="btn-action btn-action--neutral btn-back">{backLabel}</Link>
     </div>
@@ -250,7 +250,7 @@ function CarForm({ existing, review, initialDocuments, backUrl, backLabel, title
   const cities = CITIES.includes(form.city) ? CITIES : [form.city, ...CITIES]
 
   return (
-    <div style={{ paddingTop: 52 }}>
+    <div style={{ paddingTop: 64 }}>
       <main style={{ maxWidth: 820, margin: '0 auto', padding: '32px 24px 96px' }}>
         <Link to={backUrl} className="btn-action btn-action--neutral btn-back">{backLabel}</Link>
         <h1 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#1d1d1f', margin: '16px 0 8px' }}>{title}</h1>

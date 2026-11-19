@@ -49,10 +49,10 @@ export function LanguageSwitcher({ large = false }: { large?: boolean }) {
         aria-expanded={open}
         aria-label={t.language}
         title={t.language}
-        style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, letterSpacing: '0.02em', padding: '8px 11px', borderRadius: 980, border: 'none', cursor: 'pointer', background: 'rgba(255,255,255,0.12)', color: '#f5f5f7' }}
+        style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 15, fontWeight: 600, letterSpacing: '0.02em', padding: '11px 14px', borderRadius: 980, border: 'none', cursor: 'pointer', background: 'rgba(255,255,255,0.12)', color: '#f5f5f7' }}
       >
         {lang.toUpperCase()}
-        <svg width="9" height="9" viewBox="0 0 10 10" aria-hidden style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
+        <svg width="11" height="11" viewBox="0 0 10 10" aria-hidden style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
           <path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>

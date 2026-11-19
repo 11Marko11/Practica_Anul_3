@@ -101,7 +101,7 @@ export function MyBookings() {
   if (user.host) return <Navigate to="/host" replace />
 
   return (
-    <div style={{ paddingTop: 52 }}>
+    <div style={{ paddingTop: 64 }}>
       <div style={{ padding: '56px 24px 36px', background: '#1c1c1e' }}>
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
           <p style={{ fontSize: 13, color: '#a1a1a6', margin: '0 0 8px' }}>{t.bookings.eyebrow}</p>

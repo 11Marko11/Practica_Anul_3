@@ -123,7 +123,7 @@ function CarDetailsContent({ car }: { car: Car }) {
   }
 
   return (
-    <div style={{ paddingTop: 52 }}>
+    <div style={{ paddingTop: 64 }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '32px 24px 96px' }}>
         <div className="detail-grid">
           <div className="detail-image">
@@ -330,7 +330,7 @@ function PickupMap({ car }: { car: Car }) {
 
 function Section({ title, children, first = false, id }: { title: string; children: React.ReactNode; first?: boolean; id?: string }) {
   return (
-    <section id={id} style={{ marginTop: first ? 0 : 40, scrollMarginTop: 72 }}>
+    <section id={id} style={{ marginTop: first ? 0 : 40, scrollMarginTop: 84 }}>
       <h2 style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.025em', color: '#1d1d1f', margin: '0 0 16px' }}>{title}</h2>
       {children}
     </section>
@@ -349,7 +349,7 @@ function Line({ label, value, strong = false }: { label: string; value: string; 
 function CarNotFound() {
   const { t } = useI18n()
   return (
-    <div style={{ paddingTop: 52, minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '120px 24px' }}>
+    <div style={{ paddingTop: 64, minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '120px 24px' }}>
       <div>
         <h1 style={{ fontSize: 32, fontWeight: 600, letterSpacing: '-0.03em', color: '#1d1d1f', margin: '0 0 8px' }}>{t.car.notFound}</h1>
         <p style={{ fontSize: 16, color: '#6e6e73', margin: '0 0 24px' }}>{t.car.notFoundText}</p>

@@ -56,7 +56,7 @@ function ProfileContent() {
   if (data === undefined) return <div style={{ minHeight: '80vh' }} />
   if (data === null) {
     return (
-      <div style={{ paddingTop: 52, textAlign: 'center', padding: '140px 24px' }}>
+      <div style={{ paddingTop: 64, textAlign: 'center', padding: '140px 24px' }}>
         <h1 style={{ fontSize: 28, fontWeight: 600, color: '#1d1d1f', margin: '0 0 20px' }}>{c.notFound}</h1>
         <button onClick={() => navigate(-1)} className="btn-action btn-action--neutral btn-back">{c.back}</button>
       </div>
@@ -68,7 +68,7 @@ function ProfileContent() {
   const verified = customer.verificationStatus === 'VERIFIED'
 
   return (
-    <div style={{ paddingTop: 52 }}>
+    <div style={{ paddingTop: 64 }}>
       <div style={{ padding: '48px 24px 40px', background: '#1c1c1e' }}>
         <div style={{ maxWidth: 1000, margin: '0 auto' }}>
           {back}

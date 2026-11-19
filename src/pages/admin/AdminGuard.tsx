@@ -15,7 +15,7 @@ export function AdminGuard({ children }: { children: ReactNode }) {
   if (isAdmin(user)) return <>{children}</>
 
   return (
-    <div style={{ paddingTop: 52, minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '120px 24px' }}>
+    <div style={{ paddingTop: 64, minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '120px 24px' }}>
       <div>
         <h1 style={{ fontSize: 32, fontWeight: 600, letterSpacing: '-0.03em', color: '#1d1d1f', margin: '0 0 8px' }}>{t.admin.noAccess}</h1>
         <p style={{ fontSize: 16, color: '#6e6e73', margin: '0 0 24px' }}>{t.admin.noAccessText}</p>

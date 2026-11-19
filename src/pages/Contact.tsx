@@ -44,7 +44,7 @@ export function Contact() {
   }
 
   return (
-    <div style={{ paddingTop: 52, opacity: ready ? 1 : 0, transition: 'opacity 0.25s' }}>
+    <div style={{ paddingTop: 64, opacity: ready ? 1 : 0, transition: 'opacity 0.25s' }}>
       {/* Header */}
       <section style={{ padding: '80px 24px 56px', borderBottom: '1px solid #f0f0f0' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>

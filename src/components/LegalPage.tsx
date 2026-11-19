@@ -13,7 +13,7 @@ export function LegalPage({ eyebrow, title, updated, intro, sections }: {
 }) {
   const { lang, t } = useI18n()
   return (
-    <div style={{ paddingTop: 52 }}>
+    <div style={{ paddingTop: 64 }}>
       <section style={{ padding: '56px 24px 48px', background: '#1c1c1e' }}>
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
           <p style={{ fontSize: 13, color: '#a1a1a6', margin: '0 0 8px' }}>{eyebrow}</p>

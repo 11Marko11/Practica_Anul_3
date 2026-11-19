@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-export const NAV_HEIGHT = 52
+export const NAV_HEIGHT = 64
 
 // Hide the nav while scrolling down, bring it back as soon as the user scrolls up.
 export function useNavScroll() {

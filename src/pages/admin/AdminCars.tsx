@@ -108,7 +108,7 @@ function AdminCarsContent() {
   if (!fresh) return <div style={{ minHeight: '80vh' }} />
 
   return (
-    <div style={{ paddingTop: 52 }}>
+    <div style={{ paddingTop: 64 }}>
       <div style={{ padding: '40px 24px 36px', background: '#1c1c1e' }}>
         <div style={{ maxWidth: 1000, margin: '0 auto' }}>
           <AdminTabs />
