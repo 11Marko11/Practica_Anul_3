@@ -61,6 +61,15 @@ export function DeliveryPicker({ car, value, onChange }: { car: Car; value: Hand
     background: active ? '#f5f5f7' : 'transparent', color: active ? '#1c1c1e' : '#a1a1a6', transition: 'all 0.15s',
   })
 
+  // The host doesn't deliver this car: only collecting it, no choice to make.
+  if (car.delivery === false) {
+    return (
+      <p style={{ fontSize: 13, color: '#a1a1a6', margin: '20px 0 0', lineHeight: 1.5 }}>
+        {t.delivery.noDelivery}{t.delivery.collectAt}<span style={{ color: '#f5f5f7' }}>{car.pickup.address}</span>{t.delivery.free}
+      </p>
+    )
+  }
+
   return (
     <div style={{ marginTop: 20 }}>
       <div role="tablist" aria-label={t.delivery.question} style={{ display: 'flex', background: '#2a2a2d', borderRadius: 980, padding: 4 }}>

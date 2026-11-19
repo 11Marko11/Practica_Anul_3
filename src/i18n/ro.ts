@@ -192,6 +192,7 @@ export const ro: Dict = {
     datesTaken: 'Aceste date sunt deja rezervate. Alege alte date.',
     errors: {
       'invalid-phone': 'Introdu un număr de telefon valid.',
+      'no-delivery': 'Gazda nu face livrare pentru această mașină. Alege ridicarea de la adresa ei.',
       'dates-unavailable': 'Cineva tocmai a rezervat aceste date. Alege alte date.',
       'invalid-dates': 'Alege date valide (maximum 60 de zile, începând de azi).',
       'delivery-outside-country': 'Livrăm doar în Republica Moldova.',
@@ -814,6 +815,11 @@ export const ro: Dict = {
     anywhereHint: 'Următorul client o preia de unde a lăsat-o cel dinainte.',
     same: 'Clientul trebuie să o returneze de unde a luat-o',
     sameHint: 'Mașina rămâne mereu la adresa de preluare de mai sus.',
+    deliveryTitle: 'Livrarea mașinii',
+    deliveryYes: 'Livrez mașina la adresa clientului',
+    deliveryYesHint: 'Clientul poate cere livrarea, contra unei taxe după distanță.',
+    deliveryNo: 'Nu fac livrare',
+    deliveryNoHint: 'Clientul ridică mașina de la adresa de preluare.',
   },
   adminHosts: {
     tab: 'Gazde',
@@ -1287,6 +1293,7 @@ export const ro: Dict = {
     question: 'Cum vrei să primești mașina?',
     pickup: 'Ridicare',
     delivery: 'Livrare',
+    noDelivery: 'Gazda nu face livrare pentru această mașină. ',
     collectAt: 'Ridici mașina de la gazdă, de la adresa ',
     free: '. Gratuit.',
     deliverTo: 'Livrare la',

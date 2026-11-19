@@ -192,6 +192,7 @@ export const en = {
     datesTaken: 'These dates are already booked. Please choose other dates.',
     errors: {
       'invalid-phone': 'Enter a valid phone number.',
+      'no-delivery': "The host doesn't deliver this car. Choose to collect it from its address.",
       'dates-unavailable': 'Someone has just booked these dates. Please choose other dates.',
       'invalid-dates': 'Please choose valid dates (up to 60 days, starting today or later).',
       'delivery-outside-country': 'We only deliver inside Moldova.',
@@ -814,6 +815,11 @@ export const en = {
     anywhereHint: 'The next customer picks it up where the previous one left it.',
     same: 'The customer must bring it back where they took it',
     sameHint: 'The car always stays at the pick-up address above.',
+    deliveryTitle: 'Delivering the car',
+    deliveryYes: "I deliver the car to the customer's address",
+    deliveryYesHint: 'The customer can ask for delivery, for a fee based on distance.',
+    deliveryNo: "I don't deliver",
+    deliveryNoHint: 'The customer collects the car from the pick-up address.',
   },
   adminHosts: {
     tab: 'Hosts',
@@ -1287,6 +1293,7 @@ export const en = {
     question: 'How do you want to get the car?',
     pickup: 'Pick up',
     delivery: 'Delivery',
+    noDelivery: "The host doesn't deliver this car. ",
     collectAt: 'Collect the car from the host at ',
     free: '. Free.',
     deliverTo: 'Deliver to',
