@@ -232,20 +232,7 @@ export function CarCard({ car, days, query }: { car: Car; days: number; query: s
     >
       <div style={{ position: 'relative', overflow: 'hidden', aspectRatio: '16/10', background: '#e8e8ed' }}>
         <img src={carImage(car, 900, 600)} loading="lazy" decoding="async" alt={`${car.year} ${car.brand} ${car.model}`} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s', transform: hov ? 'scale(1.04)' : 'scale(1)' }} />
-        {/* Electric: a light green dot with a bolt that opens to "Electric car" on hover. */}
-        {car.fuel === 'Electric' && (
-          <span className="ev-badge" aria-label={t.common.electricCar}>
-            <svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true"><path d="M7.2 0 0.8 8h4.3L4.4 14l6.8-8.4H6.8L7.2 0z" fill="currentColor" /></svg>
-            <span className="ev-badge__label">{t.common.electricCar}</span>
-          </span>
-        )}
-        {/* Hybrid: the same kind of dot, light blue with a leaf, opening to "Hybrid car". */}
-        {car.fuel === 'Hybrid' && (
-          <span className="ev-badge ev-badge--hybrid" aria-label={t.common.hybridCar}>
-            <svg width="13" height="13" viewBox="0 0 14 14" aria-hidden="true"><path d="M12.6 1.2C6.4 1 2 3.6 2 8.3c0 1.2.4 2.2 1 3L1.4 13l1 .9 1.6-1.7c.8.5 1.8.8 2.9.8 4.4 0 6.4-4.3 5.7-11.8zM5.2 10.6l-.8-.8C6 7.5 7.9 5.8 10.1 4.6 8.2 6.1 6.6 8.1 5.2 10.6z" fill="currentColor" /></svg>
-            <span className="ev-badge__label">{t.common.hybridCar}</span>
-          </span>
-        )}
+        <FuelBadge fuel={car.fuel} />
       </div>
       <div style={{ padding: '20px 20px 22px' }}>
         <p style={{ fontSize: 12, color: '#6e6e73', margin: '0 0 4px' }}>{car.brand} · {car.year}</p>
@@ -267,5 +254,27 @@ export function CarCard({ car, days, query }: { car: Car; days: number; query: s
         </span>
       </div>
     </Link>
+  )
+}
+
+// The fuel of a car on its card: a small coloured dot with an icon that opens to the full name
+// on hover ("Electric car"…). Each fuel has its own colour and icon.
+const FUEL_ICONS: Record<Car['fuel'], React.ReactNode> = {
+  Electric: <path d="M7.2 0 0.8 8h4.3L4.4 14l6.8-8.4H6.8L7.2 0z" fill="currentColor" />,
+  Hybrid: <path d="M12.6 1.2C6.4 1 2 3.6 2 8.3c0 1.2.4 2.2 1 3L1.4 13l1 .9 1.6-1.7c.8.5 1.8.8 2.9.8 4.4 0 6.4-4.3 5.7-11.8zM5.2 10.6l-.8-.8C6 7.5 7.9 5.8 10.1 4.6 8.2 6.1 6.6 8.1 5.2 10.6z" fill="currentColor" />,
+  // A fuel pump.
+  Petrol: <path d="M2 1.5A1.5 1.5 0 0 1 3.5 0h4A1.5 1.5 0 0 1 9 1.5V6h.5A1.5 1.5 0 0 1 11 7.5v3a.5.5 0 0 0 1 0V5.2l-1.3-1.3.7-.7L13 4.8v5.7a1.5 1.5 0 0 1-3 0v-3a.5.5 0 0 0-.5-.5H9v6h.5v1h-8v-1H2V1.5zM3.5 1.5V5h4V1.5h-4z" fill="currentColor" />,
+  // A drop.
+  Diesel: <path d="M7 0C5 3.2 2.2 6.3 2.2 9.1A4.8 4.8 0 0 0 7 14a4.8 4.8 0 0 0 4.8-4.9C11.8 6.3 9 3.2 7 0z" fill="currentColor" />,
+}
+
+function FuelBadge({ fuel }: { fuel: Car['fuel'] }) {
+  const { t } = useI18n()
+  const label = t.common.fuelCar[fuel]
+  return (
+    <span className={`ev-badge ev-badge--${fuel.toLowerCase()}`} aria-label={label}>
+      <svg width="13" height="14" viewBox="0 0 14 14" aria-hidden="true">{FUEL_ICONS[fuel]}</svg>
+      <span className="ev-badge__label">{label}</span>
+    </span>
   )
 }

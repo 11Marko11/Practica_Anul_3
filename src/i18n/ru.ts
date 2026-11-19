@@ -1141,8 +1141,7 @@ export const ru: Dict = {
     contact: 'Контакты',
   },
   common: {
-    hybridCar: 'Гибридный автомобиль',
-    electricCar: 'Электромобиль',
+    fuelCar: { Electric: 'Электромобиль', Hybrid: 'Гибридный автомобиль', Petrol: 'Бензиновый автомобиль', Diesel: 'Дизельный автомобиль' },
     days: (n: number) => countOf('ru', n, { one: 'день', few: 'дня', many: 'дней', other: 'дня' }),
     trips: (n: number) => countOf('ru', n, { one: 'поездка', few: 'поездки', many: 'поездок', other: 'поездки' }),
     seats: (n: number) => countOf('ru', n, { one: 'место', few: 'места', many: 'мест', other: 'места' }),

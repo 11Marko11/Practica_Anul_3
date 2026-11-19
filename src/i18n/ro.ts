@@ -1141,8 +1141,7 @@ export const ro: Dict = {
     contact: 'Contact',
   },
   common: {
-    hybridCar: 'Mașină hibridă',
-    electricCar: 'Mașină electrică',
+    fuelCar: { Electric: 'Mașină electrică', Hybrid: 'Mașină hibridă', Petrol: 'Mașină pe benzină', Diesel: 'Mașină pe motorină' },
     days: (n: number) => countOf('ro', n, { one: 'zi', few: 'zile', other: 'de zile' }),
     trips: (n: number) => countOf('ro', n, { one: 'călătorie', few: 'călătorii', other: 'de călătorii' }),
     seats: (n: number) => countOf('ro', n, { one: 'loc', few: 'locuri', other: 'de locuri' }),

@@ -1141,8 +1141,7 @@ export const en = {
     contact: 'Contact',
   },
   common: {
-    hybridCar: 'Hybrid car',
-    electricCar: 'Electric car',
+    fuelCar: { Electric: 'Electric car', Hybrid: 'Hybrid car', Petrol: 'Petrol car', Diesel: 'Diesel car' },
     days: (n: number) => countOf('en', n, { one: 'day', other: 'days' }),
     trips: (n: number) => countOf('en', n, { one: 'trip', other: 'trips' }),
     seats: (n: number) => countOf('en', n, { one: 'seat', other: 'seats' }),
