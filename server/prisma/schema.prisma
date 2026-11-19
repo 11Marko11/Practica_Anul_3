@@ -98,6 +98,8 @@ model User {
   sessions  Session[]
   bookings  Booking[]
   reviews   Review[]
+  // What hosts wrote about this customer after their trips.
+  hostReviews CustomerReview[]
   messages  ContactMessage[]
   documents IdentityDocument[]
   host      Host? // set when the admin gave this user the host role
@@ -276,8 +278,9 @@ model Host {
   updatedAt      DateTime @updatedAt
 
   user     User?                   @relation(fields: [userId], references: [id], onDelete: SetNull)
-  cars     Car[]
-  payments HostCommissionPayment[]
+  cars            Car[]
+  payments        HostCommissionPayment[]
+  customerReviews CustomerReview[]
 }
 
 // A month's commission the host paid to Rent Motors by card (Stripe Checkout). Recorded as soon as
@@ -352,9 +355,10 @@ model Booking {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user   User    @relation(fields: [userId], references: [id], onDelete: Restrict)
-  car    Car     @relation(fields: [carId], references: [id], onDelete: Restrict)
-  review Review?
+  user           User            @relation(fields: [userId], references: [id], onDelete: Restrict)
+  car            Car             @relation(fields: [carId], references: [id], onDelete: Restrict)
+  review         Review?
+  customerReview CustomerReview?
 
   @@index([carId, pickupDate, returnDate])
   @@index([userId])
@@ -378,6 +382,24 @@ model Review {
   booking Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
 
   @@index([carId, createdAt])
+}
+
+// The host's review of the customer after a finished trip: stars and a comment, once per trip.
+// Only admins and hosts see it, on the customer's profile.
+model CustomerReview {
+  id         String   @id @default(uuid())
+  bookingId  String   @unique
+  customerId String
+  hostId     Int
+  rating     Int // 1–5
+  text       String
+  createdAt  DateTime @default(now())
+
+  booking  Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  customer User    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  host     Host    @relation(fields: [hostId], references: [id], onDelete: Cascade)
+
+  @@index([customerId, createdAt])
 }
 
 model ContactMessage {

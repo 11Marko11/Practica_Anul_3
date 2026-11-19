@@ -74,7 +74,7 @@ export async function hostPortalRoutes(app: FastifyInstance) {
           orderBy: [{ brand: 'asc' }, { model: 'asc' }],
           include: {
             photos: { orderBy: { position: 'asc' }, take: 1 },
-            bookings: { where: { status: { in: [...SHOWN] } }, include: { user: { select: { name: true, avatarUrl: true } } }, orderBy: { pickupDate: 'desc' } },
+            bookings: { where: { status: { in: [...SHOWN] } }, include: { user: { select: { id: true, name: true, avatarUrl: true } }, customerReview: true }, orderBy: { pickupDate: 'desc' } },
             reviews: { orderBy: { createdAt: 'desc' }, include: { user: { select: { avatarUrl: true } } } },
           },
         },
@@ -102,7 +102,9 @@ export async function hostPortalRoutes(app: FastifyInstance) {
           returnLocation: b.returnAddress ? { address: b.returnAddress, lat: b.returnLat, lng: b.returnLng, by: b.completedBy } : null,
           commissionRate: b.commissionRate,
           // The name helps the host decide; the phone shows once the booking is confirmed.
-          customer: { name: b.user.name, avatarUrl: b.user.avatarUrl, phone: confirmed ? b.phone : null },
+          customer: { id: b.user.id, name: b.user.name, avatarUrl: b.user.avatarUrl, phone: confirmed ? b.phone : null },
+          // The host's review of the customer, once the trip is over.
+          customerReview: b.customerReview ? { rating: b.customerReview.rating, text: b.customerReview.text, date: isoDate(b.customerReview.createdAt) } : null,
           // Stripe releases the card hold after 7 days: the host must answer before then.
           holdExpiresAt: b.status === 'AWAITING_CONFIRMATION' && b.authorizedAt ? new Date(b.authorizedAt.getTime() + 7 * 86_400_000).toISOString() : null,
           createdAt: b.createdAt.toISOString(),
@@ -229,6 +231,18 @@ export async function hostPortalRoutes(app: FastifyInstance) {
     const booking = await prisma.booking.findUniqueOrThrow({ where: { id }, select: { status: true, pickupDate: true } })
     if (!customerCanComplete(booking)) throw new HttpError(409, booking.status === 'CONFIRMED' ? 'too-early-to-complete' : 'not-confirmed')
     await completeBooking(id, place, 'HOST')
+    return { ok: true }
+  })
+
+  // After a finished trip the host rates the customer (stars and a comment), once per trip.
+  app.post('/host/bookings/:id/customer-review', { preHandler: requireHost }, async (request, reply) => {
+    const id = await ownBooking(request)
+    const input = z.object({ rating: z.int().min(1).max(5), text: z.string().trim().min(3).max(1000) }).parse(request.body)
+    const booking = await prisma.booking.findUniqueOrThrow({ where: { id }, select: { status: true, userId: true, customerReview: { select: { id: true } } } })
+    if (booking.status !== 'COMPLETED') throw new HttpError(409, 'trip-not-finished')
+    if (booking.customerReview) throw new HttpError(409, 'already-reviewed')
+    await prisma.customerReview.create({ data: { bookingId: id, customerId: booking.userId, hostId: hostId(request), rating: input.rating, text: input.text } })
+    reply.code(201)
     return { ok: true }
   })
 
