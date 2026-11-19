@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useI18n } from '../i18n/I18nContext'
-import { COUNTRIES, flag, groupDigits, numberLength, splitPhone, type Country } from '../lib/phone'
+import { COUNTRIES, examplePhone, flag, groupDigits, numberLength, splitPhone, type Country } from '../lib/phone'
 
 // A phone number: the country (its code) from a list, then only the digits of the number.
 // Gives the parent "+37369123456", or "" while the number is empty.
@@ -72,7 +72,7 @@ export function PhoneInput({ value, onChange, required, id, style, dark }: {
           if (country.code !== '39') digits = digits.replace(/^0+/, '') // "069…": the 0 is not dialled after +373
           emit(country, digits.slice(0, max))
         }}
-        placeholder={country.code === '373' ? '69 123 456' : ''}
+        placeholder={examplePhone(country)}
         style={{ ...inner, flex: 1, minWidth: 0, padding: '12px 14px 12px 8px' }}
       />
     </div>
