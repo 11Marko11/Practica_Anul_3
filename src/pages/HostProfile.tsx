@@ -49,8 +49,7 @@ export function HostProfile() {
     <div style={{ paddingTop: 52 }}>
       <div style={{ padding: '48px 24px 40px', background: '#1c1c1e' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <Link to={`/marketplace${query}`} className="btn-action btn-action--neutral btn-back" style={{ background: '#2c2c2e', color: '#f5f5f7', borderColor: '#3a3a3d' }}>{h.back}</Link>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginTop: 28, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
             <Avatar name={host.name} url={host.avatarUrl} size={80} background="#3a3a3d" color="#f5f5f7" />
             <div style={{ minWidth: 0 }}>
               <p style={{ fontSize: 13, color: '#a1a1a6', margin: '0 0 6px' }}>{h.eyebrow}</p>
