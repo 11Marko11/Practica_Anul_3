@@ -87,6 +87,8 @@ export async function bookingRoutes(app: FastifyInstance) {
 
     const car = await prisma.car.findUnique({ where: { slug: body.carSlug } })
     if (!car || !isListed(car)) throw new HttpError(404, 'car-not-found')
+    // The host may not deliver this car.
+    if (body.handover.mode === 'DELIVERY' && !car.delivery) throw new HttpError(422, 'no-delivery')
 
     let delivery: { address: string; lat: number; lng: number; km: number; fee: number } | null = null
     if (body.handover.mode === 'DELIVERY') {

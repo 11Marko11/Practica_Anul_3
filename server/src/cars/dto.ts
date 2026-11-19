@@ -41,6 +41,7 @@ export function toCarDto(car: CarRow, host: HostStats) {
     location: `${car.city}, Moldova`,
     pickup: { address: car.pickupAddress, lat: car.pickupLat, lng: car.pickupLng },
     freeReturn: car.freeReturn, // false: back to the pick-up address
+    delivery: car.delivery, // false: no delivery, the customer collects the car
     host: { id: car.host.id, name: car.host.name, avatarUrl: car.host.user?.avatarUrl ?? null, ...host },
     description: car.description,
     features: car.features,
@@ -78,6 +79,8 @@ const carFields = z.object({
   pickup: z.object({ address: text(200), lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) }),
   // false: the customer must bring the car back to the pick-up address.
   freeReturn: z.boolean().default(true),
+  // false: the host doesn't deliver this car; customers collect it.
+  delivery: z.boolean().default(true),
   description: text(5000),
   translations: z
     .object({
@@ -114,6 +117,7 @@ export function carData(input: CarInput) {
     pickupLat: input.pickup.lat,
     pickupLng: input.pickup.lng,
     freeReturn: input.freeReturn,
+    delivery: input.delivery,
     description: input.description,
     descriptionRo: input.translations.ro?.description ?? null,
     descriptionRu: input.translations.ru?.description ?? null,

@@ -238,6 +238,8 @@ model Car {
   // Whether the customer may leave the car anywhere in Moldova (true) or must bring it back
   // to the pick-up address (false). Chosen by the host.
   freeReturn        Boolean  @default(true)
+  // Whether the host brings the car to the customer's address (for a fee). Chosen by the host.
+  delivery          Boolean  @default(true)
   hostId            Int
   description       String // English
   descriptionRo     String?
