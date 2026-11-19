@@ -239,9 +239,11 @@ export function CarCard({ car, days, query }: { car: Car; days: number; query: s
             <span className="ev-badge__label">{t.common.electricCar}</span>
           </span>
         )}
+        {/* Hybrid: the same kind of dot, light blue with a leaf, opening to "Hybrid car". */}
         {car.fuel === 'Hybrid' && (
-          <span style={{ position: 'absolute', top: 12, right: 12, fontSize: 11, fontWeight: 500, background: 'rgba(255,255,255,0.9)', color: '#1d1d1f', padding: '4px 10px', borderRadius: 980, backdropFilter: 'blur(8px)' }}>
-            {t.common.fuel[car.fuel]}
+          <span className="ev-badge ev-badge--hybrid" aria-label={t.common.hybridCar}>
+            <svg width="13" height="13" viewBox="0 0 14 14" aria-hidden="true"><path d="M12.6 1.2C6.4 1 2 3.6 2 8.3c0 1.2.4 2.2 1 3L1.4 13l1 .9 1.6-1.7c.8.5 1.8.8 2.9.8 4.4 0 6.4-4.3 5.7-11.8zM5.2 10.6l-.8-.8C6 7.5 7.9 5.8 10.1 4.6 8.2 6.1 6.6 8.1 5.2 10.6z" fill="currentColor" /></svg>
+            <span className="ev-badge__label">{t.common.hybridCar}</span>
           </span>
         )}
       </div>
