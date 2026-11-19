@@ -1,6 +1,7 @@
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router'
 import { Avatar } from '../components/Avatar'
 import { useState, useEffect, useRef } from 'react'
+import { useScrollMemory } from '../lib/useScrollMemory'
 import { NAV_HEIGHT, useNavScroll } from '../lib/useNavScroll'
 import { useAuth } from '../auth/AuthContext'
 import { isAdmin } from '../auth/admin'
@@ -36,8 +37,8 @@ export function Root() {
     wasSignedIn.current = !!user
   }, [user, justSignedOut, navigate])
 
+  useScrollMemory()
   useEffect(() => {
-    window.scrollTo(0, 0)
     setMenuOpen(false)
   }, [location.pathname])
 
