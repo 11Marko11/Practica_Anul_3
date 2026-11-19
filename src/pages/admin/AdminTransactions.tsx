@@ -51,6 +51,10 @@ function TransactionsContent() {
   }, [month])
 
   const entries = (data?.entries ?? []).filter(e => filter === 'all' || e.type === filter)
+  // The tiles add up the movements on screen, so they follow the month and the type filter.
+  const sum = (type: EntryType) => entries.filter(e => e.type === type).reduce((s, e) => s + e.amount, 0)
+  const charged = sum('charge')
+  const refunded = -sum('refund')
   const months = [...new Set([thisMonth, ...(data?.months ?? [])])].sort().reverse()
   const monthName = (m: string) => new Date(`${m}-15T12:00:00Z`).toLocaleDateString(lang, { month: 'long', year: 'numeric' })
   const time = (iso: string) => new Date(iso).toLocaleString(lang, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -93,10 +97,10 @@ function TransactionsContent() {
         </div>
 
         <div className="dashboard-tiles" style={{ marginTop: 20 }}>
-          <Total label={tr.totals.charged} value={data?.totals.charged} />
-          <Total label={tr.totals.refunded} value={data ? -data.totals.refunded : undefined} />
-          <Total label={tr.totals.net} value={data?.totals.net} strong />
-          <Total label={tr.totals.onHold} value={data?.totals.onHold} muted />
+          <Total label={tr.totals.charged} value={data ? charged : undefined} />
+          <Total label={tr.totals.refunded} value={data ? (refunded ? -refunded : 0) : undefined} />
+          <Total label={tr.totals.net} value={data ? charged - refunded : undefined} strong />
+          <Total label={tr.totals.onHold} value={data ? sum('hold') : undefined} muted />
         </div>
 
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', margin: '28px 0 8px' }}>
