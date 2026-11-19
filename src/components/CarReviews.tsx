@@ -56,7 +56,10 @@ export function CarReviews({ data }: { data: ReturnType<typeof useReviews> }) {
               <Avatar name={r.name} url={r.avatarUrl} size={36} color="#f5f5f7" />
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ fontSize: 15, fontWeight: 600, color: '#1d1d1f' }}>
-                  {r.name}
+                  {/* Admins and hosts get the author's id and can open their customer profile. */}
+                  {r.authorId
+                    ? <Link to={`/customers/${r.authorId}`} title={t.customerProfile.open} style={{ color: '#1d1d1f', textDecoration: 'none' }}>{r.name} <span aria-hidden="true" style={{ color: '#0071e3' }}>›</span></Link>
+                    : r.name}
                   {r.mine && <span style={{ fontSize: 12, fontWeight: 500, color: '#6e6e73', marginLeft: 8 }}>{t.reviews.you}</span>}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#6e6e73' }}>
