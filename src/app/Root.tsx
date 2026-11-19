@@ -133,14 +133,12 @@ export function Root() {
   )
 }
 
-// The heart between the language and the bell: the favourite cars, with their number.
+// The heart between the language and the bell: the favourite cars.
 function FavoritesLink() {
   const { t } = useI18n()
-  const count = useFavorites().length
   return (
     <NavLink to="/favorites" aria-label={t.favorites.menu} title={t.favorites.menu} style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 42, height: 42, borderRadius: '50%', color: '#f5f5f7', background: 'rgba(255,255,255,0.12)' }}>
       <HeartIcon size={21} />
-      {count > 0 && <span style={{ position: 'absolute', top: -4, right: -6, minWidth: 18, height: 18, padding: '0 5px', borderRadius: 9, background: '#ff375f', color: '#fff', fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{count}</span>}
     </NavLink>
   )
 }
