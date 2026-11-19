@@ -21,6 +21,8 @@ import { CloseBookingDialog } from './admin/CloseBookingDialog'
 import { HostFinances } from './HostFinances'
 import { FILTERS, HostReviews, shownReviews, tripShown, type HostReview } from './HostReviews'
 import { ReturnLocationDialog } from '../components/ReturnLocationDialog'
+import { CustomerReviewDialog } from '../components/CustomerReviewDialog'
+import { Stars } from '../components/CarReviews'
 import { ReturnLocation } from '../components/ReturnLocation'
 import { fmt, formatDate } from '../lib/rental'
 import { useUrlParams } from '../lib/useUrlParams'
@@ -60,7 +62,8 @@ type HostData = {
     commissionRate: number | null // Rent Motors' share (%) once confirmed
     canComplete: boolean // confirmed, from the pick-up day on
     returnLocation: { address: string; lat: number; lng: number; by: string | null } | null // where the car was left
-    customer: { name: string; avatarUrl: string | null; phone: string | null } // the phone only once the booking is confirmed
+    customer: { id: string; name: string; avatarUrl: string | null; phone: string | null } // the phone only once the booking is confirmed
+    customerReview: { rating: number; text: string; date: string } | null // the host's review of the customer, after the trip
     holdExpiresAt: string | null // answer before then, or Stripe releases the payment
     createdAt: string
   })[]
@@ -117,13 +120,15 @@ function HostPanelContent() {
 
   // The car was returned: the host says where it was left, then the trip ends.
   const [ending, setEnding] = useState<HostData['bookings'][number] | null>(null)
+  // The finished trip whose customer the host is reviewing.
+  const [reviewing, setReviewing] = useState<HostData['bookings'][number] | null>(null)
   // The car whose state (cleaning, garage…) the host is changing.
   const [changing, setChanging] = useState<HostData['cars'][number] | null>(null)
   useEffect(() => {
     load()
   }, [])
   // New bookings, reviews and the admin's check of the cars show without a refresh.
-  useLivePoll(() => { api<HostData>('/host').then(next => setData(prev => (same(prev, next) ? prev : next))).catch(() => {}) }, 30_000, !busyId && !closing && !ending && !changing)
+  useLivePoll(() => { api<HostData>('/host').then(next => setData(prev => (same(prev, next) ? prev : next))).catch(() => {}) }, 30_000, !busyId && !closing && !ending && !changing && !reviewing)
 
   // The car is back on the site (if its papers are approved and it isn't hidden).
   async function makeReady(car: HostData['cars'][number]) {
@@ -369,6 +374,18 @@ function HostPanelContent() {
                         </div>
                       </div>
                     )}
+                    {b.status === 'COMPLETED' && (b.customerReview ? (
+                      <div style={{ flexBasis: '100%', padding: '12px 14px', borderRadius: 14, background: '#f5f5f7' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 12, color: '#6e6e73' }}>
+                          {t.customerReviews.yours} <Stars rating={b.customerReview.rating} size={13} /> · {date(b.customerReview.date)}
+                        </div>
+                        <p style={{ fontSize: 14, color: '#1d1d1f', margin: '6px 0 0', lineHeight: 1.5, overflowWrap: 'anywhere' }}>{b.customerReview.text}</p>
+                      </div>
+                    ) : (
+                      <div className="row-actions" style={{ flexBasis: '100%' }}>
+                        <button onClick={() => setReviewing(b)} className="btn-action btn-action--neutral">★ {t.customerReviews.leave}</button>
+                      </div>
+                    ))}
                     {b.status === 'CONFIRMED' && (
                       <div className="row-actions" style={{ flexBasis: '100%' }}>
                         {b.canComplete && <button onClick={() => setEnding(b)} disabled={busyId === b.id} className="btn-action btn-action--primary">{t.returnPlace.submit}</button>}
@@ -392,6 +409,16 @@ function HostPanelContent() {
           onClose={() => setChanging(null)}
           onDone={async () => {
             setChanging(null)
+            await load()
+          }}
+        />
+      )}
+      {reviewing && (
+        <CustomerReviewDialog
+          booking={reviewing}
+          onClose={() => setReviewing(null)}
+          onDone={async () => {
+            setReviewing(null)
             await load()
           }}
         />
