@@ -1291,6 +1291,8 @@ export const en = {
     photoAlt: (name: string, i: number, n: number) => `${name}, photo ${i} of ${n}`,
     previous: 'Previous photo',
     next: 'Next photo',
+    enlarge: 'Enlarge the photo',
+    close: 'Close',
     show: (i: number) => `Show photo ${i}`,
   },
   delivery: {

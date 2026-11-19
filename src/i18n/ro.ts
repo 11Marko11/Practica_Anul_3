@@ -1291,6 +1291,8 @@ export const ro: Dict = {
     photoAlt: (name: string, i: number, n: number) => `${name}, fotografia ${i} din ${n}`,
     previous: 'Fotografia anterioară',
     next: 'Fotografia următoare',
+    enlarge: 'Mărește fotografia',
+    close: 'Închide',
     show: (i: number) => `Arată fotografia ${i}`,
   },
   delivery: {

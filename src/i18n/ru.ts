@@ -1291,6 +1291,8 @@ export const ru: Dict = {
     photoAlt: (name: string, i: number, n: number) => `${name}, фото ${i} из ${n}`,
     previous: 'Предыдущее фото',
     next: 'Следующее фото',
+    enlarge: 'Увеличить фото',
+    close: 'Закрыть',
     show: (i: number) => `Показать фото ${i}`,
   },
   delivery: {
