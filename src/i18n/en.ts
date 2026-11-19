@@ -1191,6 +1191,7 @@ export const en = {
   },
   car: {
     allCars: '← All cars',
+    back: '← Back',
     specs: 'Specifications',
     spec: {
       power: 'Power',

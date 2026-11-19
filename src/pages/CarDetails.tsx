@@ -125,9 +125,13 @@ function CarDetailsContent({ car }: { car: Car }) {
   return (
     <div style={{ paddingTop: 52 }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '32px 24px 96px' }}>
-        <Link to={`/marketplace${query}`} className="btn-action btn-action--neutral btn-back">
-          {t.car.allCars}
-        </Link>
+        {/* Back to the previous page; opened straight from a link, there is none, so the car list. */}
+        <button
+          onClick={() => (location.key !== 'default' ? navigate(-1) : navigate(`/marketplace${query}`))}
+          className="btn-action btn-action--neutral btn-back"
+        >
+          {t.car.back}
+        </button>
 
         <header style={{ margin: '20px 0 28px' }}>
           <p style={{ fontSize: 14, color: '#6e6e73', margin: '0 0 6px' }}>{car.brand} · {car.year}</p>

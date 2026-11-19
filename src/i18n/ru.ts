@@ -1191,6 +1191,7 @@ export const ru: Dict = {
   },
   car: {
     allCars: '← Все автомобили',
+    back: '← Назад',
     specs: 'Характеристики',
     spec: {
       power: 'Мощность',

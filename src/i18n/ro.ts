@@ -1191,6 +1191,7 @@ export const ro: Dict = {
   },
   car: {
     allCars: '← Toate mașinile',
+    back: '← Înapoi',
     specs: 'Specificații',
     spec: {
       power: 'Putere',
