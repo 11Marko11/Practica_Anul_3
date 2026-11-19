@@ -398,3 +398,10 @@ input[type="search"]::-webkit-search-cancel-button { margin-left: 10px; cursor: 
 .lightbox__close { position: absolute; top: 18px; right: 18px; width: 44px; height: 44px; border-radius: 50%; border: none; background: rgba(255, 255, 255, 0.14); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .lightbox__close:hover { background: rgba(255, 255, 255, 0.24); }
 @media (max-width: 640px) { .lightbox__stage { padding: 64px 12px; } }
+
+/* Photo credit on a car photo: a small "i" that opens to the author and licence. */
+.photo-credit { position: absolute; left: 14px; bottom: 14px; display: inline-flex; align-items: center; height: 26px; min-width: 26px; padding: 0 9px; border-radius: 980px; background: rgba(28, 28, 30, 0.55); backdrop-filter: blur(8px); color: #fff; font-size: 11px; cursor: default; outline: none; max-width: calc(100% - 100px); }
+.photo-credit__i { font-weight: 700; font-style: italic; font-family: Georgia, serif; font-size: 13px; line-height: 1; margin: 0 -1px; }
+.photo-credit__text { max-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; opacity: 0; transition: max-width 0.5s ease, opacity 0.4s ease, margin 0.5s ease; }
+.photo-credit__text a { color: #fff; }
+.photo-credit:hover .photo-credit__text, .photo-credit:focus-within .photo-credit__text { max-width: 420px; opacity: 1; margin-left: 7px; }

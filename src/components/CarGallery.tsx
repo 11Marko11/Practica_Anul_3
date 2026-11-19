@@ -38,7 +38,7 @@ export function CarGallery({ car }: { car: Car }) {
   return (
     <div>
       <div
-        onClick={e => { if (!(e.target as HTMLElement).closest('button')) setOpen(true) }}
+        onClick={e => { if (!(e.target as HTMLElement).closest('button, .photo-credit')) setOpen(true) }}
         title={t.gallery.enlarge}
         onTouchStart={e => (touchX.current = e.touches[0].clientX)}
         onTouchEnd={e => {
@@ -65,19 +65,9 @@ export function CarGallery({ car }: { car: Car }) {
         <span style={{ position: 'absolute', right: 14, bottom: 14, fontSize: 12, fontWeight: 500, color: '#fff', background: 'rgba(28,28,30,0.7)', backdropFilter: 'blur(8px)', padding: '5px 11px', borderRadius: 980 }}>
           {index + 1} / {count}
         </span>
+        <PhotoCredit credit={car.photoCredits?.[index]} label={t.gallery.photo} />
       </div>
 
-      {/* Attribution for photos under licences that require it (e.g. Wikimedia Commons). */}
-      {car.photoCredits?.[index] && (
-        <p style={{ fontSize: 11, color: '#86868b', margin: '6px 2px 0', textAlign: 'right' }}>
-          {t.gallery.photo}:{' '}
-          {car.photoCredits[index]!.url ? (
-            <a href={car.photoCredits[index]!.url!} target="_blank" rel="noopener noreferrer" style={{ color: '#86868b' }}>{car.photoCredits[index]!.text}</a>
-          ) : (
-            car.photoCredits[index]!.text
-          )}
-        </p>
-      )}
 
       {open && (
         <Lightbox onClose={() => setOpen(false)} label={t.gallery.close} swipe={swipe}>
@@ -108,6 +98,21 @@ export function CarGallery({ car }: { car: Car }) {
         ))}
       </div>
     </div>
+  )
+}
+
+// Who took the photo, for the licences that ask for it (e.g. Wikimedia Commons): only a small
+// "i" in the photo's corner, which opens to the credit on hover or tap.
+function PhotoCredit({ credit, label }: { credit?: { text: string; url?: string | null } | null; label: string }) {
+  if (!credit) return null
+  return (
+    <span className="photo-credit" tabIndex={0} aria-label={`${label}: ${credit.text}`}>
+      <span aria-hidden="true" className="photo-credit__i">i</span>
+      <span className="photo-credit__text">
+        {label}:{' '}
+        {credit.url ? <a href={credit.url} target="_blank" rel="noopener noreferrer">{credit.text}</a> : credit.text}
+      </span>
+    </span>
   )
 }
 
