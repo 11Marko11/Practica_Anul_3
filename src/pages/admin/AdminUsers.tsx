@@ -314,7 +314,11 @@ function UserDetail({ id }: { id: string }) {
     <div style={{ paddingTop: 52 }}>
       <Header title={data?.customer.name ?? (missing ? u.notFound : '…')} />
       <main style={{ maxWidth: 900, margin: '0 auto', padding: '24px 24px 96px' }}>
-        <Link to="/admin/users" className="btn-action btn-action--neutral btn-back">{u.back}</Link>
+        {/* Back on the left; the customer's profile (rentals and reviews) on the right. */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          <Link to="/admin/users" className="btn-action btn-action--neutral btn-back">{u.back}</Link>
+          {data && <Link to={`/customers/${id}`} className="btn-action btn-action--primary">{t.customerProfile.open} →</Link>}
+        </div>
 
         {data && (
           <>
@@ -322,7 +326,6 @@ function UserDetail({ id }: { id: string }) {
               <Avatar name={data.customer.name} url={data.customer.avatarUrl} size={44} />
               {data.customer.host ? <HostBadge /> : <CustomerBadge />}
               <StatusPill active={data.customer.active} />
-              <Link to={`/customers/${id}`} className="btn-action btn-action--neutral">{t.customerProfile.open}</Link>
               <span style={{ fontSize: 14, color: '#424245', overflowWrap: 'anywhere' }}>
                 {data.customer.active ? <a href={`mailto:${data.customer.email}`} style={{ color: '#0071e3', textDecoration: 'none' }}>{data.customer.email}</a> : data.customer.email}
               </span>
