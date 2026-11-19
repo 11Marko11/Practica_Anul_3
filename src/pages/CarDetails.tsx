@@ -125,17 +125,6 @@ function CarDetailsContent({ car }: { car: Car }) {
   return (
     <div style={{ paddingTop: 52 }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '32px 24px 96px' }}>
-        <header style={{ margin: '0 0 28px' }}>
-          <p style={{ fontSize: 14, color: '#6e6e73', margin: '0 0 6px' }}>{car.brand} · {car.year}</p>
-          <h1 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 600, letterSpacing: '-0.035em', color: '#1d1d1f', margin: '0 0 10px', lineHeight: 1.05 }}>
-            {car.model}
-          </h1>
-          <p style={{ fontSize: 14, color: '#6e6e73', margin: 0 }}>
-            {reviews.length > 0 && <span style={{ color: '#1d1d1f', fontWeight: 500 }}>★ {average.toFixed(1)} · </span>}
-            <a href="#reviews" style={{ color: '#0071e3', textDecoration: 'none' }}>{t.reviews.count(reviews.length)}</a> · {text.location}
-          </p>
-        </header>
-
         <div className="detail-grid">
           <div className="detail-image">
             <CarGallery car={car} />
@@ -218,6 +207,17 @@ function CarDetailsContent({ car }: { car: Car }) {
           </div>
 
           <aside className="booking-card" style={{ background: '#1c1c1e', borderRadius: 24, padding: '28px 24px', color: '#f5f5f7' }}>
+            {/* The car's name, rating and city, at the top of the booking card. */}
+            <header style={{ margin: '0 0 22px', paddingBottom: 20, borderBottom: '1px solid #3a3a3d' }}>
+              <p style={{ fontSize: 17, fontWeight: 600, color: '#a1a1a6', margin: '0 0 4px' }}>{car.brand} · {car.year}</p>
+              <h1 style={{ fontSize: 'clamp(34px, 4vw, 46px)', fontWeight: 800, letterSpacing: '-0.035em', color: '#f5f5f7', margin: '0 0 10px', lineHeight: 1.05, overflowWrap: 'anywhere' }}>
+                {car.model}
+              </h1>
+              <p style={{ fontSize: 16, fontWeight: 600, color: '#a1a1a6', margin: 0 }}>
+                {reviews.length > 0 && <span style={{ color: '#f5f5f7' }}>★ {average.toFixed(1)} · </span>}
+                <a href="#reviews" style={{ color: '#6cb4ff', textDecoration: 'none' }}>{t.reviews.count(reviews.length)}</a> · {text.location}
+              </p>
+            </header>
             <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.03em' }}>
               {fmt(car.pricePerDay)}<span style={{ fontSize: 15, fontWeight: 400, color: '#a1a1a6' }}>{t.common.perDay}</span>
             </div>
