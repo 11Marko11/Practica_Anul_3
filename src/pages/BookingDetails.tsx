@@ -174,6 +174,7 @@ export function BookingDetails() {
         )}
         {ending && (
           <ReturnLocationDialog
+            fixedAddress={booking?.car.freeReturn === false ? booking.car.pickupAddress : undefined}
             onClose={() => setEnding(false)}
             onSubmit={async place => {
               setBooking(await completeBooking(id, place))

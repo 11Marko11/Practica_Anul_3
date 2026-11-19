@@ -229,7 +229,7 @@ function CarDetailsContent({ car }: { car: Car }) {
             <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.03em' }}>
               {fmt(car.pricePerDay)}<span style={{ fontSize: 15, fontWeight: 400, color: '#a1a1a6' }}>{t.common.perDay}</span>
             </div>
-            <p style={{ fontSize: 13, color: '#a1a1a6', margin: '4px 0 20px' }}>{t.car.locatedAt(car.pickup.address)}</p>
+            <p style={{ fontSize: 13, color: '#a1a1a6', margin: '4px 0 20px' }}>{t.car.locatedAt(car.pickup.address)}<br />{car.freeReturn === false ? t.car.returnSame(car.pickup.address) : t.car.returnAnywhere}</p>
 
             <div className="date-pair">
               <DateField label={t.car.pickup} value={pickup} min={today()} onChange={changePickup} />

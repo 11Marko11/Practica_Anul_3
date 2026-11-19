@@ -7,8 +7,13 @@ import type { ReturnPlace } from '../lib/bookings'
 const inMoldova = (lat: number, lng: number) => lat >= 45.4 && lat <= 48.6 && lng >= 26.5 && lng <= 30.3
 
 // "End the trip": the customer or the car's host must say where the car was left (an address
-// found on the map, or their current location) before the trip can end.
-export function ReturnLocationDialog({ onClose, onSubmit }: { onClose: () => void; onSubmit: (place: ReturnPlace) => Promise<void> }) {
+// found on the map, or their current location) before the trip can end. With `fixedAddress` the
+// host wants the car back where it was taken: there is nothing to choose, only to confirm.
+export function ReturnLocationDialog({ onClose, onSubmit, fixedAddress }: {
+  onClose: () => void
+  onSubmit: (place?: ReturnPlace) => Promise<void>
+  fixedAddress?: string
+}) {
   const { lang, t } = useI18n()
   const r = t.returnPlace
   const dialog = useRef<HTMLDialogElement>(null)
@@ -63,11 +68,11 @@ export function ReturnLocationDialog({ onClose, onSubmit }: { onClose: () => voi
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!place) return setError(r.required)
+    if (!place && !fixedAddress) return setError(r.required)
     setStatus('saving')
     setError('')
     try {
-      await onSubmit(place)
+      await onSubmit(fixedAddress ? undefined : place ?? undefined)
     } catch {
       setError(r.error)
       setStatus('idle')
@@ -87,10 +92,10 @@ export function ReturnLocationDialog({ onClose, onSubmit }: { onClose: () => voi
       <form onSubmit={submit} style={{ padding: '24px 24px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div>
           <h2 style={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.02em', color: '#1d1d1f', margin: '0 0 6px' }}>{r.title}</h2>
-          <p style={{ fontSize: 14, color: '#424245', margin: 0, lineHeight: 1.5 }}>{r.intro}</p>
+          <p style={{ fontSize: 14, color: '#424245', margin: 0, lineHeight: 1.5 }}>{fixedAddress ? r.fixedIntro(fixedAddress) : r.intro}</p>
         </div>
 
-        {place ? (
+        {fixedAddress ? null : place ? (
           <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid #e5e5ea' }}>
             <iframe
               title={place.address}
@@ -152,7 +157,7 @@ export function ReturnLocationDialog({ onClose, onSubmit }: { onClose: () => voi
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
           <button type="button" onClick={() => dialog.current?.close()} className="btn-action btn-action--neutral">{r.cancel}</button>
-          <button type="submit" disabled={!place || status !== 'idle'} className="btn-action btn-action--primary" style={{ opacity: place ? 1 : 0.4 }}>
+          <button type="submit" disabled={(!place && !fixedAddress) || status !== 'idle'} className="btn-action btn-action--primary" style={{ opacity: place || fixedAddress ? 1 : 0.4 }}>
             {status === 'saving' ? '…' : r.submit}
           </button>
         </div>

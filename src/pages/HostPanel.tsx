@@ -51,7 +51,7 @@ type HostData = {
   })[]
   bookings: (Period & {
     id: string
-    car: CarRef & { photo: string | null }
+    car: CarRef & { photo: string | null; freeReturn: boolean; pickupAddress: string }
     days: number
     handover: 'PICKUP' | 'DELIVERY'
     deliveryAddress: string | null
@@ -425,6 +425,7 @@ function HostPanelContent() {
       )}
       {ending && (
         <ReturnLocationDialog
+          fixedAddress={ending.car.freeReturn ? undefined : ending.car.pickupAddress}
           onClose={() => setEnding(null)}
           onSubmit={async place => {
             await hostCompleteBooking(ending.id, place)

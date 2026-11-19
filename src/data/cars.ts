@@ -17,6 +17,7 @@ export type Car = {
   range?: number // electric range in km
   location: string // city shown in listings
   pickup: { address: string; lat: number; lng: number } // where the car is collected
+  freeReturn?: boolean // false: the customer must bring it back to the pick-up address
   // rating: average of the reviews of the host's cars (null before the first one); trips: completed rentals
   host: { id?: number; name: string; avatarUrl?: string | null; rating: number | null; reviews?: number; trips: number }
   description: string // English

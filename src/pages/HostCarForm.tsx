@@ -88,6 +88,7 @@ type FormState = {
   city: string
   address: string
   pickup: Pickup | null
+  freeReturn: boolean // false: the customer must bring the car back to the pick-up address
   photos: string[]
   descriptionEn: string
   descriptionRo: string
@@ -99,7 +100,7 @@ type FormState = {
 const EMPTY: FormState = {
   brand: '', model: '', year: String(new Date().getFullYear()), price: '', fuel: 'Petrol', seats: '4',
   horsepower: '', acceleration: '', topSpeed: '', transmission: '', drive: 'FWD', status: 'ACTIVE', range: '',
-  city: CITIES[0], address: '', pickup: null, photos: [], descriptionEn: '', descriptionRo: '', descriptionRu: '', features: '', defects: '',
+  city: CITIES[0], address: '', pickup: null, freeReturn: true, photos: [], descriptionEn: '', descriptionRo: '', descriptionRu: '', features: '', defects: '',
 }
 
 function fromCar(car: Car): FormState {
@@ -107,7 +108,7 @@ function fromCar(car: Car): FormState {
     brand: car.brand, model: car.model, year: String(car.year), price: String(car.pricePerDay), fuel: car.fuel, seats: String(car.seats),
     horsepower: String(car.horsepower), acceleration: String(car.acceleration), topSpeed: String(car.topSpeed), transmission: car.transmission,
     drive: car.drive, status: car.status === 'HIDDEN' ? 'HIDDEN' : 'ACTIVE', range: car.range ? String(car.range) : '',
-    city: car.location.split(',')[0], address: car.pickup.address, pickup: car.pickup,
+    city: car.location.split(',')[0], address: car.pickup.address, pickup: car.pickup, freeReturn: car.freeReturn !== false,
     photos: car.photos, descriptionEn: car.description, descriptionRo: car.translations?.ro?.description ?? '', descriptionRu: car.translations?.ru?.description ?? '',
     features: car.features.join('\n'), defects: (car.defects ?? []).join('\n'),
   }
@@ -225,6 +226,7 @@ function CarForm({ existing, review, initialDocuments, backUrl, backLabel, title
       range: (f.fuel === 'Electric' || f.fuel === 'Hybrid') && positive(f.range) ? Math.round(num(f.range)) : undefined,
       city: f.city,
       pickup: f.pickup,
+      freeReturn: f.freeReturn,
       description: f.descriptionEn.trim(),
       features: lines(f.features),
       defects: lines(f.defects),
@@ -309,6 +311,18 @@ function CarForm({ existing, review, initialDocuments, backUrl, backLabel, title
               onPick={place => { setForm(f => ({ ...f, address: place.label })); set('pickup', { address: place.label, lat: place.lat, lng: place.lng }) }}
               error={fieldErrors.address}
             />
+            <fieldset style={{ border: 'none', margin: '20px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <legend style={{ fontSize: 13, color: '#6e6e73', padding: 0, marginBottom: 8 }}>{t.carReturn.title}</legend>
+              {([true, false] as const).map(free => (
+                <label key={String(free)} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', padding: '10px 12px', borderRadius: 12, border: '1px solid', borderColor: form.freeReturn === free ? '#1d1d1f' : '#d2d2d7' }}>
+                  <input type="radio" name="freeReturn" checked={form.freeReturn === free} onChange={() => set('freeReturn', free)} style={{ accentColor: '#1d1d1f', marginTop: 3 }} />
+                  <span>
+                    <span style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1d1d1f' }}>{free ? t.carReturn.anywhere : t.carReturn.same}</span>
+                    <span style={{ display: 'block', fontSize: 12, color: '#6e6e73', marginTop: 2 }}>{free ? t.carReturn.anywhereHint : t.carReturn.sameHint}</span>
+                  </span>
+                </label>
+              ))}
+            </fieldset>
           </FormSection>
 
           <FormSection title={t.admin.sections.photos}>

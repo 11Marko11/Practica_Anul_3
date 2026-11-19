@@ -10,7 +10,7 @@ export type BookingStatus = 'PENDING_PAYMENT' | 'AWAITING_CONFIRMATION' | 'CONFI
 export type Booking = {
   id: string
   status: BookingStatus
-  car: { slug: string; brand: string; model: string; photo: string | null }
+  car: { slug: string; brand: string; model: string; photo: string | null; freeReturn: boolean; pickupAddress: string }
   pickupDate: string
   returnDate: string
   days: number
@@ -51,7 +51,8 @@ export const payBooking = (id: string) => api<{ checkoutUrl: string }>(`/booking
 export const cancelBooking = (id: string) => api<{ booking: Booking }>(`/bookings/${id}/cancel`, { method: 'POST' }).then(r => r.booking)
 // Where the car was left when the trip ends (required to end it).
 export type ReturnPlace = { address: string; lat: number; lng: number }
-export const completeBooking = (id: string, place: ReturnPlace) => api<{ booking: Booking }>(`/bookings/${id}/complete`, { body: place }).then(r => r.booking)
+// No place: the car went back to its pick-up address (the host asked for that).
+export const completeBooking = (id: string, place?: ReturnPlace) => api<{ booking: Booking }>(`/bookings/${id}/complete`, { body: place ?? {} }).then(r => r.booking)
 export const takenDates = (slug: string) => api<{ taken: { from: string; to: string }[] }>(`/cars/${encodeURIComponent(slug)}/availability`).then(r => r.taken)
 
 export const adminBookings = (status?: BookingStatus) =>
@@ -60,5 +61,5 @@ export const adminBookings = (status?: BookingStatus) =>
 // The car's host answers a paid booking: confirm (the money is taken) or reject (the hold is released).
 export const hostConfirmBooking = (id: string) => api(`/host/bookings/${id}/confirm`, { method: 'POST' })
 export const hostRejectBooking = (id: string, input: { reason: CancelReason; note?: string }) => api(`/host/bookings/${id}/reject`, { body: input })
-export const hostCompleteBooking = (id: string, place: ReturnPlace) => api(`/host/bookings/${id}/complete`, { body: place })
+export const hostCompleteBooking = (id: string, place?: ReturnPlace) => api(`/host/bookings/${id}/complete`, { body: place ?? {} })
 export const hostCancelBooking = (id: string, input: { reason: CancelReason; note?: string; refund: number }) => api(`/host/bookings/${id}/cancel`, { body: input })
