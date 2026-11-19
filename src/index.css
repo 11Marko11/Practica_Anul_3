@@ -402,3 +402,15 @@ input[type="search"]::-webkit-search-cancel-button { margin-left: 10px; cursor: 
 .lightbox__close:hover { background: rgba(255, 255, 255, 0.24); }
 @media (max-width: 640px) { .lightbox__stage { padding: 64px 12px; } }
 
+
+/* The heart that saves a car to the favourites: red when on. */
+.fav-button { display: inline-flex; align-items: center; justify-content: center; border: none; cursor: pointer; color: #1d1d1f; transition: color 0.15s, background-color 0.15s, transform 0.15s; }
+.fav-button:active { transform: scale(0.92); }
+.fav-button--on { color: #ff375f; }
+/* On a car card, next to "View details". */
+.fav-button--card { flex: 0 0 46px; height: 46px; border-radius: 12px; background: #fff; border: 1px solid #d2d2d7; }
+.fav-button--card:hover { border-color: #1d1d1f; }
+/* In the top right corner of the dark booking card on a car's page. */
+.fav-button--dark { position: absolute; top: 20px; right: 20px; width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); color: #f5f5f7; }
+.fav-button--dark:hover { background: rgba(255, 255, 255, 0.18); }
+.fav-button--dark.fav-button--on { color: #ff375f; }

@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { carImage, type Car } from '../data/cars'
+import { FavoriteButton } from '../components/FavoriteButton'
 import { reloadCars, useCars, useCatalogStatus } from '../lib/carStore'
 import { addDays, fmt, today } from '../lib/rental'
 import { useRentalDates } from '../lib/useRentalDates'
@@ -256,9 +257,13 @@ export function CarCard({ car, days, query }: { car: Car; days: number; query: s
         <p style={{ fontSize: 13, color: '#6e6e73', margin: '8px 0 0' }}>
           {t.marketplace.totalFor(fmt(car.pricePerDay * days), days)}
         </p>
-        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, height: 46, marginTop: 16, borderRadius: 12, fontSize: 18, fontWeight: 800, color: '#fff', background: hov ? '#3a3a3c' : '#1d1d1f', transition: 'background-color 0.15s' }}>
-          {t.marketplace.viewDetails}
-        </span>
+        {/* "View details" and, on its right, the heart that saves the car to the favourites. */}
+        <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+          <span style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, height: 46, borderRadius: 12, fontSize: 18, fontWeight: 800, color: '#fff', background: hov ? '#3a3a3c' : '#1d1d1f', transition: 'background-color 0.15s' }}>
+            {t.marketplace.viewDetails}
+          </span>
+          <FavoriteButton carId={car.id} className="fav-button--card" />
+        </div>
       </div>
     </Link>
   )

@@ -13,6 +13,7 @@ import { formatPhone } from '../lib/phone'
 import { useRentalDates } from '../lib/useRentalDates'
 import { DateField } from '../components/DateField'
 import { CarGallery } from '../components/CarGallery'
+import { FavoriteButton } from '../components/FavoriteButton'
 import { DeliveryPicker } from '../components/DeliveryPicker'
 import { SimilarCars } from '../components/SimilarCars'
 import { CarReviews } from '../components/CarReviews'
@@ -206,9 +207,10 @@ function CarDetailsContent({ car }: { car: Car }) {
             </Section>
           </div>
 
-          <aside className="booking-card" style={{ background: '#1c1c1e', borderRadius: 24, padding: '28px 24px', color: '#f5f5f7' }}>
+          <aside className="booking-card" style={{ position: 'relative', background: '#1c1c1e', borderRadius: 24, padding: '28px 24px', color: '#f5f5f7' }}>
+            <FavoriteButton carId={car.id} className="fav-button--dark" size={24} />
             {/* The car's name, rating and city, at the top of the booking card. */}
-            <header style={{ margin: '0 0 22px', paddingBottom: 20, borderBottom: '1px solid #3a3a3d' }}>
+            <header style={{ margin: '0 0 22px', paddingBottom: 20, paddingRight: 48, borderBottom: '1px solid #3a3a3d' }}>
               <p style={{ fontSize: 17, fontWeight: 600, color: '#a1a1a6', margin: '0 0 4px' }}>{car.brand} · {car.year}</p>
               <h1 style={{ fontSize: 'clamp(34px, 4vw, 46px)', fontWeight: 800, letterSpacing: '-0.035em', color: '#f5f5f7', margin: '0 0 10px', lineHeight: 1.05, overflowWrap: 'anywhere' }}>
                 {car.model}
