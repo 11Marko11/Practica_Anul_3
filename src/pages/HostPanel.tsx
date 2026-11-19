@@ -353,7 +353,7 @@ function HostPanelContent() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <Avatar name={b.customer.name} url={b.customer.avatarUrl} size={40} />
                         <div style={{ color: '#1d1d1f', minWidth: 0 }}>
-                          <div style={{ fontSize: 14, fontWeight: 500 }}>{b.customer.name}</div>
+                          <Link to={`/customers/${b.customer.id}`} title={t.customerProfile.open} style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1d1d1f', textDecoration: 'none' }}>{b.customer.name} <span aria-hidden="true" style={{ color: '#0071e3' }}>›</span></Link>
                           {b.customer.phone ? <a href={`tel:${b.customer.phone}`} style={{ color: '#0071e3', textDecoration: 'none' }}>{formatPhone(b.customer.phone)}</a> : <div style={{ color: '#6e6e73' }}>{h.contactLater}</div>}
                         </div>
                       </div>

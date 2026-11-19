@@ -322,6 +322,7 @@ function UserDetail({ id }: { id: string }) {
               <Avatar name={data.customer.name} url={data.customer.avatarUrl} size={44} />
               {data.customer.host ? <HostBadge /> : <CustomerBadge />}
               <StatusPill active={data.customer.active} />
+              <Link to={`/customers/${id}`} className="btn-action btn-action--neutral">{t.customerProfile.open}</Link>
               <span style={{ fontSize: 14, color: '#424245', overflowWrap: 'anywhere' }}>
                 {data.customer.active ? <a href={`mailto:${data.customer.email}`} style={{ color: '#0071e3', textDecoration: 'none' }}>{data.customer.email}</a> : data.customer.email}
               </span>

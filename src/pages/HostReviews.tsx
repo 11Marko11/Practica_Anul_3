@@ -108,7 +108,10 @@ export function HostReviews({ reviews }: { reviews: HostReview[] }) {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
                 <Avatar name={x.name} url={x.avatarUrl} size={28} />
-                <span style={{ fontSize: 14, fontWeight: 500, color: '#1d1d1f' }}>{x.name}</span>
+                {/* Sample reviews have no account behind the name, so no profile. */}
+                {x.author.startsWith('name:')
+                  ? <span style={{ fontSize: 14, fontWeight: 500, color: '#1d1d1f' }}>{x.name}</span>
+                  : <Link to={`/customers/${x.author}`} title={t.customerProfile.open} style={{ fontSize: 14, fontWeight: 500, color: '#1d1d1f', textDecoration: 'none' }}>{x.name} <span aria-hidden="true" style={{ color: '#0071e3' }}>›</span></Link>}
               </div>
               <p style={{ fontSize: 14, color: '#424245', margin: '8px 0 0', whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>{x.text}</p>
             </div>
