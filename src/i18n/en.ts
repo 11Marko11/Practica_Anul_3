@@ -1141,6 +1141,8 @@ export const en = {
     contact: 'Contact',
   },
   common: {
+    deliveryBadge: 'Delivered where you want',
+    returnBadge: 'Leave it where you want',
     fuelCar: { Electric: 'Electric car', Hybrid: 'Hybrid car', Petrol: 'Petrol car', Diesel: 'Diesel car' },
     days: (n: number) => countOf('en', n, { one: 'day', other: 'days' }),
     trips: (n: number) => countOf('en', n, { one: 'trip', other: 'trips' }),
