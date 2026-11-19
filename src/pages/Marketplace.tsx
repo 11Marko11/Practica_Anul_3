@@ -232,7 +232,14 @@ export function CarCard({ car, days, query }: { car: Car; days: number; query: s
     >
       <div style={{ position: 'relative', overflow: 'hidden', aspectRatio: '16/10', background: '#e8e8ed' }}>
         <img src={carImage(car, 900, 600)} loading="lazy" decoding="async" alt={`${car.year} ${car.brand} ${car.model}`} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s', transform: hov ? 'scale(1.04)' : 'scale(1)' }} />
-        {(car.fuel === 'Electric' || car.fuel === 'Hybrid') && (
+        {/* Electric: a light green dot with a bolt that opens to "Electric car" on hover. */}
+        {car.fuel === 'Electric' && (
+          <span className="ev-badge" aria-label={t.common.electricCar}>
+            <svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true"><path d="M7.2 0 0.8 8h4.3L4.4 14l6.8-8.4H6.8L7.2 0z" fill="currentColor" /></svg>
+            <span className="ev-badge__label">{t.common.electricCar}</span>
+          </span>
+        )}
+        {car.fuel === 'Hybrid' && (
           <span style={{ position: 'absolute', top: 12, right: 12, fontSize: 11, fontWeight: 500, background: 'rgba(255,255,255,0.9)', color: '#1d1d1f', padding: '4px 10px', borderRadius: 980, backdropFilter: 'blur(8px)' }}>
             {t.common.fuel[car.fuel]}
           </span>
