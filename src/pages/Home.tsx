@@ -203,21 +203,39 @@ const BRAND_TILE = {
   sm: { gridColumn: 'span 1', gridRow: 'span 1', logo: 32, logoFont: 14, name: 15, count: 12, padding: '14px 16px' },
 }
 
+// The brand's logo, from the free Simple Icons set on jsDelivr: "Škoda" → skoda.svg. Brands
+// without one there (or offline) simply show no logo.
+const logoUrl = (brand: string) =>
+  `https://cdn.jsdelivr.net/npm/simple-icons@16.38.0/icons/${brand.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '')}.svg`
+
 function BrandCard({ brand, size, onClick }: { brand: Brand; size: BrandSize; onClick: () => void }) {
   const [hov, setHov] = useState(false)
   const { t } = useI18n()
   const tile = BRAND_TILE[size]
+  const [logo, setLogo] = useState(true)
   return (
     <button
       onClick={onClick}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
-      style={{ gridColumn: tile.gridColumn, gridRow: tile.gridRow, display: 'flex', ...(size === 'md' ? { flexDirection: 'row', alignItems: 'center', gap: 16 } : { flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-start' }), padding: tile.padding, borderRadius: size === 'lg' ? 20 : 14, background: hov ? '#e8e8ed' : '#f5f5f7', border: 'none', cursor: 'pointer', transition: 'background 0.15s', textAlign: 'left', minWidth: 0 }}
+      style={{ gridColumn: tile.gridColumn, gridRow: tile.gridRow, display: 'flex', ...(size === 'md' ? { flexDirection: 'row', alignItems: 'center', gap: 16 } : { flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-start' }), padding: tile.padding, borderRadius: size === 'lg' ? 20 : 14, background: hov ? '#e8e8ed' : '#f5f5f7', border: 'none', cursor: 'pointer', transition: 'background 0.15s', textAlign: 'left', minWidth: 0, position: 'relative', overflow: 'hidden' }}
     >
-      <div style={{ width: tile.logo, height: tile.logo, flexShrink: 0, borderRadius: tile.logo / 4, background: '#1d1d1f', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: tile.logoFont, fontWeight: 700 }}>
+      {/* The brand's logo, large and faint, in the background on the right. */}
+      {logo && (
+        <img
+          src={logoUrl(brand.name)}
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+          onError={() => setLogo(false)}
+          className={`brand-logo-bg brand-logo-bg--${size}`}
+          style={{ transform: hov ? 'translateY(-50%) scale(1.05)' : 'translateY(-50%)' }}
+        />
+      )}
+      <div style={{ position: 'relative', width: tile.logo, height: tile.logo, flexShrink: 0, borderRadius: tile.logo / 4, background: '#1d1d1f', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: tile.logoFont, fontWeight: 700 }}>
         {brand.name.charAt(0).toUpperCase()}
       </div>
-      <div style={{ minWidth: 0 }}>
+      <div style={{ position: 'relative', minWidth: 0 }}>
         <div style={{ fontSize: tile.name, fontWeight: 600, color: '#1d1d1f', letterSpacing: '-0.02em' }}>{brand.name}</div>
         <div style={{ fontSize: tile.count, color: '#6e6e73', marginTop: 2 }}>{t.home.carsAvailable(brand.count)}</div>
       </div>
