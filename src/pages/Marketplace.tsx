@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Link } from 'react-router'
-import { carImage, type Car } from '../data/cars'
+import { BODY_TYPES, carImage, type Car } from '../data/cars'
 import { FavoriteButton } from '../components/FavoriteButton'
 import { CarBadges } from '../components/CarBadges'
 import { reloadCars, useCars, useCatalogStatus } from '../lib/carStore'
@@ -41,6 +41,8 @@ export function Marketplace() {
 
   const brands = [...new Set(cars.map(c => c.brand))].sort((a, b) => a.localeCompare(b))
   const cities = [...new Set(cars.map(c => c.location.split(',')[0]))].sort((a, b) => a.localeCompare(b))
+  // Only the body types some car has (sedan, SUV…), in a fixed order.
+  const bodies = new Set(cars.flatMap(c => (c.bodyType ? [c.bodyType] : [])))
   const prices = cars.map(c => c.pricePerDay)
   const priceMin = Math.floor(Math.min(...prices, 0) / 100) * 100
   const priceMax = Math.ceil(Math.max(...prices, 100) / 100) * 100
@@ -107,6 +109,18 @@ export function Marketplace() {
                 })}
               </div>
             </FilterField>
+            {(bodies.size > 0 || filters.bodies.length > 0) && <FilterField label={t.marketplace.body} wide>
+              <div role="group" aria-label={t.marketplace.body} style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {BODY_TYPES.filter(b => bodies.has(b) || filters.bodies.includes(b)).map(b => {
+                  const on = filters.bodies.includes(b)
+                  return (
+                    <button key={b} aria-pressed={on} onClick={() => update(cur => ({ bodies: cur.bodies.includes(b) ? cur.bodies.filter(x => x !== b) : [...cur.bodies, b] }))} style={pill(on)}>
+                      {t.common.body[b]}
+                    </button>
+                  )
+                })}
+              </div>
+            </FilterField>}
             <FilterField label={t.marketplace.seats}>
               <Select label={t.marketplace.seats} value={String(filters.seats ?? '')} active={!!filters.seats} onChange={v => update({ seats: v ? Number(v) : null })}>
                 <option value="">{t.marketplace.any}</option>

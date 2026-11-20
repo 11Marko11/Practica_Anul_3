@@ -1,4 +1,7 @@
 import type { CarCondition } from '../lib/carCondition'
+export const BODY_TYPES = ['SEDAN', 'HATCHBACK', 'WAGON', 'SUV', 'CROSSOVER', 'COUPE', 'CONVERTIBLE', 'MINIVAN', 'PICKUP', 'VAN'] as const
+export type BodyType = (typeof BODY_TYPES)[number]
+
 export type Car = {
   id: number
   slug: string
@@ -14,6 +17,7 @@ export type Car = {
   topSpeed: number // km/h
   transmission: string
   drive: 'AWD' | 'RWD' | 'FWD'
+  bodyType?: BodyType | null // null for cars saved before it was asked
   range?: number // electric range in km
   location: string // city shown in listings
   pickup: { address: string; lat: number; lng: number } // where the car is collected

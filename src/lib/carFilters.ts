@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useUrlParams } from './useUrlParams'
-import type { Car } from '../data/cars'
+import { BODY_TYPES, type BodyType, type Car } from '../data/cars'
 import { api } from './api'
 
 export const SORTS = ['newest', 'price-asc', 'price-desc', 'power', 'fastest'] as const
@@ -13,6 +13,7 @@ export type Filters = {
   brand: string | null
   city: string | null
   fuels: Car['fuel'][] // empty = any
+  bodies: BodyType[] // empty = any
   seats: number | null // at least
   drive: Car['drive'] | null
   minHp: number | null
@@ -29,6 +30,7 @@ function parse(params: URLSearchParams): Filters {
     brand: params.get('brand'),
     city: params.get('city'),
     fuels: (params.get('fuel') ?? '').split(',').filter((f): f is Car['fuel'] => FUELS.includes(f as Car['fuel'])),
+    bodies: (params.get('body') ?? '').split(',').filter((b): b is BodyType => (BODY_TYPES as readonly string[]).includes(b)),
     seats: int(params.get('seats')),
     drive: drive === 'AWD' || drive === 'RWD' || drive === 'FWD' ? drive : null,
     minHp: int(params.get('hp')),
@@ -37,7 +39,7 @@ function parse(params: URLSearchParams): Filters {
   }
 }
 
-const NO_FILTERS = { brand: null, city: null, fuels: [], seats: null, drive: null, minHp: null, maxPrice: null } satisfies Omit<Filters, 'sort'>
+const NO_FILTERS = { brand: null, city: null, fuels: [], bodies: [], seats: null, drive: null, minHp: null, maxPrice: null } satisfies Omit<Filters, 'sort'>
 
 // The car list's filters and sort order live in the URL (?brand=BMW&fuel=Electric,Hybrid&sort=power…),
 // so they survive a reload, the back button, and can be shared as a link.
@@ -53,6 +55,7 @@ export function useCarFilters() {
       put('brand', next.brand)
       put('city', next.city)
       put('fuel', next.fuels.join(','))
+      put('body', next.bodies.join(','))
       put('seats', next.seats)
       put('drive', next.drive)
       put('hp', next.minHp)
@@ -62,7 +65,7 @@ export function useCarFilters() {
     })
   }
 
-  const active = [filters.brand, filters.city, filters.fuels.length || null, filters.seats, filters.drive, filters.minHp, filters.maxPrice].filter(v => v !== null).length
+  const active = [filters.brand, filters.city, filters.fuels.length || null, filters.bodies.length || null, filters.seats, filters.drive, filters.minHp, filters.maxPrice].filter(v => v !== null).length
 
   return { filters, update, active, reset: () => update(NO_FILTERS), params, edit }
 }
@@ -73,6 +76,7 @@ export function applyFilters(cars: Car[], f: Filters) {
       (!f.brand || c.brand === f.brand) &&
       (!f.city || c.location.split(',')[0] === f.city) &&
       (!f.fuels.length || f.fuels.includes(c.fuel)) &&
+      (!f.bodies.length || (!!c.bodyType && f.bodies.includes(c.bodyType))) &&
       (!f.seats || c.seats >= f.seats) &&
       (!f.drive || c.drive === f.drive) &&
       (!f.minHp || c.horsepower >= f.minHp) &&

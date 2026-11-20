@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
-import { CITIES, photoUrl, type Car } from '../data/cars'
+import { BODY_TYPES, CITIES, photoUrl, type BodyType, type Car } from '../data/cars'
 import type { CarInput } from '../lib/carStore'
 import { api, ApiError } from '../lib/api'
 import { searchAddress, type Place } from '../lib/delivery'
@@ -83,6 +83,7 @@ type FormState = {
   topSpeed: string
   transmission: string
   drive: Car['drive']
+  bodyType: BodyType | ''
   status: Status
   range: string
   city: string
@@ -100,7 +101,7 @@ type FormState = {
 
 const EMPTY: FormState = {
   brand: '', model: '', year: String(new Date().getFullYear()), price: '', fuel: 'Petrol', seats: '4',
-  horsepower: '', acceleration: '', topSpeed: '', transmission: '', drive: 'FWD', status: 'ACTIVE', range: '',
+  horsepower: '', acceleration: '', topSpeed: '', transmission: '', drive: 'FWD', bodyType: '', status: 'ACTIVE', range: '',
   city: CITIES[0], address: '', pickup: null, freeReturn: true, delivery: true, photos: [], descriptionEn: '', descriptionRo: '', descriptionRu: '', features: '', defects: '',
 }
 
@@ -108,7 +109,7 @@ function fromCar(car: Car): FormState {
   return {
     brand: car.brand, model: car.model, year: String(car.year), price: String(car.pricePerDay), fuel: car.fuel, seats: String(car.seats),
     horsepower: String(car.horsepower), acceleration: String(car.acceleration), topSpeed: String(car.topSpeed), transmission: car.transmission,
-    drive: car.drive, status: car.status === 'HIDDEN' ? 'HIDDEN' : 'ACTIVE', range: car.range ? String(car.range) : '',
+    drive: car.drive, bodyType: car.bodyType ?? '', status: car.status === 'HIDDEN' ? 'HIDDEN' : 'ACTIVE', range: car.range ? String(car.range) : '',
     city: car.location.split(',')[0], address: car.pickup.address, pickup: car.pickup, freeReturn: car.freeReturn !== false, delivery: car.delivery !== false,
     photos: car.photos, descriptionEn: car.description, descriptionRo: car.translations?.ro?.description ?? '', descriptionRu: car.translations?.ru?.description ?? '',
     features: car.features.join('\n'), defects: (car.defects ?? []).join('\n'),
@@ -116,7 +117,7 @@ function fromCar(car: Car): FormState {
 }
 
 // The fields checked before saving, in the order they appear on the page.
-const CHECKED = ['brand', 'model', 'year', 'price', 'seats', 'horsepower', 'acceleration', 'topSpeed', 'transmission', 'address', 'photos', 'descriptionEn'] as const
+const CHECKED = ['brand', 'model', 'year', 'price', 'bodyType', 'seats', 'horsepower', 'acceleration', 'topSpeed', 'transmission', 'address', 'photos', 'descriptionEn'] as const
 type Checked = (typeof CHECKED)[number]
 type FieldErrors = Partial<Record<Checked, string>>
 
@@ -155,7 +156,7 @@ function CarForm({ existing, review, initialDocuments, backUrl, backLabel, title
   const cf = t.carForm
   const fieldLabels: Record<Checked, string> = {
     brand: t.admin.fields.brand, model: t.admin.fields.model, year: t.admin.fields.year, price: t.admin.fields.price,
-    seats: t.admin.fields.seats, horsepower: t.admin.fields.horsepower, acceleration: t.admin.fields.acceleration,
+    bodyType: t.admin.fields.body, seats: t.admin.fields.seats, horsepower: t.admin.fields.horsepower, acceleration: t.admin.fields.acceleration,
     topSpeed: t.admin.fields.topSpeed, transmission: t.admin.fields.transmission, address: t.admin.fields.address,
     photos: t.admin.sections.photos, descriptionEn: `${t.admin.sections.description} (${t.admin.fields.descriptionEn})`,
   }
@@ -174,6 +175,7 @@ function CarForm({ existing, review, initialDocuments, backUrl, backLabel, title
     text('model', f.model)
     number('year', f.year, 1950, new Date().getFullYear() + 1)
     number('price', f.price, 1, 1_000_000)
+    if (!f.bodyType) out.bodyType = cf.required
     number('seats', f.seats, 1, 12)
     number('horsepower', f.horsepower, 1, 3000)
     number('acceleration', f.acceleration, 0.1, 60)
@@ -224,6 +226,7 @@ function CarForm({ existing, review, initialDocuments, backUrl, backLabel, title
       topSpeed: Math.round(num(f.topSpeed)),
       transmission: f.transmission.trim(),
       drive: f.drive,
+      bodyType: f.bodyType || null,
       range: (f.fuel === 'Electric' || f.fuel === 'Hybrid') && positive(f.range) ? Math.round(num(f.range)) : undefined,
       city: f.city,
       pickup: f.pickup,
@@ -284,6 +287,12 @@ function CarForm({ existing, review, initialDocuments, backUrl, backLabel, title
               <Field label={t.admin.fields.fuel}>
                 <select value={form.fuel} onChange={e => set('fuel', e.target.value as Car['fuel'])} style={inputStyle}>
                   {(['Petrol', 'Diesel', 'Electric', 'Hybrid'] as const).map(f => <option key={f} value={f}>{t.common.fuel[f]}</option>)}
+                </select>
+              </Field>
+              <Field name="bodyType" label={t.admin.fields.body} required error={fieldErrors.bodyType}>
+                <select value={form.bodyType} onChange={e => set('bodyType', e.target.value as BodyType)} style={inputStyle}>
+                  <option value="" disabled>{cf.chooseBody}</option>
+                  {BODY_TYPES.map(b => <option key={b} value={b}>{t.common.body[b]}</option>)}
                 </select>
               </Field>
               <Field label={t.admin.fields.drive}>
