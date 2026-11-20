@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { carImage, type Car } from '../data/cars'
+import { CarBadges } from './CarBadges'
 import { useCars } from '../lib/carStore'
 import { fmt } from '../lib/rental'
 import { useI18n } from '../i18n/I18nContext'
@@ -50,8 +51,9 @@ export function SimilarCars({ cars, query, title, subtitle }: { cars: Car[]; que
       <div ref={row} onScroll={updateEdges} className="similar-row">
         {cars.map(c => (
           <Link key={c.id} to={`/cars/${c.slug}${query}`} className="similar-card" style={{ textDecoration: 'none', borderRadius: 18, overflow: 'hidden', background: '#f5f5f7', display: 'block' }}>
-            <div style={{ aspectRatio: '16/10', background: '#e8e8ed' }}>
+            <div style={{ position: 'relative', aspectRatio: '16/10', background: '#e8e8ed' }}>
               <img src={carImage(c, 600, 375)} alt={`${c.year} ${c.brand} ${c.model}`} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              <CarBadges car={c} />
             </div>
             <div style={{ padding: '16px 18px 18px' }}>
               <div style={{ fontSize: 12, color: '#6e6e73' }}>{c.brand} · {c.year}</div>
