@@ -29,7 +29,7 @@ const STATUS_COLORS = { live: ['#e3f6e8', '#1b7a35'], scheduled: ['#e6f0ff', '#0
 function Header({ title }: { title: string }) {
   return (
     <div style={{ padding: '40px 24px 28px', background: '#1c1c1e' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         <AdminTabs />
         <h1 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#f5f5f7', margin: 0, lineHeight: 1.05 }}>{title}</h1>
       </div>
@@ -70,7 +70,7 @@ function PromotionList() {
   return (
     <div style={{ paddingTop: 64 }}>
       <Header title={a.title} />
-      <main style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 24px 96px' }}>
+      <main style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 24px 96px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
           <p style={{ fontSize: 14, color: '#6e6e73', margin: 0, maxWidth: 620, lineHeight: 1.5 }}>{a.intro}</p>
           <Link to="/admin/promotions/new" style={{ fontSize: 15, fontWeight: 500, padding: '12px 24px', borderRadius: 980, background: '#1d1d1f', color: '#fff', textDecoration: 'none' }}>{a.add}</Link>
@@ -85,28 +85,34 @@ function PromotionList() {
           return (
             <section key={placement} style={{ marginTop: 32 }}>
               <h2 style={{ fontSize: 19, fontWeight: 600, letterSpacing: '-0.02em', color: '#1d1d1f', margin: '0 0 12px' }}>{a.placement[placement]}</h2>
+              {/* One card per ad, like the cars: the picture large with its state, the details, the actions. */}
+              <ul className="admin-car-grid">
               {list.map(p => {
                 const status = statusOf(p)
                 const [bg, fg] = STATUS_COLORS[status]
                 return (
-                  <div key={p.id} className="admin-row" style={{ padding: '14px 0', borderBottom: '1px solid #f0f0f0' }}>
-                    <div style={{ width: 150, aspectRatio: '16/9', borderRadius: 10, overflow: 'hidden', background: p.imageUrl ? `#1c1c1e center / cover no-repeat url("${p.imageUrl}")` : '#1c1c1e', flexShrink: 0, opacity: status === 'live' ? 1 : 0.55 }} />
-                    <div style={{ flex: 1, minWidth: 200 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                        <strong style={{ fontSize: 15, fontWeight: 600, color: '#1d1d1f' }}>{promoText(p, lang, 'title')}</strong>
-                        <span style={{ fontSize: 12, fontWeight: 500, padding: '2px 9px', borderRadius: 980, background: bg, color: fg }}>{a.status[status]}</span>
+                  <li key={p.id} className="admin-car-card">
+                    <div className="admin-car-card__photo" style={{ aspectRatio: '16 / 9', background: p.imageUrl ? `#1c1c1e center / cover no-repeat url("${p.imageUrl}")` : '#1c1c1e', filter: status === 'live' ? 'none' : 'grayscale(0.6)', opacity: status === 'live' ? 1 : 0.7 }}>
+                      <div className="admin-car-card__pills" style={{ justifyContent: 'space-between' }}>
+                        <span style={{ background: bg, color: fg }}>{a.status[status]}</span>
+                        <span style={{ background: 'rgba(28,28,30,0.75)', color: '#fff' }}>#{p.position}</span>
                       </div>
-                      <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 2 }}>{dates(p)} · #{p.position} · {a.clicks(p.clicks ?? 0)}</div>
-                      {p.linkUrl && <div style={{ fontSize: 12, color: '#86868b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.linkUrl}</div>}
                     </div>
-                    <div className="row-actions">
-                      <button onClick={() => toggle(p)} className="btn-action btn-action--neutral">{p.active ? a.turnOff : a.turnOn}</button>
-                      <Link to={`/admin/promotions/${p.id}`} className="btn-action btn-action--primary">{a.edit}</Link>
-                      <button onClick={() => remove(p)} className="btn-action btn-action--danger">{a.delete}</button>
+                    <div className="admin-car-card__body">
+                      <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em', color: '#1d1d1f', overflowWrap: 'anywhere' }}>{promoText(p, lang, 'title')}</div>
+                      <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 6 }}>{dates(p)}</div>
+                      <div style={{ fontSize: 14, color: '#1d1d1f', marginTop: 4 }}><strong style={{ fontWeight: 700 }}>{a.clicks(p.clicks ?? 0)}</strong></div>
+                      {p.linkUrl && <div title={p.linkUrl} style={{ fontSize: 12, color: '#86868b', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.linkUrl}</div>}
+                      <div className="admin-car-card__actions admin-car-card__actions--three">
+                        <button onClick={() => toggle(p)} className="btn-action btn-action--neutral">{p.active ? a.turnOff : a.turnOn}</button>
+                        <Link to={`/admin/promotions/${p.id}`} className="btn-action btn-action--primary">{a.edit}</Link>
+                        <button onClick={() => remove(p)} className="btn-action btn-action--danger">{a.delete}</button>
+                      </div>
                     </div>
-                  </div>
+                  </li>
                 )
               })}
+              </ul>
             </section>
           )
         })}
