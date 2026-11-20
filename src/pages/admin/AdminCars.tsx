@@ -197,16 +197,12 @@ function AdminCarsContent() {
                     <div style={{ fontSize: 13, color: '#6e6e73' }}>{car.brand} · {car.year}</div>
                     <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', color: '#1d1d1f', marginTop: 2, overflowWrap: 'anywhere' }}>{car.model}</div>
                     <div style={{ fontSize: 14, color: '#424245', marginTop: 6 }}>
-                      <strong style={{ fontWeight: 700, color: '#1d1d1f' }}>{fmt(car.pricePerDay)}</strong>{t.common.perDay} · {car.horsepower} {t.car.units.hp}
+                      <strong style={{ fontWeight: 700, color: '#1d1d1f' }}>{fmt(car.pricePerDay)}</strong>{t.common.perDay}
                     </div>
-                    <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 4 }}>{carText(car, lang).location}</div>
-                    <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 2 }}>
+                    <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 4 }}>
                       <Link to={`/hosts/${car.host.id}`} style={{ color: '#0071e3', textDecoration: 'none' }}>{car.host.name}</Link>
                       {car.createdAt && <span style={{ color: '#86868b' }}> · {t.adminCarsList.added(new Date(car.createdAt).toLocaleDateString(lang))}</span>}
                     </div>
-                    {car.condition && car.condition !== 'READY' && car.conditionNote && (
-                      <div style={{ fontSize: 13, color: '#424245', marginTop: 6, overflowWrap: 'anywhere' }}>„{car.conditionNote}”</div>
-                    )}
                     <div className="admin-car-card__actions">
                       <button onClick={() => setReviewing(reviewing === car.id ? null : car.id)} className={`btn-action ${car.reviewStatus === 'PENDING' ? 'btn-action--primary' : 'btn-action--neutral'}`}>
                         {reviewing === car.id ? t.carPapers.admin.hide : t.carPapers.admin.review}
