@@ -110,10 +110,10 @@ function AdminCarsContent() {
   return (
     <div style={{ paddingTop: 64 }}>
       <div style={{ padding: '40px 24px 36px', background: '#1c1c1e' }}>
-        <div style={{ maxWidth: 1000, margin: '0 auto' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <AdminTabs />
         </div>
-        <div style={{ maxWidth: 1000, margin: '0 auto', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
           <div>
             <h1 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#f5f5f7', margin: 0, lineHeight: 1.05 }}>{t.admin.title}</h1>
             <p style={{ fontSize: 14, color: '#a1a1a6', margin: '10px 0 0' }}>{t.admin.count(allCars.length)} · {t.admin.carsByHosts}</p>
@@ -126,7 +126,7 @@ function AdminCarsContent() {
         </div>
       </div>
 
-      <main ref={keep.ref} style={{ minHeight: keep.minHeight, maxWidth: 1000, margin: '0 auto', padding: '24px 24px 96px' }}>
+      <main ref={keep.ref} style={{ minHeight: keep.minHeight, maxWidth: 1200, margin: '0 auto', padding: '24px 24px 96px' }}>
         <div className="admin-car-toolbar">
           <input
             type="search"
