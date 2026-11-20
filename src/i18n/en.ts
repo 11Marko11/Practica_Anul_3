@@ -1232,6 +1232,7 @@ export const en = {
       transmission: 'Transmission',
       drive: 'Drive',
       body: 'Body type',
+      bodyUnknown: 'Not given',
       seats: 'Seats',
       fuel: 'Fuel',
       range: 'Range',

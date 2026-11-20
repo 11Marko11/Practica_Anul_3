@@ -1232,6 +1232,7 @@ export const ru: Dict = {
       transmission: 'Коробка передач',
       drive: 'Привод',
       body: 'Кузов',
+      bodyUnknown: 'Не указан',
       seats: 'Места',
       fuel: 'Топливо',
       range: 'Запас хода',

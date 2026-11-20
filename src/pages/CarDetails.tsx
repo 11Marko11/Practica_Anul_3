@@ -82,7 +82,8 @@ function CarDetailsContent({ car }: { car: Car }) {
     { label: t.car.spec.acceleration, value: `${car.acceleration} ${t.car.units.s}` },
     { label: t.car.spec.topSpeed, value: `${car.topSpeed} ${t.car.units.kmh}` },
     { label: t.car.spec.transmission, value: text.transmission },
-    ...(car.bodyType ? [{ label: t.car.spec.body, value: t.common.body[car.bodyType] }] : []),
+    // Cars saved before the body type was asked have none until the host sets it.
+    { label: t.car.spec.body, value: car.bodyType ? t.common.body[car.bodyType] : t.car.spec.bodyUnknown },
     { label: t.car.spec.drive, value: t.car.drive[car.drive] },
     { label: t.car.spec.seats, value: t.common.seats(car.seats) },
     { label: t.car.spec.fuel, value: t.common.fuel[car.fuel] },

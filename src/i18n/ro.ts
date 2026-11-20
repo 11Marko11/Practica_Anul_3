@@ -1232,6 +1232,7 @@ export const ro: Dict = {
       transmission: 'Transmisie',
       drive: 'Tracțiune',
       body: 'Caroserie',
+      bodyUnknown: 'Neindicată',
       seats: 'Locuri',
       fuel: 'Combustibil',
       range: 'Autonomie',
