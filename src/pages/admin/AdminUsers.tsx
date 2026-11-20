@@ -98,7 +98,7 @@ export function AdminUsers() {
 function Header({ title, children }: { title: string; children?: React.ReactNode }) {
   return (
     <div style={{ padding: '40px 24px 28px', background: '#1c1c1e' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         <AdminTabs />
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
           <h1 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#f5f5f7', margin: 0, lineHeight: 1.05, overflowWrap: 'anywhere' }}>{title}</h1>
@@ -190,7 +190,7 @@ function UserList() {
           {t.adminHosts.add}
         </button>
       </Header>
-      <main ref={keep.ref} style={{ minHeight: keep.minHeight, maxWidth: 1100, margin: '0 auto', padding: '24px 24px 96px' }}>
+      <main ref={keep.ref} style={{ minHeight: keep.minHeight, maxWidth: 1200, margin: '0 auto', padding: '24px 24px 96px' }}>
         {adding && (
           <div style={{ padding: 20, borderRadius: 16, background: '#f5f5f7', marginBottom: 20 }}>
             <HostEditor withAccount onSave={addHost} onCancel={() => setAdding(false)} />
@@ -241,47 +241,49 @@ function UserList() {
         {!loaded && <p style={{ fontSize: 15, color: '#6e6e73', marginTop: 24 }}>{t.bookings.loading}</p>}
         {loaded && list.length === 0 && <p style={{ fontSize: 15, color: '#6e6e73', padding: '32px 0' }}>{u.empty}</p>}
 
-        <ul style={{ listStyle: 'none', margin: '16px 0 0', padding: 0 }}>
+        {/* One card per person: a large photo and name, their badges and contact, their numbers, then "Edit". */}
+        <ul className="user-grid">
           {shown.map(e => {
             const x = e.customer
             const active = x ? x.active : true
             return (
-              <li key={e.key} className="customer-row user-row">
-                <Avatar name={e.name} url={x?.avatarUrl} size={40} background={!active ? '#c7c7cc' : e.host ? '#0071e3' : '#1c1c1e'} />
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                    <Link to={e.to} className="user-row-link" style={{ fontSize: 15, fontWeight: 600, color: '#1d1d1f', textDecoration: 'none' }}>{e.name}</Link>
-                    {e.host ? <HostBadge /> : <CustomerBadge />}
-                    {x && !x.active && <StatusPill active={false} />}
-                    {x?.active && <VerificationBadge status={x.verificationStatus} />}
-                    {x?.active && x.hostApplicationStatus === 'PENDING' && !e.host && <RequestBadge />}
-                  </div>
-                  <div style={{ fontSize: 13, color: '#6e6e73', overflowWrap: 'anywhere' }}>
-                    {e.email || <span style={{ color: '#b25000' }}>{t.adminHosts.noAccount}</span>}
-                    {e.host && e.host.name !== e.name && ` · ${u.hostAs(e.host.name)}`}
-                  </div>
-                  <div style={{ fontSize: 12, color: '#86868b', marginTop: 2 }}>
-                    {e.host
-                      ? `${t.common.trips(e.host.trips)} · ${t.adminHosts.cars(e.host.cars.filter(car => car.status !== 'REMOVED').length)} · ${t.commission.label}: ${e.host.commissionRate}%`
-                      : x && (x.active ? c.since(formatDate(x.createdAt.slice(0, 10), lang)) : c.deletedOn(formatDate(x.deletedAt!.slice(0, 10), lang)))}
-                    {x?.lastBookingAt && ` · ${c.lastBooking(formatDate(x.lastBookingAt.slice(0, 10), lang))}`}
+              <li key={e.key} className="user-card">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <Avatar name={e.name} url={x?.avatarUrl} size={64} background={!active ? '#c7c7cc' : e.host ? '#0071e3' : '#1c1c1e'} />
+                  <div style={{ minWidth: 0 }}>
+                    <Link to={e.to} className="user-row-link" style={{ display: 'block', fontSize: 19, fontWeight: 700, letterSpacing: '-0.02em', color: '#1d1d1f', textDecoration: 'none', overflowWrap: 'anywhere' }}>{e.name}</Link>
+                    <div style={{ fontSize: 14, color: '#6e6e73', overflowWrap: 'anywhere', marginTop: 2 }}>
+                      {e.email || <span style={{ color: '#b25000' }}>{t.adminHosts.noAccount}</span>}
+                    </div>
                   </div>
                 </div>
-                <div className="user-row-side">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 14 }}>
+                  {e.host ? <HostBadge /> : <CustomerBadge />}
+                  {x && !x.active && <StatusPill active={false} />}
+                  {x?.active && <VerificationBadge status={x.verificationStatus} />}
+                  {x?.active && x.hostApplicationStatus === 'PENDING' && !e.host && <RequestBadge />}
+                </div>
+                {/* Their numbers: the hosts' car rating, or what the customer spent. */}
+                <div className="user-card__stats">
                   {e.host ? (
-                    // For hosts: the average rating of their cars.
-                    <div style={{ fontSize: 12, color: '#6e6e73', textAlign: 'right' }}>
-                      <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f' }}>{e.host.rating !== null ? `★ ${e.host.rating.toFixed(1)}` : '—'}</div>
-                      {u.carsRating} · {c.reviewsCount(e.host.reviews)}
-                    </div>
+                    <>
+                      <div><strong>{e.host.rating !== null ? `★ ${e.host.rating.toFixed(1)}` : '—'}</strong><span>{u.carsRating} · {c.reviewsCount(e.host.reviews)}</span></div>
+                      <div><strong>{e.host.cars.filter(car => car.status !== 'REMOVED').length}</strong><span>{t.adminHosts.cars(e.host.cars.filter(car => car.status !== 'REMOVED').length).replace(/^\d+\s*/, '')} · {t.common.trips(e.host.trips)}</span></div>
+                    </>
                   ) : x && (
-                    <div style={{ fontSize: 13, color: '#6e6e73', textAlign: 'right' }}>
-                      <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f' }}><Money value={x.spent} /></div>
-                      {c.bookings(x.bookings)} · {c.reviewsCount(x.reviews)}
-                    </div>
+                    <>
+                      <div><strong><Money value={x.spent} /></strong><span>{c.bookings(x.bookings)}</span></div>
+                      <div><strong>{x.reviews}</strong><span>{c.reviewsCount(x.reviews).replace(/^\d+\s*/, '')}</span></div>
+                    </>
                   )}
-                  {active && <Link to={`${e.to}?edit=1`} className="btn-action btn-action--primary" style={{ position: 'relative', zIndex: 1 }}>{u.edit}</Link>}
                 </div>
+                <div style={{ fontSize: 13, color: '#86868b', marginTop: 12, lineHeight: 1.5 }}>
+                  {e.host
+                    ? <>{e.host.name !== e.name && <>{u.hostAs(e.host.name)} · </>}{t.commission.label}: {e.host.commissionRate}%</>
+                    : x && (x.active ? c.since(formatDate(x.createdAt.slice(0, 10), lang)) : c.deletedOn(formatDate(x.deletedAt!.slice(0, 10), lang)))}
+                  {x?.lastBookingAt && <div>{c.lastBooking(formatDate(x.lastBookingAt.slice(0, 10), lang))}</div>}
+                </div>
+                {active && <Link to={`${e.to}?edit=1`} className="btn-action btn-action--primary user-card__edit">{u.edit}</Link>}
               </li>
             )
           })}
