@@ -29,6 +29,20 @@ enum Drive {
   FWD
 }
 
+// The car's body: sedan, SUV…
+enum BodyType {
+  SEDAN
+  HATCHBACK
+  WAGON
+  SUV
+  CROSSOVER
+  COUPE
+  CONVERTIBLE
+  MINIVAN
+  PICKUP
+  VAN
+}
+
 // Whether the car can be rented now, as its host says. Anything but READY takes it off the site
 // until the host makes it available again.
 enum CarCondition {
@@ -231,6 +245,7 @@ model Car {
   topSpeed          Int // km/h
   transmission      String
   drive             Drive
+  bodyType          BodyType? // null for cars saved before it was asked
   range             Int? // electric range in km
   city              String // e.g. "Chișinău"
   pickupAddress     String

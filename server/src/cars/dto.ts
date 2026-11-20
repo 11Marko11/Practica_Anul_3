@@ -12,6 +12,8 @@ export const LISTED = { status: 'ACTIVE', reviewStatus: 'APPROVED', condition: '
 export const isListed = (car: { status: string; reviewStatus: string; condition: string }) =>
   car.status === 'ACTIVE' && car.reviewStatus === 'APPROVED' && car.condition === 'READY'
 
+export const BODY_TYPES = ['SEDAN', 'HATCHBACK', 'WAGON', 'SUV', 'CROSSOVER', 'COUPE', 'CONVERTIBLE', 'MINIVAN', 'PICKUP', 'VAN'] as const
+
 // The states a host can pick; NO_DOCUMENTS is set and cleared by the site, from the car's papers.
 export const CAR_CONDITIONS = ['READY', 'CLEANING', 'NEEDS_CLEANING', 'NEEDS_CHECK', 'IN_SERVICE', 'DAMAGED', 'OTHER'] as const
 
@@ -37,6 +39,7 @@ export function toCarDto(car: CarRow, host: HostStats) {
     topSpeed: car.topSpeed,
     transmission: car.transmission,
     drive: car.drive,
+    bodyType: car.bodyType,
     range: car.range ?? undefined,
     location: `${car.city}, Moldova`,
     pickup: { address: car.pickupAddress, lat: car.pickupLat, lng: car.pickupLng },
@@ -74,6 +77,7 @@ const carFields = z.object({
   topSpeed: z.int().positive().max(600),
   transmission: text(80),
   drive: z.enum(['AWD', 'RWD', 'FWD']),
+  bodyType: z.enum(BODY_TYPES),
   range: z.int().positive().max(2000).nullish(),
   city: text(60),
   pickup: z.object({ address: text(200), lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) }),
@@ -111,6 +115,7 @@ export function carData(input: CarInput) {
     topSpeed: input.topSpeed,
     transmission: input.transmission,
     drive: input.drive,
+    bodyType: input.bodyType,
     range: input.fuel === 'Electric' || input.fuel === 'Hybrid' ? (input.range ?? null) : null,
     city: input.city,
     pickupAddress: input.pickup.address,
