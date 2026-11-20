@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Link } from 'react-router'
-import { BODY_TYPES, carImage, type Car } from '../data/cars'
+import { BODY_TYPES, carImage, type BodyType, type Car } from '../data/cars'
 import { FavoriteButton } from '../components/FavoriteButton'
 import { CarBadges } from '../components/CarBadges'
 import { reloadCars, useCars, useCatalogStatus } from '../lib/carStore'
@@ -103,17 +103,11 @@ export function Marketplace() {
                 {FUELS.map(f => <option key={f} value={f}>{t.common.fuel[f]}</option>)}
               </Select>
             </FilterField>
-            {(bodies.size > 0 || filters.bodies.length > 0) && <FilterField label={t.marketplace.body} wide>
-              <div role="group" aria-label={t.marketplace.body} style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                {BODY_TYPES.filter(b => bodies.has(b) || filters.bodies.includes(b)).map(b => {
-                  const on = filters.bodies.includes(b)
-                  return (
-                    <button key={b} aria-pressed={on} onClick={() => update(cur => ({ bodies: cur.bodies.includes(b) ? cur.bodies.filter(x => x !== b) : [...cur.bodies, b] }))} style={pill(on)}>
-                      {t.common.body[b]}
-                    </button>
-                  )
-                })}
-              </div>
+            {(bodies.size > 0 || filters.bodies.length > 0) && <FilterField label={t.marketplace.body}>
+              <Select label={t.marketplace.body} value={filters.bodies[0] ?? ''} active={filters.bodies.length > 0} onChange={v => update({ bodies: v ? [v as BodyType] : [] })}>
+                <option value="">{t.marketplace.any}</option>
+                {BODY_TYPES.filter(b => bodies.has(b) || filters.bodies.includes(b)).map(b => <option key={b} value={b}>{t.common.body[b]}</option>)}
+              </Select>
             </FilterField>}
             <FilterField label={t.marketplace.seats}>
               <Select label={t.marketplace.seats} value={String(filters.seats ?? '')} active={!!filters.seats} onChange={v => update({ seats: v ? Number(v) : null })}>
