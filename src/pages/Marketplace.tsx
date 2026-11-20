@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { BODY_TYPES, carImage, type BodyType, type Car } from '../data/cars'
 import { FavoriteButton } from '../components/FavoriteButton'
@@ -104,10 +104,13 @@ export function Marketplace() {
               </Select>
             </FilterField>
             {(bodies.size > 0 || filters.bodies.length > 0) && <FilterField label={t.marketplace.body}>
-              <Select label={t.marketplace.body} value={filters.bodies[0] ?? ''} active={filters.bodies.length > 0} onChange={v => update({ bodies: v ? [v as BodyType] : [] })}>
-                <option value="">{t.marketplace.any}</option>
-                {BODY_TYPES.filter(b => bodies.has(b) || filters.bodies.includes(b)).map(b => <option key={b} value={b}>{t.common.body[b]}</option>)}
-              </Select>
+              <MultiSelect
+                label={t.marketplace.body}
+                anyLabel={t.marketplace.any}
+                options={BODY_TYPES.filter(b => bodies.has(b) || filters.bodies.includes(b)).map(b => ({ value: b, label: t.common.body[b] }))}
+                selected={filters.bodies}
+                onChange={next => update({ bodies: next as BodyType[] })}
+              />
             </FilterField>}
             <FilterField label={t.marketplace.seats}>
               <Select label={t.marketplace.seats} value={String(filters.seats ?? '')} active={!!filters.seats} onChange={v => update({ seats: v ? Number(v) : null })}>
@@ -219,6 +222,64 @@ function Select({ label, value, active, onChange, children }: { label: string; v
       >
         {children}
       </select>
+    </span>
+  )
+}
+
+// Looks like the other dropdowns but lets several options be ticked (e.g. SUV and Crossover).
+function MultiSelect({ label, anyLabel, options, selected, onChange }: {
+  label: string
+  anyLabel: string
+  options: { value: string; label: string }[]
+  selected: string[]
+  onChange: (next: string[]) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const box = useRef<HTMLSpanElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const close = (e: MouseEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false) }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', close)
+    document.addEventListener('keydown', onKey)
+    return () => { document.removeEventListener('mousedown', close); document.removeEventListener('keydown', onKey) }
+  }, [open])
+  const text = selected.length ? options.filter(o => selected.includes(o.value)).map(o => o.label).join(', ') : anyLabel
+  return (
+    <span ref={box} style={{ position: 'relative', display: 'flex' }}>
+      <button
+        type="button"
+        aria-label={label}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen(o => !o)}
+        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, fontSize: 14, fontFamily: 'inherit', textAlign: 'left', padding: '9px 14px', borderRadius: 980, border: '1px solid', borderColor: selected.length ? '#1d1d1f' : '#d2d2d7', background: '#fff', color: '#1d1d1f', cursor: 'pointer' }}
+      >
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{text}</span>
+        <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden style={{ flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
+          <path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      {open && (
+        <ul role="listbox" aria-multiselectable="true" aria-label={label} style={{ position: 'absolute', left: 0, right: 0, top: 'calc(100% + 6px)', zIndex: 20, margin: 0, padding: 6, listStyle: 'none', background: '#fff', border: '1px solid #d2d2d7', borderRadius: 14, boxShadow: '0 12px 32px rgba(0,0,0,0.12)', maxHeight: 280, overflowY: 'auto' }}>
+          {options.map(o => {
+            const on = selected.includes(o.value)
+            return (
+              <li key={o.value}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: '#1d1d1f', padding: '8px 10px', borderRadius: 8, cursor: 'pointer', background: on ? '#f5f5f7' : 'transparent' }}>
+                  <input type="checkbox" checked={on} onChange={() => onChange(on ? selected.filter(v => v !== o.value) : [...selected, o.value])} style={{ accentColor: '#1d1d1f', width: 16, height: 16 }} />
+                  {o.label}
+                </label>
+              </li>
+            )
+          })}
+          {selected.length > 0 && (
+            <li style={{ borderTop: '1px solid #f0f0f0', marginTop: 4, paddingTop: 4 }}>
+              <button type="button" onClick={() => onChange([])} style={{ width: '100%', textAlign: 'left', fontSize: 13, color: '#0071e3', background: 'none', border: 'none', padding: '8px 10px', cursor: 'pointer' }}>{anyLabel}</button>
+            </li>
+          )}
+        </ul>
+      )}
     </span>
   )
 }
