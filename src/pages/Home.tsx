@@ -185,7 +185,7 @@ export function Home() {
           </p>
           <button
             onClick={() => navigate('/marketplace')}
-            style={{ fontSize: 16, fontWeight: 500, padding: '16px 40px', borderRadius: 980, background: '#1d1d1f', color: '#fff', border: 'none', cursor: 'pointer', transition: 'opacity 0.15s' }}
+            style={{ fontSize: 16, fontWeight: 800, padding: '16px 40px', borderRadius: 980, background: '#1d1d1f', color: '#fff', border: 'none', cursor: 'pointer', transition: 'opacity 0.15s' }}
             onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
             onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
           >
