@@ -190,7 +190,7 @@ function HostPanelContent() {
   return (
     <div style={{ paddingTop: 64 }}>
       <div style={{ padding: '40px 24px 36px', background: '#1c1c1e' }}>
-        <div style={{ maxWidth: 1000, margin: '0 auto' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <HostTabs tab={tab} onTab={x => setParam('tab', x, 'cars')} awaiting={data?.host.awaiting ?? 0} />
           <p style={{ fontSize: 13, color: '#a1a1a6', margin: '0 0 8px' }}>{h.eyebrow}</p>
           <h1 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#f5f5f7', margin: 0, lineHeight: 1.05 }}>{data?.host.name ?? '…'}</h1>
@@ -201,7 +201,7 @@ function HostPanelContent() {
         </div>
       </div>
 
-      <main style={{ maxWidth: 1000, margin: '0 auto', padding: '24px 24px 96px' }}>
+      <main style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 24px 96px' }}>
         {failed && <p style={{ fontSize: 15, color: '#d70015' }}>{t.marketplace.loadError}</p>}
         {data && (
           <>
@@ -256,68 +256,68 @@ function HostPanelContent() {
               </div>
             )}
             {tab === 'cars' && (
-              <ul style={list}>
-                {data.cars.length === 0 && <Empty text={h.noCars} />}
-                {data.cars.length > 0 && state && !data.cars.some(c => c.condition === state) && <Empty text={t.carCondition.noMatch} />}
-                {data.cars.filter(c => !state || c.condition === state).map(car => (
-                  <li key={car.id} className="admin-row" style={row}>
-                    <div className="car-row__main">
-                    <HiddenVeil show={car.status === 'HIDDEN'} label={t.admin.hidden} />
-                    <div style={{ width: 120, aspectRatio: '16/10', borderRadius: 10, overflow: 'hidden', background: '#e8e8ed', flexShrink: 0 }}>
-                      {car.photo && <img src={photoUrl(car.photo, 240, 150)} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
-                    </div>
-                    <div style={{ minWidth: 0, flex: 1 }}>
-                      <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f' }}>
-                        {car.brand} {car.model} <span style={{ fontWeight: 400, color: '#6e6e73' }}>· {car.year}</span>
-                        {car.reviewStatus !== 'APPROVED' && car.reviewStatus !== 'NO_DOCUMENTS' && (
-                          <span style={{ display: 'inline-block', whiteSpace: 'nowrap', verticalAlign: 'middle', marginLeft: 8, fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 980, ...CAR_REVIEW_COLORS[car.reviewStatus] }}>
-                            {t.carPapers.status[car.reviewStatus]}
-                          </span>
+              <>
+                {(data.cars.length === 0 || (state && !data.cars.some(c => c.condition === state))) && (
+                  <ul style={list}>
+                    {data.cars.length === 0 ? <Empty text={h.noCars} /> : <Empty text={t.carCondition.noMatch} />}
+                  </ul>
+                )}
+                {/* One card per car, like in the admin's list: a large photo with its states, the details, the actions. */}
+                <ul className="admin-car-grid" style={{ marginTop: 16 }}>
+                  {data.cars.filter(c => !state || c.condition === state).map(car => (
+                    <li key={car.id} className="admin-car-card">
+                      <div className="admin-car-card__photo">
+                        {car.photo && <img src={photoUrl(car.photo, 640, 400)} alt={`${car.brand} ${car.model}`} loading="lazy" />}
+                        <HiddenVeil show={car.status === 'HIDDEN'} label={t.admin.hidden} className="car-row__veil--card" />
+                        <div className="admin-car-card__pills">
+                          <span title={car.conditionNote ?? undefined} style={{ ...CONDITION_COLORS[car.condition] }}>{t.carCondition.names[car.condition]}</span>
+                          {car.reviewStatus !== 'APPROVED' && car.reviewStatus !== 'NO_DOCUMENTS' && (
+                            <span style={{ ...CAR_REVIEW_COLORS[car.reviewStatus] }}>{t.carPapers.status[car.reviewStatus]}</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="admin-car-card__body">
+                        <div style={{ fontSize: 13, color: '#6e6e73' }}>{car.brand} · {car.year}</div>
+                        <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', color: '#1d1d1f', marginTop: 2, overflowWrap: 'anywhere' }}>{car.model}</div>
+                        <div style={{ fontSize: 14, color: '#424245', marginTop: 6 }}>
+                          <strong style={{ fontWeight: 700, color: '#1d1d1f' }}><Money value={car.pricePerDay} /></strong>{t.common.perDay}
+                        </div>
+                        <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 4 }}>
+                          {car.rating !== null ? `★ ${car.rating.toFixed(1)} (${h.reviewsCount(car.reviews)})` : t.car.hostNoReviews} · {t.common.trips(car.trips)}
+                        </div>
+                        {car.condition !== 'READY' ? (
+                          <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 4 }}>
+                            {car.condition === 'NO_DOCUMENTS'
+                              ? <span style={{ color: '#424245' }}>{t.carPapers.noDocsShort}</span>
+                              : <>{t.carCondition.offSite}{car.conditionSince && ` · ${t.carCondition.since(date(car.conditionSince.slice(0, 10)))}`}</>}
+                            {car.conditionNote && <div style={{ color: '#424245', overflowWrap: 'anywhere' }}>„{car.conditionNote}”</div>}
+                          </div>
+                        ) : (
+                          <div style={{ fontSize: 13, marginTop: 4, color: car.rentedNow ? '#b25000' : '#1b7a35' }}>
+                            {car.rentedNow ? h.rentedNow(date(car.rentedNow.returnDate)) : car.nextBooking ? <span style={{ color: '#424245' }}>{h.next(date(car.nextBooking.pickupDate), date(car.nextBooking.returnDate))}</span> : h.free}
+                          </div>
                         )}
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 500, padding: '2px 9px', borderRadius: 980, ...CONDITION_COLORS[car.condition] }}>
-                          <span aria-hidden="true" style={{ width: 7, height: 7, borderRadius: '50%', background: CONDITION_COLORS[car.condition].color }} />
-                          {t.carCondition.names[car.condition]}
-                        </span>
-                        {car.condition !== 'READY' && (
-                          <span style={{ fontSize: 12, color: '#6e6e73' }}>
-                            {t.carCondition.offSite}{car.conditionSince && ` · ${t.carCondition.since(date(car.conditionSince.slice(0, 10)))}`}
-                          </span>
+                        {car.reviewStatus === 'REJECTED' && car.reviewNote && (
+                          <div style={{ fontSize: 13, color: '#b3261e', marginTop: 4 }}>{t.carPapers.reason}: {car.reviewNote}</div>
                         )}
+                        {/* Fixed 2 × 2 places, so the buttons never move when one of them is missing. */}
+                        <div className="admin-car-card__actions">
+                          {car.condition === 'NO_DOCUMENTS'
+                            ? <span />
+                            : car.condition === 'READY'
+                              ? <button onClick={() => setChanging(car)} className="btn-action btn-action--neutral">{t.carCondition.change}</button>
+                              : <button onClick={() => makeReady(car)} className="btn-action btn-action--neutral">{t.carCondition.makeReady}</button>}
+                          {car.status === 'ACTIVE' && car.reviewStatus === 'APPROVED' && car.condition === 'READY'
+                            ? <Link to={`/cars/${car.slug}`} className="btn-action btn-action--neutral">{h.view}</Link>
+                            : <span />}
+                          <Link to={`/host/cars/${car.id}`} className="btn-action btn-action--primary">{h.edit}</Link>
+                          <button onClick={() => remove(car)} className="btn-action btn-action--danger">{h.delete}</button>
+                        </div>
                       </div>
-                      {car.condition !== 'READY' && car.conditionNote && (
-                        <div style={{ fontSize: 13, color: '#424245', marginTop: 2, overflowWrap: 'anywhere' }}>„{car.conditionNote}”</div>
-                      )}
-                      {car.reviewStatus === 'NO_DOCUMENTS' && (
-                        <div style={{ fontSize: 13, color: '#424245', marginTop: 2 }}>{t.carPapers.noDocsShort}</div>
-                      )}
-                      {car.reviewStatus === 'REJECTED' && car.reviewNote && (
-                        <div style={{ fontSize: 13, color: '#b3261e', marginTop: 2 }}>{t.carPapers.reason}: {car.reviewNote}</div>
-                      )}
-                      <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 2 }}>
-                        <Money value={car.pricePerDay} />{t.common.perDay} · {car.city} · {car.rating !== null ? `★ ${car.rating.toFixed(1)} (${h.reviewsCount(car.reviews)})` : t.car.hostNoReviews} · {t.common.trips(car.trips)}
-                      </div>
-                      <div style={{ fontSize: 13, marginTop: 4, color: car.rentedNow ? '#b25000' : '#1b7a35' }}>
-                        {car.rentedNow ? h.rentedNow(date(car.rentedNow.returnDate)) : car.nextBooking ? <span style={{ color: '#424245' }}>{h.next(date(car.nextBooking.pickupDate), date(car.nextBooking.returnDate))}</span> : h.free}
-                      </div>
-                    </div>
-                    </div>
-                    <div className="host-car-side">
-                      <div className="row-actions" style={{ justifyContent: 'flex-end' }}>
-                        {car.condition === 'NO_DOCUMENTS'
-                          ? null
-                          : car.condition === 'READY'
-                          ? <button onClick={() => setChanging(car)} className="btn-action btn-action--neutral">{t.carCondition.change}</button>
-                          : <button onClick={() => makeReady(car)} className="btn-action btn-action--neutral">{t.carCondition.makeReady}</button>}
-                        {car.status === 'ACTIVE' && car.reviewStatus === 'APPROVED' && car.condition === 'READY' && <Link to={`/cars/${car.slug}`} className="btn-action btn-action--neutral">{h.view}</Link>}
-                        <Link to={`/host/cars/${car.id}`} className="btn-action btn-action--primary">{h.edit}</Link>
-                        <button onClick={() => remove(car)} className="btn-action btn-action--danger">{h.delete}</button>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+                    </li>
+                  ))}
+                </ul>
+              </>
             )}
 
             {tab === 'bookings' && (
