@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Fragment } from 'react'
 import { Link } from 'react-router'
 import { carImage } from '../../data/cars'
 import { deleteCar, reloadCars, setCarStatus, useAllCars, useFreshCatalog } from '../../lib/carStore'
@@ -172,51 +172,59 @@ function AdminCarsContent() {
         {allCars.length === 0 && <p style={{ fontSize: 16, color: '#6e6e73', textAlign: 'center', padding: '48px 0' }}>{t.admin.empty}</p>}
         {allCars.length > 0 && cars.length === 0 && <p style={{ fontSize: 15, color: '#6e6e73', padding: '32px 0' }}>{s.noMatch}</p>}
 
-        <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+        {/* One card per car: a large photo with its states on it, the details, then the actions. */}
+        <ul className="admin-car-grid">
           {shown.map(car => {
             const name = `${car.brand} ${car.model}`
             return (
-              <li key={car.id} className="admin-row" style={{ padding: '16px 0', borderBottom: '1px solid #f0f0f0' }}>
-                <div className="car-row__main">
-                <HiddenVeil show={car.status === 'HIDDEN'} label={t.admin.hidden} />
-                <div style={{ width: 120, aspectRatio: '16/10', borderRadius: 10, overflow: 'hidden', background: '#e8e8ed', flexShrink: 0 }}>
-                  {car.photos.length > 0 && <img src={carImage(car, 240, 150)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
-                </div>
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f' }}>{name} <span style={{ fontWeight: 400, color: '#6e6e73' }}>· {car.year}</span>
-                    {car.condition && car.condition !== 'READY' && (
-                      <span title={car.conditionNote ?? undefined} style={{ display: 'inline-block', whiteSpace: 'nowrap', verticalAlign: 'middle', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', marginLeft: 8, fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 980, ...CONDITION_COLORS[car.condition] }}>
-                        {t.carCondition.names[car.condition]}{car.conditionNote && ` · ${car.conditionNote.length > 40 ? `${car.conditionNote.slice(0, 40)}…` : car.conditionNote}`}
-                      </span>
-                    )}
-                    {car.reviewStatus && car.reviewStatus !== 'APPROVED' && car.reviewStatus !== 'NO_DOCUMENTS' && (
-                      <span style={{ display: 'inline-block', whiteSpace: 'nowrap', verticalAlign: 'middle', marginLeft: 8, fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 980, ...CAR_REVIEW_COLORS[car.reviewStatus] }}>
-                        {t.carPapers.status[car.reviewStatus]}
-                      </span>
-                    )}
-                    <span style={{ marginLeft: 8, fontSize: 12, fontWeight: 400, color: '#86868b' }}>· {car.host.name}</span>
+              <Fragment key={car.id}>
+                <li className="admin-car-card">
+                  <div className="admin-car-card__photo">
+                    {car.photos.length > 0 && <img src={carImage(car, 640, 400)} alt={name} loading="lazy" />}
+                    <HiddenVeil show={car.status === 'HIDDEN'} label={t.admin.hidden} className="car-row__veil--card" />
+                    <div className="admin-car-card__pills">
+                      {car.condition && car.condition !== 'READY' && (
+                        <span title={car.conditionNote ?? undefined} style={{ ...CONDITION_COLORS[car.condition] }}>
+                          {t.carCondition.names[car.condition]}
+                        </span>
+                      )}
+                      {car.reviewStatus && car.reviewStatus !== 'APPROVED' && car.reviewStatus !== 'NO_DOCUMENTS' && (
+                        <span style={{ ...CAR_REVIEW_COLORS[car.reviewStatus] }}>{t.carPapers.status[car.reviewStatus]}</span>
+                      )}
+                    </div>
                   </div>
-                  <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 2 }}>
-                    {fmt(car.pricePerDay)}{t.common.perDay} · {carText(car, lang).location} · {car.horsepower} {t.car.units.hp}
-                    {car.createdAt && <span style={{ color: '#86868b' }}> · {t.adminCarsList.added(new Date(car.createdAt).toLocaleDateString(lang))}</span>}
+                  <div className="admin-car-card__body">
+                    <div style={{ fontSize: 13, color: '#6e6e73' }}>{car.brand} · {car.year}</div>
+                    <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', color: '#1d1d1f', marginTop: 2, overflowWrap: 'anywhere' }}>{car.model}</div>
+                    <div style={{ fontSize: 14, color: '#424245', marginTop: 6 }}>
+                      <strong style={{ fontWeight: 700, color: '#1d1d1f' }}>{fmt(car.pricePerDay)}</strong>{t.common.perDay} · {car.horsepower} {t.car.units.hp}
+                    </div>
+                    <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 4 }}>{carText(car, lang).location}</div>
+                    <div style={{ fontSize: 13, color: '#6e6e73', marginTop: 2 }}>
+                      <Link to={`/hosts/${car.host.id}`} style={{ color: '#0071e3', textDecoration: 'none' }}>{car.host.name}</Link>
+                      {car.createdAt && <span style={{ color: '#86868b' }}> · {t.adminCarsList.added(new Date(car.createdAt).toLocaleDateString(lang))}</span>}
+                    </div>
+                    {car.condition && car.condition !== 'READY' && car.conditionNote && (
+                      <div style={{ fontSize: 13, color: '#424245', marginTop: 6, overflowWrap: 'anywhere' }}>„{car.conditionNote}”</div>
+                    )}
+                    <div className="admin-car-card__actions">
+                      <button onClick={() => setReviewing(reviewing === car.id ? null : car.id)} className={`btn-action ${car.reviewStatus === 'PENDING' ? 'btn-action--primary' : 'btn-action--neutral'}`}>
+                        {reviewing === car.id ? t.carPapers.admin.hide : t.carPapers.admin.review}
+                      </button>
+                      <Link to={`/cars/${car.slug}`} className="btn-action btn-action--neutral">{t.admin.view}</Link>
+                      <button
+                        onClick={() => setCarStatus(car.id, car.status === 'HIDDEN' ? 'ACTIVE' : 'HIDDEN').catch(() => alert(t.admin.saveError))}
+                        className={`btn-action ${car.status === 'HIDDEN' ? 'btn-action--primary' : 'btn-action--neutral'}`}
+                      >
+                        {car.status === 'HIDDEN' ? t.admin.showCar : t.admin.hideCar}
+                      </button>
+                      <button onClick={() => remove(car.id, name)} className="btn-action btn-action--danger">{t.admin.delete}</button>
+                    </div>
                   </div>
-                </div>
-                </div>
-                <div className="row-actions">
-                  <button onClick={() => setReviewing(reviewing === car.id ? null : car.id)} className={`btn-action ${car.reviewStatus === 'PENDING' ? 'btn-action--primary' : 'btn-action--neutral'}`}>
-                    {reviewing === car.id ? t.carPapers.admin.hide : t.carPapers.admin.review}
-                  </button>
-                  <Link to={`/cars/${car.slug}`} className="btn-action btn-action--neutral">{t.admin.view}</Link>
-                  <button
-                    onClick={() => setCarStatus(car.id, car.status === 'HIDDEN' ? 'ACTIVE' : 'HIDDEN').catch(() => alert(t.admin.saveError))}
-                    className={`btn-action ${car.status === 'HIDDEN' ? 'btn-action--primary' : 'btn-action--neutral'}`}
-                  >
-                    {car.status === 'HIDDEN' ? t.admin.showCar : t.admin.hideCar}
-                  </button>
-                  <button onClick={() => remove(car.id, name)} className="btn-action btn-action--danger">{t.admin.delete}</button>
-                </div>
-                {reviewing === car.id && <CarReview carId={car.id} onDone={() => setReviewing(null)} />}
-              </li>
+                </li>
+                {/* The papers open under the card, across the whole row. */}
+                {reviewing === car.id && <li style={{ gridColumn: '1 / -1' }}><CarReview carId={car.id} onDone={() => setReviewing(null)} /></li>}
+              </Fragment>
             )
           })}
         </ul>

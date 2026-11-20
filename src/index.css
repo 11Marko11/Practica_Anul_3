@@ -425,3 +425,15 @@ input[type="search"]::-webkit-search-cancel-button { margin-left: 10px; cursor: 
 .brand-logo-bg { position: absolute; top: 50%; right: -6%; height: 130%; width: auto; opacity: 0.09; pointer-events: none; transition: transform 0.4s ease; }
 .brand-logo-bg--md { height: 150%; right: -4%; }
 .brand-logo-bg--sm { height: 120%; right: -14%; opacity: 0.08; }
+
+/* Admin > Cars: a grid of cards, each with a large photo on top. */
+.admin-car-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 20px; }
+.admin-car-card { display: flex; flex-direction: column; border-radius: 18px; overflow: hidden; background: #f5f5f7; border: 1px solid #ececf0; min-width: 0; }
+.admin-car-card__photo { position: relative; aspect-ratio: 16 / 10; background: #e8e8ed; overflow: hidden; }
+.admin-car-card__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.admin-car-card__pills { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; flex-wrap: wrap; gap: 6px; z-index: 2; }
+.admin-car-card__pills span { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 980px; white-space: nowrap; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12); }
+.admin-car-card__body { display: flex; flex-direction: column; flex: 1; padding: 16px 18px 18px; }
+.admin-car-card__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 16px; }
+/* The "hidden" veil over a card's photo instead of a row. */
+.car-row__veil--card { inset: 0; border-radius: 0; background: rgba(29, 29, 31, 0.55); }
