@@ -97,17 +97,11 @@ export function Marketplace() {
                 {cities.map(c => <option key={c} value={c}>{c}</option>)}
               </Select>
             </FilterField>
-            <FilterField label={t.marketplace.fuel} wide>
-              <div role="group" aria-label={t.marketplace.fuel} style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                {FUELS.map(f => {
-                  const on = filters.fuels.includes(f)
-                  return (
-                    <button key={f} aria-pressed={on} onClick={() => update(cur => ({ fuels: cur.fuels.includes(f) ? cur.fuels.filter(x => x !== f) : [...cur.fuels, f] }))} style={pill(on)}>
-                      {t.common.fuel[f]}
-                    </button>
-                  )
-                })}
-              </div>
+            <FilterField label={t.marketplace.fuel}>
+              <Select label={t.marketplace.fuel} value={filters.fuels[0] ?? ''} active={filters.fuels.length > 0} onChange={v => update({ fuels: v ? [v as Car['fuel']] : [] })}>
+                <option value="">{t.marketplace.any}</option>
+                {FUELS.map(f => <option key={f} value={f}>{t.common.fuel[f]}</option>)}
+              </Select>
             </FilterField>
             {(bodies.size > 0 || filters.bodies.length > 0) && <FilterField label={t.marketplace.body} wide>
               <div role="group" aria-label={t.marketplace.body} style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
