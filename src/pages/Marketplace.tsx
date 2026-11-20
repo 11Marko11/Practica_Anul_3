@@ -254,9 +254,6 @@ export function CarCard({ car, days, query }: { car: Car; days: number; query: s
           </span>
           <span style={{ fontSize: 12, color: '#6e6e73' }}>{t.common.seats(car.seats)}</span>
         </div>
-        <p style={{ fontSize: 13, color: '#6e6e73', margin: '8px 0 0' }}>
-          {t.marketplace.totalFor(fmt(car.pricePerDay * days), days)}
-        </p>
         {/* "View details" and, on its right, the heart that saves the car to the favourites. */}
         <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
           <span style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, height: 46, borderRadius: 12, fontSize: 18, fontWeight: 800, color: '#fff', background: hov ? '#3a3a3c' : '#1d1d1f', transition: 'background-color 0.15s' }}>
