@@ -434,6 +434,8 @@ export const ro: Dict = {
     spent: 'Plătit',
     refunded: 'Rambursat',
     reviewsCount: (n: number) => countOf('ro', n, { one: 'recenzie', few: 'recenzii', other: 'de recenzii' }),
+    lastSeen: (date: string) => `ultima vizită ${date}`,
+    activeHint: 'Au folosit site-ul în ultimele 24 de ore',
     lastBooking: (date: string) => `ultima rezervare ${date}`,
     empty: 'Niciun client nu corespunde.',
     back: '← Toți clienții',

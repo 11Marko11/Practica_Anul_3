@@ -434,6 +434,8 @@ export const en = {
     spent: 'Paid',
     refunded: 'Refunded',
     reviewsCount: (n: number) => countOf('en', n, { one: 'review', other: 'reviews' }),
+    lastSeen: (date: string) => `last visit ${date}`,
+    activeHint: 'Used the site in the last 24 hours',
     lastBooking: (date: string) => `last booking ${date}`,
     empty: 'No customers match.',
     back: '← All customers',

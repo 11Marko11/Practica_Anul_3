@@ -434,6 +434,8 @@ export const ru: Dict = {
     spent: 'Оплачено',
     refunded: 'Возвращено',
     reviewsCount: (n: number) => countOf('ru', n, { one: 'отзыв', few: 'отзыва', many: 'отзывов', other: 'отзыва' }),
+    lastSeen: (date: string) => `последний визит ${date}`,
+    activeHint: 'Заходили на сайт за последние 24 часа',
     lastBooking: (date: string) => `последнее бронирование ${date}`,
     empty: 'Клиенты не найдены.',
     back: '← Все клиенты',

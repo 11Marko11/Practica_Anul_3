@@ -34,6 +34,7 @@ type Customer = {
   verificationSubmittedAt: string | null
   createdAt: string
   deletedAt: string | null
+  lastSeenAt: string | null // when they last used the site while signed in
   bookings: number
   completed: number
   spent: number
@@ -81,8 +82,11 @@ const statusMatches = (s: Status, e: Entry) => {
   if (s === 'all') return true
   if (s === 'pending') return active && e.customer?.verificationStatus === 'PENDING'
   if (s === 'hostRequests') return active && e.customer?.hostApplicationStatus === 'PENDING'
-  return (s === 'active') === active
+  if (s === 'deleted') return !active
+  // Active: used the site (signed in) within the last day.
+  return active && !!e.customer?.lastSeenAt && Date.now() - new Date(e.customer.lastSeenAt).getTime() <= DAY_MS
 }
+const DAY_MS = 86_400_000
 
 // /admin/users lists customers and hosts together, filtered by role and status.
 // /admin/users/:id is one user account; /admin/users/host/:hostId a host without an account.
@@ -118,10 +122,11 @@ export function StatusPill({ active }: { active: boolean }) {
   )
 }
 
-function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
+function Chip({ on, onClick, title, children }: { on: boolean; onClick: () => void; title?: string; children: React.ReactNode }) {
   return (
     <button
       onClick={onClick}
+      title={title}
       aria-pressed={on}
       style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, padding: '8px 14px', borderRadius: 980, border: '1px solid', borderColor: on ? '#1d1d1f' : '#d2d2d7', background: on ? '#1d1d1f' : 'transparent', color: on ? '#fff' : '#6e6e73', cursor: 'pointer', whiteSpace: 'nowrap' }}
     >
@@ -229,7 +234,7 @@ function UserList() {
               // What waits for the admin stands out with a red counter, like the tabs.
               const waiting = (s === 'pending' || s === 'hostRequests') && n > 0
               return (
-                <Chip key={s} on={status === s} onClick={() => set('status', s)}>
+                <Chip key={s} on={status === s} onClick={() => set('status', s)} title={s === 'active' ? c.activeHint : undefined}>
                   {s === 'pending' ? t.verificationAdmin.filter : s === 'hostRequests' ? t.hostApply.admin.filter : c.filters[s]}
                   {loaded && (waiting ? <CountBadge n={n} /> : <span style={{ opacity: 0.7 }}>({n})</span>)}
                 </Chip>
@@ -282,6 +287,7 @@ function UserList() {
                     ? <>{e.host.name !== e.name && <>{u.hostAs(e.host.name)} · </>}{t.commission.label}: {e.host.commissionRate}%</>
                     : x && (x.active ? c.since(formatDate(x.createdAt.slice(0, 10), lang)) : c.deletedOn(formatDate(x.deletedAt!.slice(0, 10), lang)))}
                   {x?.lastBookingAt && <div>{c.lastBooking(formatDate(x.lastBookingAt.slice(0, 10), lang))}</div>}
+                  {x?.active && x.lastSeenAt && <div>{c.lastSeen(new Date(x.lastSeenAt).toLocaleString(lang, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }))}</div>}
                 </div>
                 {active && <Link to={`${e.to}?edit=1`} className="btn-action btn-action--primary user-card__edit">{u.edit}</Link>}
               </li>
