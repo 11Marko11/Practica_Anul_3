@@ -180,6 +180,7 @@ export const ro: Dict = {
     },
   },
   bookings: {
+    steps: { paid: 'Plătită', confirmed: 'Confirmată de gazdă', done: 'Cursă încheiată' },
     menu: 'Rezervările mele',
     phone: 'Număr de telefon',
     phonePlaceholder: '+373 69 123 456',

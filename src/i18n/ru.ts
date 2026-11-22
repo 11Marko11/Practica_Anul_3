@@ -180,6 +180,7 @@ export const ru: Dict = {
     },
   },
   bookings: {
+    steps: { paid: 'Оплачено', confirmed: 'Подтверждено хостом', done: 'Поездка завершена' },
     menu: 'Мои бронирования',
     phone: 'Номер телефона',
     phonePlaceholder: '+373 69 123 456',

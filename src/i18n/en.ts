@@ -180,6 +180,7 @@ export const en = {
     },
   },
   bookings: {
+    steps: { paid: 'Paid', confirmed: 'Confirmed by the host', done: 'Trip ended' },
     menu: 'My bookings',
     phone: 'Phone number',
     phonePlaceholder: '+373 69 123 456',

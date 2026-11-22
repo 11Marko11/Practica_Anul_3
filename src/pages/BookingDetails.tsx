@@ -3,10 +3,12 @@ import { formatPhone } from '../lib/phone'
 import { same, useLivePoll } from '../lib/livePoll'
 import { Link, Navigate, useLocation, useParams, useSearchParams } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
-import { BookingCard } from '../components/BookingCard'
+import { StatusBadge } from '../components/BookingCard'
+import { ReturnLocation } from '../components/ReturnLocation'
+import { photoUrl } from '../data/cars'
 import { useI18n } from '../i18n/I18nContext'
 import { ApiError } from '../lib/api'
-import { cancelBooking, completeBooking, getBooking, payBooking, type Booking } from '../lib/bookings'
+import { cancelBooking, completeBooking, getBooking, payBooking, type Booking, type BookingStatus } from '../lib/bookings'
 import { ReturnLocationDialog } from '../components/ReturnLocationDialog'
 import { fmt, formatDate } from '../lib/rental'
 
@@ -83,10 +85,12 @@ export function BookingDetails() {
   }
 
   const time = (iso: string) => new Date(iso).toLocaleString(lang, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })
+  // "23 nov. 2026": short enough for the two dates to stay on one line each.
+  const shortDate = (iso: string) => new Date(`${iso}T12:00:00Z`).toLocaleDateString(lang, { day: 'numeric', month: 'short', year: 'numeric' })
 
   return (
     <div style={{ paddingTop: 64 }}>
-      <main style={{ maxWidth: 760, margin: '0 auto', padding: '32px 24px 96px' }}>
+      <main style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 24px 96px' }}>
         <Link to="/bookings" className="btn-action btn-action--neutral btn-back">{t.bookings.back}</Link>
 
         {notFound && <h1 style={{ fontSize: 28, fontWeight: 600, color: '#1d1d1f', margin: '24px 0' }}>{t.bookings.notFound}</h1>}
@@ -97,78 +101,92 @@ export function BookingDetails() {
             {payment === 'success' && booking.status !== 'PENDING_PAYMENT' && <Banner tone="ok">{t.bookings.paymentSuccess}</Banner>}
             {payment === 'cancelled' && booking.status === 'PENDING_PAYMENT' && <Banner tone="warn">{t.bookings.paymentCancelled}</Banner>}
 
-            <h1 style={{ fontSize: 'clamp(26px, 4vw, 36px)', fontWeight: 600, letterSpacing: '-0.03em', color: '#1d1d1f', margin: '20px 0 6px' }}>
-              {booking.car.brand} {booking.car.model}
-            </h1>
-            <p style={{ fontSize: 15, color: '#424245', margin: '0 0 20px', lineHeight: 1.6 }}>{t.bookings.statusText[booking.status]}</p>
-
-            <BookingCard booking={booking}>
-              <dl style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '6px 16px', fontSize: 14, margin: '14px 0 0' }}>
-                <dt style={{ color: '#6e6e73' }}>{t.bookings.rental(t.common.days(booking.days))}</dt>
-                <dd style={{ margin: 0, color: '#1d1d1f' }}>{fmt(booking.rentalPrice)}</dd>
-                {booking.deliveryKm !== null && (
-                  <>
-                    <dt style={{ color: '#6e6e73' }}>{t.bookings.deliveryFee(booking.deliveryKm)}</dt>
-                    <dd style={{ margin: 0, color: '#1d1d1f' }}>{fmt(booking.deliveryFee)}</dd>
-                  </>
-                )}
-                <dt style={{ color: '#6e6e73' }}>{t.bookings.phone2}</dt>
-                <dd style={{ margin: 0, color: '#1d1d1f' }}>{formatPhone(booking.phone)}</dd>
-                {booking.note && (
-                  <>
-                    <dt style={{ color: '#6e6e73' }}>{t.bookings.note2}</dt>
-                    <dd style={{ margin: 0, color: '#1d1d1f', whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>{booking.note}</dd>
-                  </>
-                )}
-              </dl>
-              <p style={{ fontSize: 12, color: '#86868b', margin: '12px 0 0' }}>
-                {t.bookings.bookedOn(time(booking.createdAt))}
-                {booking.status === 'PENDING_PAYMENT' && booking.paymentExpiresAt && ` · ${t.bookings.payBy(time(booking.paymentExpiresAt))}`}
-              </p>
-            </BookingCard>
-
-            {booking.cancelled && (
-              <div style={{ marginTop: 16, padding: '14px 18px', borderRadius: 14, background: '#f5f5f7', fontSize: 14, lineHeight: 1.6, color: '#1d1d1f' }}>
-                <strong style={{ fontWeight: 600 }}>
-                  {booking.status === 'REJECTED' ? t.bookings.rejectedByUs : booking.cancelled.by === 'ADMIN' ? t.bookings.cancelledByUs : t.bookings.cancelledByYou}
-                </strong>
-                {booking.cancelled.at && <span style={{ color: '#6e6e73' }}> · {time(booking.cancelled.at)}</span>}
-                {booking.cancelled.reason && <div>{t.bookings.reason}: {t.cancelReasons[booking.cancelled.reason]}</div>}
-                {booking.cancelled.note && <div style={{ color: '#424245', whiteSpace: 'pre-line' }}>{booking.cancelled.note}</div>}
-                {booking.refundedAmount > 0 && <div>{t.bookings.refunded}: {fmt(booking.refundedAmount)}</div>}
-              </div>
-            )}
-
-            {booking.status === 'CONFIRMED' && (
-              <p style={{ fontSize: 14, color: '#424245', lineHeight: 1.6, margin: '16px 0 0' }}>
-                {booking.canComplete ? null : <>{t.bookings.completeFrom(formatDate(booking.pickupDate, lang))} </>}
-                {t.bookings.confirmedNote} <Link to="/contact" style={{ color: '#0071e3', textDecoration: 'none' }}>{t.bookings.contactUs}</Link>
-              </p>
-            )}
-
-            {error && <p role="alert" style={{ fontSize: 14, color: '#d70015', margin: '16px 0 0' }}>{t.bookings.errors[error]}</p>}
-
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 20 }}>
-              {booking.status === 'PENDING_PAYMENT' && (
-                <button onClick={pay} disabled={busy} style={{ ...button, background: '#1d1d1f', color: '#fff', opacity: busy ? 0.6 : 1 }}>
-                  {busy ? t.bookings.redirecting : t.bookings.pay}
-                </button>
-              )}
-              {booking.canComplete && (
-                <button onClick={() => setEnding(true)} disabled={busy} style={{ ...button, background: '#1d1d1f', color: '#fff', opacity: busy ? 0.6 : 1 }}>
-                  {t.bookings.complete}
-                </button>
-              )}
-              {booking.canCancel && (
-                <button onClick={() => run(t.bookings.cancelFree, () => cancelBooking(id))} disabled={busy} style={{ ...button, background: 'none', color: '#d70015', border: '1px solid #f0c4c4', opacity: busy ? 0.6 : 1 }}>
-                  {t.bookings.cancel}
-                </button>
-              )}
-              {booking.status === 'COMPLETED' && (
-                <Link to={`/cars/${booking.car.slug}#reviews`} style={{ ...button, background: '#1d1d1f', color: '#fff', textDecoration: 'none' }}>
-                  {t.bookings.reviewCar}
+            <div className="booking-detail">
+              {/* Left: the car large, where the booking stands and what happened to it. */}
+              <div style={{ minWidth: 0 }}>
+                <Link to={`/cars/${booking.car.slug}`} className="booking-detail__photo">
+                  {booking.car.photo && <img src={photoUrl(booking.car.photo, 1200, 750)} alt={`${booking.car.brand} ${booking.car.model}`} />}
                 </Link>
-              )}
+                <h1 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, letterSpacing: '-0.03em', color: '#1d1d1f', margin: '20px 0 6px' }}>
+                  {booking.car.brand} {booking.car.model}
+                </h1>
+                <p style={{ fontSize: 16, color: '#424245', margin: 0, lineHeight: 1.6 }}>{t.bookings.statusText[booking.status]}</p>
+
+                <Progress status={booking.status} />
+
+                {booking.cancelled && (
+                  <div style={{ marginTop: 20, padding: '14px 18px', borderRadius: 14, background: '#f5f5f7', fontSize: 14, lineHeight: 1.6, color: '#1d1d1f' }}>
+                    <strong style={{ fontWeight: 600 }}>
+                      {booking.status === 'REJECTED' ? t.bookings.rejectedByUs : booking.cancelled.by === 'ADMIN' ? t.bookings.cancelledByUs : t.bookings.cancelledByYou}
+                    </strong>
+                    {booking.cancelled.at && <span style={{ color: '#6e6e73' }}> · {time(booking.cancelled.at)}</span>}
+                    {booking.cancelled.reason && <div>{t.bookings.reason}: {t.cancelReasons[booking.cancelled.reason]}</div>}
+                    {booking.cancelled.note && <div style={{ color: '#424245', whiteSpace: 'pre-line' }}>{booking.cancelled.note}</div>}
+                    {booking.refundedAmount > 0 && <div>{t.bookings.refunded}: {fmt(booking.refundedAmount)}</div>}
+                  </div>
+                )}
+
+                {booking.status === 'CONFIRMED' && (
+                  <p style={{ fontSize: 14, color: '#424245', lineHeight: 1.6, margin: '20px 0 0' }}>
+                    {booking.canComplete ? null : <>{t.bookings.completeFrom(formatDate(booking.pickupDate, lang))} </>}
+                    {t.bookings.confirmedNote} <Link to="/contact" style={{ color: '#0071e3', textDecoration: 'none' }}>{t.bookings.contactUs}</Link>
+                  </p>
+                )}
+                {booking.returnLocation && <div style={{ marginTop: 16 }}><ReturnLocation location={booking.returnLocation} /></div>}
+              </div>
+
+              {/* Right: the booking itself, in a dark card like the one on the car's page. */}
+              <aside className="booking-detail__card">
+                <StatusBadge status={booking.status} />
+                <div className="booking-detail__dates">
+                  <div>
+                    <span>{t.car.pickup}</span>
+                    <strong>{shortDate(booking.pickupDate)}</strong>
+                  </div>
+                  <svg width="20" height="20" viewBox="0 0 14 14" aria-hidden><path d="M3 7h8M7.5 3.5 11 7l-3.5 3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  <div>
+                    <span>{t.car.return}</span>
+                    <strong>{shortDate(booking.returnDate)}</strong>
+                  </div>
+                </div>
+                <p style={{ fontSize: 13, color: '#a1a1a6', margin: '0 0 18px', lineHeight: 1.5, overflowWrap: 'anywhere' }}>
+                  {t.common.days(booking.days)} · {booking.handover === 'DELIVERY' ? `${t.bookings.deliveryTo}: ${booking.deliveryAddress}` : t.bookings.pickupAt}
+                </p>
+
+                <div className="booking-detail__lines">
+                  <div><span>{t.bookings.rental(t.common.days(booking.days))}</span><span>{fmt(booking.rentalPrice)}</span></div>
+                  {booking.deliveryKm !== null && <div><span>{t.bookings.deliveryFee(booking.deliveryKm)}</span><span>{fmt(booking.deliveryFee)}</span></div>}
+                  <div className="booking-detail__total"><span>{t.car.total}</span><span>{fmt(booking.total)}</span></div>
+                  {booking.refundedAmount > 0 && <div><span>{t.bookings.refunded}</span><span>−{fmt(booking.refundedAmount)}</span></div>}
+                </div>
+
+                <div className="booking-detail__lines" style={{ marginTop: 14 }}>
+                  <div><span>{t.bookings.phone2}</span><span>{formatPhone(booking.phone)}</span></div>
+                  {booking.note && <div style={{ display: 'block' }}><span>{t.bookings.note2}</span><p style={{ margin: '4px 0 0', color: '#f5f5f7', whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>{booking.note}</p></div>}
+                </div>
+
+                {error && <p role="alert" style={{ fontSize: 14, color: '#ff6961', margin: '16px 0 0' }}>{t.bookings.errors[error]}</p>}
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 20 }}>
+                  {booking.status === 'PENDING_PAYMENT' && (
+                    <button onClick={pay} disabled={busy} className="booking-detail__btn booking-detail__btn--main">{busy ? t.bookings.redirecting : t.bookings.pay}</button>
+                  )}
+                  {booking.canComplete && (
+                    <button onClick={() => setEnding(true)} disabled={busy} className="booking-detail__btn booking-detail__btn--main">{t.bookings.complete}</button>
+                  )}
+                  {booking.status === 'COMPLETED' && (
+                    <Link to={`/cars/${booking.car.slug}#reviews`} className="booking-detail__btn booking-detail__btn--main">{t.bookings.reviewCar}</Link>
+                  )}
+                  {booking.canCancel && (
+                    <button onClick={() => run(t.bookings.cancelFree, () => cancelBooking(id))} disabled={busy} className="booking-detail__btn booking-detail__btn--cancel">{t.bookings.cancel}</button>
+                  )}
+                </div>
+
+                <p style={{ fontSize: 12, color: '#86868b', margin: '16px 0 0' }}>
+                  {t.bookings.bookedOn(time(booking.createdAt))}
+                  {booking.status === 'PENDING_PAYMENT' && booking.paymentExpiresAt && ` · ${t.bookings.payBy(time(booking.paymentExpiresAt))}`}
+                </p>
+              </aside>
             </div>
           </>
         )}
@@ -187,7 +205,23 @@ export function BookingDetails() {
   )
 }
 
-const button: React.CSSProperties = { fontSize: 15, fontWeight: 500, padding: '12px 24px', borderRadius: 980, border: 'none', cursor: 'pointer' }
+// Paid → confirmed by the host → trip ended. Not shown for bookings that were cancelled, rejected or never paid in time.
+function Progress({ status }: { status: BookingStatus }) {
+  const { t } = useI18n()
+  const steps = t.bookings.steps
+  const reached = { PENDING_PAYMENT: 0, AWAITING_CONFIRMATION: 1, CONFIRMED: 2, COMPLETED: 3 }[status as 'CONFIRMED']
+  if (reached === undefined) return null
+  return (
+    <ol className="booking-progress">
+      {[steps.paid, steps.confirmed, steps.done].map((label, i) => (
+        <li key={label} className={i < reached ? 'is-done' : i === reached ? 'is-current' : undefined}>
+          <span className="booking-progress__dot" aria-hidden>{i < reached ? '✓' : i + 1}</span>
+          {label}
+        </li>
+      ))}
+    </ol>
+  )
+}
 
 function Banner({ tone, children }: { tone: 'ok' | 'warn'; children: React.ReactNode }) {
   return (
