@@ -106,6 +106,9 @@ model User {
   verificationSubmittedAt DateTime?
   verifiedAt              DateTime?
 
+  // When the user last used the site while signed in (updated at most every few minutes).
+  lastSeenAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

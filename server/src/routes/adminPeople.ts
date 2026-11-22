@@ -51,6 +51,7 @@ export async function adminPeopleRoutes(app: FastifyInstance) {
         verificationSubmittedAt: u.verificationSubmittedAt?.toISOString() ?? null,
         createdAt: u.createdAt.toISOString(),
         deletedAt: u.deletedAt?.toISOString() ?? null,
+        lastSeenAt: u.lastSeenAt?.toISOString() ?? null, // when they last used the site signed in
         bookings: u.bookings.filter(b => b.status !== 'PENDING_PAYMENT' && b.status !== 'EXPIRED').length,
         completed: u.bookings.filter(b => b.status === 'COMPLETED').length,
         spent: u.bookings.reduce((s, b) => s + kept(b), 0),

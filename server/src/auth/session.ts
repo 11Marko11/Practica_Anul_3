@@ -40,6 +40,17 @@ export async function createSession(userId: string) {
   return token
 }
 
+// When each signed-in user was last seen; written to the database at most every SEEN_MS, so a
+// page full of requests costs one update, not one per request.
+const SEEN_MS = 5 * 60_000
+const lastSeenWritten = new Map<string, number>()
+function markSeen(userId: string) {
+  const now = Date.now()
+  if (now - (lastSeenWritten.get(userId) ?? 0) < SEEN_MS) return
+  lastSeenWritten.set(userId, now)
+  prisma.user.update({ where: { id: userId }, data: { lastSeenAt: new Date(now) } }).catch(() => lastSeenWritten.delete(userId))
+}
+
 export async function userForToken(token: string): Promise<PublicUser | null> {
   const session = await prisma.session.findUnique({
     where: { id: tokenHash(token) },
@@ -54,6 +65,7 @@ export async function userForToken(token: string): Promise<PublicUser | null> {
   if (session.expiresAt.getTime() - Date.now() < IDLE_MS - REFRESH_MS) {
     await prisma.session.update({ where: { id: session.id }, data: { expiresAt: new Date(Date.now() + IDLE_MS) } })
   }
+  markSeen(session.user.id)
   return session.user
 }
 
