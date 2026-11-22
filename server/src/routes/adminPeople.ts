@@ -82,6 +82,7 @@ export async function adminPeopleRoutes(app: FastifyInstance) {
       customer: {
         id: u.id, name: u.name, email: u.deletedEmail ?? u.email, avatarUrl: u.avatarUrl, active: !u.deletedAt,
         createdAt: u.createdAt.toISOString(), deletedAt: u.deletedAt?.toISOString() ?? null,
+        lastSeenAt: u.lastSeenAt?.toISOString() ?? null,
         phone: u.phone, birthDate: u.birthDate?.toISOString().slice(0, 10) ?? null,
         verificationStatus: u.verificationStatus, verificationNote: u.verificationNote,
         verificationSubmittedAt: u.verificationSubmittedAt?.toISOString() ?? null, verifiedAt: u.verifiedAt?.toISOString() ?? null,
