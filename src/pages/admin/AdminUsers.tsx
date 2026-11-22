@@ -44,7 +44,7 @@ type Customer = {
   hostApplicationStatus: HostApplicationStatus | null
 }
 type Detail = {
-  customer: Pick<Customer, 'id' | 'name' | 'email' | 'avatarUrl' | 'active' | 'createdAt' | 'deletedAt' | 'spent' | 'verificationStatus' | 'verificationSubmittedAt' | 'host'> & {
+  customer: Pick<Customer, 'id' | 'name' | 'email' | 'avatarUrl' | 'active' | 'createdAt' | 'deletedAt' | 'lastSeenAt' | 'spent' | 'verificationStatus' | 'verificationSubmittedAt' | 'host'> & {
     refunded: number
     phone: string | null
     birthDate: string | null
@@ -84,9 +84,8 @@ const statusMatches = (s: Status, e: Entry) => {
   if (s === 'hostRequests') return active && e.customer?.hostApplicationStatus === 'PENDING'
   if (s === 'deleted') return !active
   // Active: used the site (signed in) within the last day.
-  return active && !!e.customer?.lastSeenAt && Date.now() - new Date(e.customer.lastSeenAt).getTime() <= DAY_MS
+  return active && seenLastDay(e.customer?.lastSeenAt)
 }
-const DAY_MS = 86_400_000
 
 // /admin/users lists customers and hosts together, filtered by role and status.
 // /admin/users/:id is one user account; /admin/users/host/:hostId a host without an account.
@@ -113,11 +112,15 @@ function Header({ title, children }: { title: string; children?: React.ReactNode
   )
 }
 
-export function StatusPill({ active }: { active: boolean }) {
+// Active: used the site (signed in) within the last day; inactive otherwise; or the account is deleted.
+export const seenLastDay = (lastSeenAt: string | null | undefined) => !!lastSeenAt && Date.now() - new Date(lastSeenAt).getTime() <= 86_400_000
+
+export function StatusPill({ active, lastSeenAt }: { active: boolean; lastSeenAt?: string | null }) {
   const { t } = useI18n()
+  const on = active && seenLastDay(lastSeenAt)
   return (
-    <span style={{ fontSize: 12, fontWeight: 500, padding: '3px 10px', borderRadius: 980, whiteSpace: 'nowrap', background: active ? '#e3f6e8' : '#f2f2f4', color: active ? '#1b7a35' : '#6e6e73' }}>
-      {active ? t.customers.active : t.customers.deleted}
+    <span title={active ? t.customers.activeHint : undefined} style={{ fontSize: 12, fontWeight: 500, padding: '3px 10px', borderRadius: 980, whiteSpace: 'nowrap', background: on ? '#e3f6e8' : '#f2f2f4', color: on ? '#1b7a35' : '#6e6e73' }}>
+      {!active ? t.customers.deleted : on ? t.customers.active : t.customers.inactive}
     </span>
   )
 }
@@ -333,7 +336,7 @@ function UserDetail({ id }: { id: string }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
               <Avatar name={data.customer.name} url={data.customer.avatarUrl} size={44} />
               {data.customer.host ? <HostBadge /> : <CustomerBadge />}
-              <StatusPill active={data.customer.active} />
+              <StatusPill active={data.customer.active} lastSeenAt={data.customer.lastSeenAt} />
               <span style={{ fontSize: 14, color: '#424245', overflowWrap: 'anywhere' }}>
                 {data.customer.active ? <a href={`mailto:${data.customer.email}`} style={{ color: '#0071e3', textDecoration: 'none' }}>{data.customer.email}</a> : data.customer.email}
               </span>

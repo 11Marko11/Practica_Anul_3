@@ -427,6 +427,7 @@ export const ro: Dict = {
     search: 'Caută după nume sau email',
     filters: { all: 'Toți', active: 'Activi', deleted: 'Conturi șterse' },
     active: 'Activ',
+    inactive: 'Inactiv',
     deleted: 'Cont șters',
     since: (date: string) => `Client din ${date}`,
     deletedOn: (date: string) => `Și-a șters contul pe ${date}`,

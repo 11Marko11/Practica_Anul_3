@@ -427,6 +427,7 @@ export const en = {
     search: 'Search by name or email',
     filters: { all: 'All', active: 'Active', deleted: 'Deleted accounts' },
     active: 'Active',
+    inactive: 'Inactive',
     deleted: 'Account deleted',
     since: (date: string) => `Customer since ${date}`,
     deletedOn: (date: string) => `Deleted their account on ${date}`,

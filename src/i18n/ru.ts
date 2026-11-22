@@ -427,6 +427,7 @@ export const ru: Dict = {
     search: 'Поиск по имени или email',
     filters: { all: 'Все', active: 'Активные', deleted: 'Удалённые аккаунты' },
     active: 'Активен',
+    inactive: 'Неактивен',
     deleted: 'Аккаунт удалён',
     since: (date: string) => `Клиент с ${date}`,
     deletedOn: (date: string) => `Удалил аккаунт ${date}`,
