@@ -109,8 +109,9 @@ export function AccountFields({ email, password, onEmail, onPassword, passwordLa
       </label>
       <label style={field}>
         {passwordLabel}
+        {/* The hint sits above the field, so the field lines up with the others in the row. */}
+        <span style={{ fontSize: 11, color: '#86868b', marginTop: -2 }}>{h.passwordHint}</span>
         <input type="text" value={password} onChange={e => onPassword(e.target.value)} minLength={8} maxLength={200} autoComplete="new-password" style={{ ...control, borderRadius: 10 }} />
-        <span style={{ fontSize: 11, color: '#86868b' }}>{h.passwordHint}</span>
       </label>
     </>
   )

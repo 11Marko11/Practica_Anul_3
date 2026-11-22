@@ -493,8 +493,9 @@ function AccountPanel({ data, onChange }: { data: Detail; onChange: () => Promis
           </label>
           <label style={field}>
             {u.newPassword}
+            {/* The hint sits above the field, so the field lines up with the others in the row. */}
+            <span style={{ fontSize: 11, color: '#86868b', marginTop: -2 }}>{u.passwordHint}</span>
             <input type="text" value={password} onChange={e => setPassword(e.target.value)} minLength={8} maxLength={200} autoComplete="new-password" style={{ ...control, borderRadius: 10 }} />
-            <span style={{ fontSize: 11, color: '#86868b' }}>{u.passwordHint}</span>
           </label>
           <div style={{ flexBasis: '100%', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button type="submit" disabled={busy || !ready} className="btn-action btn-action--primary" style={{ opacity: busy || !ready ? 0.5 : 1 }}>{u.save}</button>
