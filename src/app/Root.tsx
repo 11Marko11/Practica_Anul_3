@@ -76,7 +76,9 @@ export function Root() {
               <NavLink
                 key={path}
                 to={`/${path}`}
+                className="nav-link"
                 style={({ isActive }) => ({
+                  height: NAV_HEIGHT,
                   fontSize: 17,
                   color: isActive ? '#fff' : linkColor,
                   textDecoration: 'none',
